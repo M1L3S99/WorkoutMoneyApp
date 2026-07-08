@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>WorkoutMoneyApp</title>
+<!-- AI pose detection (loads from the internet; app still works without it via manual mode) -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.3/dist/pose-detection.min.js"></script>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2330; --border:#2b3442;
+    --text:#e6edf3; --muted:#9aa7b4; --accent:#3fb950; --accent2:#2ea043;
+    --danger:#f85149; --warn:#d29922; --blue:#388bfd;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.5}
+  header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;
+    position:sticky;top:0;background:var(--bg);z-index:10}
+  header .logo{font-weight:800;font-size:20px}
+  header .logo span{color:var(--accent)}
+  nav{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+  nav button{background:transparent;border:1px solid var(--border);color:var(--muted);padding:7px 12px;
+    border-radius:8px;cursor:pointer;font-size:13px}
+  nav button.active{color:var(--text);border-color:var(--accent);background:var(--panel)}
+  main{max-width:820px;margin:0 auto;padding:20px}
+  .screen{display:none}
+  .screen.active{display:block}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:18px}
+  h1{font-size:24px;margin:0 0 4px}
+  h2{font-size:18px;margin:0 0 12px}
+  p.muted{color:var(--muted);margin-top:4px}
+  .grid7{display:grid;grid-template-columns:1fr;gap:10px}
+  .dayrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--panel2);
+    border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+  .dayrow .name{width:44px;font-weight:700}
+  select,input[type=text],input[type=number]{background:#0b0f14;border:1px solid var(--border);color:var(--text);
+    padding:8px 10px;border-radius:8px;font-size:14px}
+  input[type=number]{width:90px}
+  label.rest{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;margin-left:auto}
+  .btn{background:var(--accent);color:#04170a;border:none;padding:11px 18px;border-radius:10px;font-weight:700;
+    cursor:pointer;font-size:15px}
+  .btn:hover{background:var(--accent2)}
+  .btn.secondary{background:transparent;border:1px solid var(--border);color:var(--text);font-weight:600}
+  .btn.danger{background:var(--danger);color:#fff}
+  .btn.blue{background:var(--blue);color:#fff}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .stat{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;flex:1;min-width:140px}
+  .stat .k{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+  .stat .v{font-size:26px;font-weight:800;margin-top:4px}
+  .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700}
+  .pill.done{background:rgba(63,185,80,.15);color:var(--accent)}
+  .pill.miss{background:rgba(248,81,73,.15);color:var(--danger)}
+  .pill.rest{background:rgba(56,139,253,.15);color:var(--blue)}
+  .pill.today{background:rgba(210,153,34,.18);color:var(--warn)}
+  video,canvas{width:100%;max-width:520px;border-radius:12px;background:#000}
+  .camwrap{position:relative;max-width:520px}
+  .camwrap canvas{position:absolute;left:0;top:0}
+  .repbig{font-size:64px;font-weight:900;text-align:center;line-height:1}
+  .contract{background:#0b0f14;border:1px solid var(--border);border-radius:10px;padding:16px;max-height:280px;
+    overflow:auto;font-size:14px;color:var(--muted)}
+  .contract h3{color:var(--text)}
+  .warnbox{background:rgba(248,81,73,.1);border:1px solid var(--danger);color:#ffb3ae;border-radius:10px;
+    padding:14px;font-weight:800;text-align:center;letter-spacing:.02em;margin:14px 0}
+  .amounts{display:flex;gap:10px;flex-wrap:wrap}
+  .amt{background:var(--panel2);border:2px solid var(--border);border-radius:12px;padding:14px 20px;cursor:pointer;
+    font-size:18px;font-weight:800}
+  .amt.sel{border-color:var(--accent);color:var(--accent)}
+  .disclaimer{font-size:12px;color:var(--muted);border-top:1px dashed var(--border);margin-top:16px;padding-top:12px}
+  .logtable{width:100%;border-collapse:collapse;font-size:14px}
+  .logtable td,.logtable th{border-bottom:1px solid var(--border);padding:8px;text-align:left}
+  .banner{background:rgba(210,153,34,.12);border:1px solid var(--warn);color:#ffd88a;padding:10px 14px;
+    border-radius:10px;margin-bottom:16px;font-size:14px}
+  a.link{color:var(--blue);cursor:pointer}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Workout<span>Money</span></div>
+  <nav id="nav">
+    <button data-screen="home" class="active">Home</button>
+    <button data-screen="setup">Regimen</button>
+    <button data-screen="workout">Today</button>
+    <button data-screen="contract">Invest</button>
+    <button data-screen="history">History</button>
+  </nav>
+</header>
+
+<main>
+  <!-- HOME -->
+  <section id="home" class="screen active">
+    <h1>Your commitment</h1>
+    <p class="muted">Do your workout every scheduled day. Miss two scheduled days in a row and you forfeit half your balance.</p>
+    <div id="healthBanner"></div>
+    <div class="row" style="margin:16px 0">
+      <div class="stat"><div class="k">Current streak</div><div class="v" id="statStreak">0</div></div>
+      <div class="stat"><div class="k">Invested</div><div class="v" id="statInvested">$0</div></div>
+      <div class="stat"><div class="k">Balance left</div><div class="v" id="statBalance">$0</div></div>
+      <div class="stat"><div class="k">Forfeited</div><div class="v" id="statForfeit" style="color:var(--danger)">$0</div></div>
+    </div>
+    <div class="card">
+      <h2>Today — <span id="todayName"></span></h2>
+      <div id="todayBody"></div>
+    </div>
+    <div class="card" id="contractStatusCard"></div>
+  </section>
+
+  <!-- SETUP -->
+  <section id="setup" class="screen">
+    <h1>Set your regimen</h1>
+    <p class="muted">Pick your exercise and target for each day. Mark the days you rest.</p>
+    <div class="card">
+      <div class="grid7" id="regimenGrid"></div>
+      <div class="row" style="margin-top:16px">
+        <button class="btn" id="saveRegimen">Save regimen</button>
+        <span id="saveMsg" class="muted"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- WORKOUT -->
+  <section id="workout" class="screen">
+    <h1>Today's workout</h1>
+    <div id="workoutInfo"></div>
+    <div class="card" id="workoutCard">
+      <div class="camwrap">
+        <video id="video" playsinline muted></video>
+        <canvas id="overlay"></canvas>
+      </div>
+      <div class="repbig" id="repCount" style="margin:14px 0">0</div>
+      <div class="muted" id="aiStatus" style="text-align:center;margin-bottom:12px">AI not started</div>
+      <div class="row" style="justify-content:center">
+        <button class="btn blue" id="startCam">Start AI camera</button>
+        <button class="btn secondary" id="manualDone">I did it (manual)</button>
+      </div>
+      <p class="muted" style="text-align:center;margin-top:14px">
+        Get in the pushup position so your upper body is visible. The AI counts each full pushup (down &amp; up).
+      </p>
+    </div>
+  </section>
+
+  <!-- CONTRACT -->
+  <section id="contract" class="screen">
+    <h1>Invest in your effort</h1>
+    <p class="muted">This is optional — but signing is what makes it real.</p>
+    <div id="contractArea"></div>
+  </section>
+
+  <!-- HISTORY -->
+  <section id="history" class="screen">
+    <h1>History</h1>
+    <div class="card"><table class="logtable" id="logTable"></table></div>
+    <div class="card">
+      <h2>Danger zone</h2>
+      <button class="btn danger" id="resetAll">Reset all data</button>
+      <p class="muted">Clears your regimen, log, and contract from this browser.</p>
+    </div>
+  </section>
+</main>
+
+<script>
+/* ============================================================
+   WorkoutMoneyApp — prototype (single file)
+   IMPORTANT: This does NOT charge real money. The "billing" and
+   contract are simulated for demonstration only. Real payments
+   need a backend + payment processor (e.g. Stripe) + legal review.
+   All data is stored locally in your browser (localStorage).
+============================================================ */
+
+const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const EXERCISES = ['Pushups','Squats','Situps','Lunges','Burpees'];
+
+const store = {
+  load(){
+    return {
+      regimen: JSON.parse(localStorage.getItem('wm_regimen')||'null'),
+      log: JSON.parse(localStorage.getItem('wm_log')||'{}'),
+      contract: JSON.parse(localStorage.getItem('wm_contract')||'null'),
+      health: JSON.parse(localStorage.getItem('wm_health')||'false'),
+    };
+  },
+  saveRegimen(r){ localStorage.setItem('wm_regimen', JSON.stringify(r)); },
+  saveLog(l){ localStorage.setItem('wm_log', JSON.stringify(l)); },
+  saveContract(c){ localStorage.setItem('wm_contract', JSON.stringify(c)); },
+  saveHealth(h){ localStorage.setItem('wm_health', JSON.stringify(h)); },
+};
+
+function defaultRegimen(){
+  const r={};
+  DAYS.forEach((d,i)=>{ r[i]={exercise:'Pushups',target:20,rest:(i===0||i===6)}; });
+  return r;
+}
+function todayKey(d=new Date()){ return d.toISOString().slice(0,10); }
+function dowOf(key){ return new Date(key+'T00:00:00').getDay(); }
+
+let state = store.load();
+if(!state.regimen){ state.regimen = defaultRegimen(); }
+
+/* ---------- navigation ---------- */
+document.querySelectorAll('#nav button').forEach(b=>{
+  b.addEventListener('click',()=>showScreen(b.dataset.screen));
+});
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===name));
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.screen===name));
+  if(name==='home') renderHome();
+  if(name==='setup') renderSetup();
+  if(name==='workout') renderWorkout();
+  if(name==='contract') renderContract();
+  if(name==='history') renderHistory();
+  if(name!=='workout') stopCamera();
+}
+
+/* ---------- forfeiture + stats engine ---------- */
+// Walk every scheduled (non-rest) day from the first log/contract date up to
+// yesterday. A scheduled day with no completed workout is a "miss". Two misses
+// in a row trigger a forfeiture of half the remaining balance.
+function computeStats(){
+  const c = state.contract;
+  const invested = c ? c.amount : 0;
+  let balance = invested;
+  let forfeited = 0;
+  let streak = 0;
+  let events = [];
+
+  // find start date
+  const logKeys = Object.keys(state.log).sort();
+  const startKey = c ? c.date.slice(0,10) : (logKeys[0]||todayKey());
+  const start = new Date(startKey+'T00:00:00');
+  const today = new Date(todayKey()+'T00:00:00');
+
+  let consecutiveMiss = 0;
+  for(let d=new Date(start); d<today; d.setDate(d.getDate()+1)){
+    const key = todayKey(d);
+    const reg = state.regimen[d.getDay()];
+    if(!reg || reg.rest) continue;            // rest day: skipped, never a miss
+    const done = state.log[key] && state.log[key].completed;
+    if(done){
+      consecutiveMiss = 0;
+      streak++;
+    } else {
+      consecutiveMiss++;
+      streak = 0;
+      if(consecutiveMiss>=2){
+        // forfeiture (only while a signed contract with balance exists)
+        if(c && c.signed && balance>0){
+          const loss = balance/2;
+          forfeited += loss;
+          balance -= loss;
+          events.push({date:key, loss});
+        }
+        consecutiveMiss = 0; // reset so the NEXT pair triggers again
+      }
+    }
+  }
+  return {invested,balance,forfeited,streak,events};
+}
+
+/* ---------- HOME ---------- */
+function money(n){ return '$'+(Math.round(n*100)/100).toLocaleString(); }
+function renderHome(){
+  const s = computeStats();
+  document.getElementById('statStreak').textContent = s.streak;
+  document.getElementById('statInvested').textContent = money(s.invested);
+  document.getElementById('statBalance').textContent = money(s.balance);
+  document.getElementById('statForfeit').textContent = money(s.forfeited);
+
+  const dow = new Date().getDay();
+  const reg = state.regimen[dow];
+  document.getElementById('todayName').textContent = DAYS[dow];
+  const body = document.getElementById('todayBody');
+  const key = todayKey();
+  if(reg.rest){
+    body.innerHTML = `<span class="pill rest">Rest day</span><p class="muted">Enjoy it. Nothing to do today.</p>`;
+  } else if(state.log[key] && state.log[key].completed){
+    body.innerHTML = `<span class="pill done">Completed ✓</span>
+      <p class="muted">${state.log[key].reps} ${reg.exercise.toLowerCase()} logged. See you tomorrow.</p>`;
+  } else {
+    body.innerHTML = `<span class="pill today">Not done yet</span>
+      <p class="muted">Target: ${reg.target} ${reg.exercise.toLowerCase()}.</p>
+      <button class="btn" onclick="showScreen('workout')">Start workout</button>`;
+  }
+
+  const csc = document.getElementById('contractStatusCard');
+  if(state.contract && state.contract.signed){
+    csc.innerHTML = `<h2>Your contract</h2>
+      <p>Signed by <b>${escapeHtml(state.contract.name)}</b> on ${state.contract.date.slice(0,10)}.</p>
+      <p class="muted">You agreed: if you miss 2 scheduled days in a row, half your balance is billed each time.</p>
+      <button class="btn secondary" onclick="showScreen('contract')">View contract</button>`;
+  } else {
+    csc.innerHTML = `<h2>No money on the line yet</h2>
+      <p class="muted">Investing money is what makes people actually show up.</p>
+      <button class="btn" onclick="showScreen('contract')">Read the contract &amp; invest</button>`;
+  }
+
+  const hb = document.getElementById('healthBanner');
+  hb.innerHTML = state.health
+    ? `<div class="banner">🩺 Health exception is active — billing is paused. <a class="link" onclick="clearHealth()">Resume commitment</a></div>`
+    : '';
+}
+function clearHealth(){ state.health=false; store.saveHealth(false); renderHome(); }
+
+/* ---------- SETUP ---------- */
+function renderSetup(){
+  const grid = document.getElementById('regimenGrid');
+  grid.innerHTML='';
+  DAYS.forEach((d,i)=>{
+    const reg = state.regimen[i];
+    const row = document.createElement('div');
+    row.className='dayrow';
+    row.innerHTML = `
+      <span class="name">${d}</span>
+      <select data-i="${i}" data-f="exercise">${EXERCISES.map(e=>`<option ${e===reg.exercise?'selected':''}>${e}</option>`).join('')}</select>
+      <input type="number" min="1" data-i="${i}" data-f="target" value="${reg.target}" /> reps
+      <label class="rest"><input type="checkbox" data-i="${i}" data-f="rest" ${reg.rest?'checked':''}/> rest day</label>`;
+    grid.appendChild(row);
+  });
+  grid.querySelectorAll('[data-f]').forEach(el=>{
+    el.addEventListener('change',()=>{
+      const i=+el.dataset.i, f=el.dataset.f;
+      if(f==='rest') state.regimen[i].rest = el.checked;
+      else if(f==='target') state.regimen[i].target = Math.max(1,+el.value||1);
+      else state.regimen[i][f]=el.value;
+    });
+  });
+  document.getElementById('saveRegimen').onclick=()=>{
+    store.saveRegimen(state.regimen);
+    const m=document.getElementById('saveMsg'); m.textContent='Saved ✓';
+    setTimeout(()=>m.textContent='',1500);
+  };
+}
+
+/* ---------- WORKOUT + AI ---------- */
+let detector=null, camStream=null, rafId=null, running=false;
+let repCount=0, phase='up'; // 'up' = arms extended, 'down' = bottom
+const video=document.getElementById('video');
+const overlay=document.getElementById('overlay');
+
+function renderWorkout(){
+  const dow=new Date().getDay(), reg=state.regimen[dow], key=todayKey();
+  const info=document.getElementById('workoutInfo');
+  const card=document.getElementById('workoutCard');
+  if(reg.rest){
+    info.innerHTML=`<div class="banner">Today is a rest day — no workout needed. 🌙</div>`;
+    card.style.display='none'; return;
+  }
+  card.style.display='block';
+  if(state.log[key] && state.log[key].completed){
+    info.innerHTML=`<div class="banner">✅ Already completed today (${state.log[key].reps} reps). You can do more, but you're covered.</div>`;
+  } else {
+    info.innerHTML=`<p class="muted">Target: <b>${reg.target} ${reg.exercise}</b>. Reach the target to mark today complete.</p>`;
+  }
+  repCount=0; document.getElementById('repCount').textContent='0';
+}
+
+document.getElementById('startCam').onclick=startCamera;
+document.getElementById('manualDone').onclick=()=>{
+  const dow=new Date().getDay(), reg=state.regimen[dow];
+  completeToday(Math.max(repCount,reg.target));
+};
+
+async function startCamera(){
+  const status=document.getElementById('aiStatus');
+  try{
+    status.textContent='Requesting camera…';
+    camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:false});
+    video.srcObject=camStream; await video.play();
+    overlay.width=video.videoWidth||480; overlay.height=video.videoHeight||360;
+    status.textContent='Loading AI model…';
+    if(window.poseDetection){
+      detector=await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet,
+        {modelType:poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING});
+      status.textContent='AI ready — start doing pushups!';
+      running=true; loop();
+    } else {
+      status.textContent='AI model unavailable (no internet?). Use "I did it" to log manually.';
+    }
+  }catch(err){
+    status.textContent='Camera/AI unavailable: '+err.message+'. Use "I did it" to log manually.';
+  }
+}
+function stopCamera(){
+  running=false;
+  if(rafId) cancelAnimationFrame(rafId);
+  if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
+}
+
+function angle(a,b,c){
+  const ab=[a.x-b.x,a.y-b.y], cb=[c.x-b.x,c.y-b.y];
+  const dot=ab[0]*cb[0]+ab[1]*cb[1];
+  const m=Math.hypot(...ab)*Math.hypot(...cb)||1;
+  return Math.acos(Math.max(-1,Math.min(1,dot/m)))*180/Math.PI;
+}
+async function loop(){
+  if(!running) return;
+  try{
+    const poses=await detector.estimatePoses(video);
+    const ctx=overlay.getContext('2d');
+    ctx.clearRect(0,0,overlay.width,overlay.height);
+    if(poses[0]){
+      const kp={}; poses[0].keypoints.forEach(p=>kp[p.name]=p);
+      // draw keypoints
+      ctx.fillStyle='#3fb950';
+      poses[0].keypoints.forEach(p=>{ if(p.score>0.3){ ctx.beginPath();ctx.arc(p.x,p.y,4,0,7);ctx.fill(); }});
+      const angles=[];
+      if(good(kp.left_shoulder,kp.left_elbow,kp.left_wrist)) angles.push(angle(kp.left_shoulder,kp.left_elbow,kp.left_wrist));
+      if(good(kp.right_shoulder,kp.right_elbow,kp.right_wrist)) angles.push(angle(kp.right_shoulder,kp.right_elbow,kp.right_wrist));
+      if(angles.length){
+        const avg=angles.reduce((a,b)=>a+b,0)/angles.length;
+        if(phase==='up' && avg<95){ phase='down'; }
+        else if(phase==='down' && avg>150){ phase='up'; addRep(); }
+        document.getElementById('aiStatus').textContent=`Elbow ${Math.round(avg)}° — ${phase==='down'?'go up ⬆':'go down ⬇'}`;
+      }
+    }
+  }catch(e){/* ignore per-frame errors */}
+  rafId=requestAnimationFrame(loop);
+}
+function good(a,b,c){ return a&&b&&c&&a.score>0.3&&b.score>0.3&&c.score>0.3; }
+function addRep(){
+  repCount++;
+  document.getElementById('repCount').textContent=repCount;
+  const dow=new Date().getDay(), reg=state.regimen[dow];
+  if(repCount>=reg.target){ completeToday(repCount); }
+}
+function completeToday(reps){
+  const key=todayKey();
+  state.log[key]={completed:true,reps,exercise:state.regimen[new Date().getDay()].exercise};
+  store.saveLog(state.log);
+  stopCamera();
+  alert(`Nice — ${reps} reps logged for today. ✅`);
+  showScreen('home');
+}
+
+/* ---------- CONTRACT ---------- */
+let selectedAmount=0;
+function renderContract(){
+  const area=document.getElementById('contractArea');
+  if(state.contract && state.contract.signed){
+    const s=computeStats();
+    area.innerHTML=`
+      <div class="card">
+        <h2>Contract active</h2>
+        <p>Signed by <b>${escapeHtml(state.contract.name)}</b> on ${state.contract.date.slice(0,10)}.</p>
+        <div class="row">
+          <div class="stat"><div class="k">Invested</div><div class="v">${money(s.invested)}</div></div>
+          <div class="stat"><div class="k">Balance</div><div class="v">${money(s.balance)}</div></div>
+          <div class="stat"><div class="k">Forfeited</div><div class="v" style="color:var(--danger)">${money(s.forfeited)}</div></div>
+        </div>
+        ${contractText(state.contract.amount)}
+        <div class="warnbox">IF YOU MISS 2 DAYS IN A ROW I AGREE TO BE BILLED HALF THE SUM I INVEST.</div>
+        <p class="muted">There is no cancel. The only way out is a health exception.</p>
+        <button class="btn danger" id="healthBtn">Claim health exception</button>
+        <div class="disclaimer">Prototype only — no real money is charged. Not legal advice or an enforceable contract.</div>
+      </div>`;
+    document.getElementById('healthBtn').onclick=()=>{
+      if(confirm('Health exception pauses billing. Confirm you are stopping for genuine health reasons?')){
+        state.health=true; store.saveHealth(true); showScreen('home');
+      }
+    };
+    return;
+  }
+
+  selectedAmount=50;
+  area.innerHTML=`
+    <div class="card">
+      <h2>1. Choose your stake</h2>
+      <div class="amounts" id="amts">
+        ${[25,50,100,250].map(a=>`<div class="amt ${a===50?'sel':''}" data-a="${a}">$${a}</div>`).join('')}
+      </div>
+      <div class="row" style="margin-top:12px">
+        <span class="muted">or custom:</span> $
+        <input type="number" min="1" id="customAmt" placeholder="amount" />
+      </div>
+    </div>
+    <div class="card">
+      <h2>2. Read the contract</h2>
+      ${contractText(selectedAmount, true)}
+      <div class="warnbox">IF YOU MISS 2 DAYS IN A ROW I AGREE TO BE BILLED HALF THE SUM I INVEST.</div>
+    </div>
+    <div class="card">
+      <h2>3. Sign</h2>
+      <p class="muted">Type your full legal name to sign.</p>
+      <input type="text" id="sigName" placeholder="Full name" style="width:100%;max-width:360px" />
+      <label style="display:flex;gap:8px;align-items:flex-start;margin:14px 0;color:var(--muted)">
+        <input type="checkbox" id="agree" style="margin-top:4px"/>
+        <span>I have read and understand this contract. I understand there is <b>no cancellation</b> except for
+        genuine health reasons, and that if I miss two scheduled days in a row I will be billed half my balance
+        each time it happens.</span>
+      </label>
+      <button class="btn" id="signBtn" disabled>Sign &amp; commit</button>
+      <div class="disclaimer">Prototype only — no real money is charged, stored, or transferred. This is a
+      demonstration, not a legally binding agreement. Consult a lawyer and a payment provider before doing this for real.</div>
+    </div>`;
+
+  const amtEls=area.querySelectorAll('.amt');
+  amtEls.forEach(el=>el.onclick=()=>{
+    amtEls.forEach(x=>x.classList.remove('sel'));
+    el.classList.add('sel'); selectedAmount=+el.dataset.a;
+    document.getElementById('customAmt').value='';
+    refreshContractText();
+  });
+  document.getElementById('customAmt').oninput=(e)=>{
+    amtEls.forEach(x=>x.classList.remove('sel'));
+    selectedAmount=Math.max(0,+e.target.value||0);
+    refreshContractText();
+  };
+  const agree=document.getElementById('agree'), name=document.getElementById('sigName'), btn=document.getElementById('signBtn');
+  function upd(){ btn.disabled=!(agree.checked && name.value.trim().length>1 && selectedAmount>0); }
+  agree.onchange=upd; name.oninput=upd;
+  btn.onclick=()=>{
+    state.contract={signed:true,amount:selectedAmount,name:name.value.trim(),date:new Date().toISOString()};
+    state.health=false; store.saveHealth(false);
+    store.saveContract(state.contract);
+    alert('Signed. Your money is on the line now. Show up.');
+    showScreen('home');
+  };
+}
+function refreshContractText(){
+  const holders=document.querySelectorAll('[data-amt-holder]');
+  holders.forEach(h=>h.textContent='$'+selectedAmount);
+}
+function contractText(amount, editable){
+  const a = editable ? `<b data-amt-holder>$${amount}</b>` : `<b>$${amount}</b>`;
+  return `<div class="contract">
+    <h3>Commitment Contract</h3>
+    <p>I am voluntarily investing ${a} in my own fitness commitment.</p>
+    <p>I agree to complete my chosen exercise on every scheduled (non-rest) day, verified by the app.</p>
+    <p><b>Penalty:</b> If I fail to complete my exercise <b>two scheduled days in a row</b>, I agree to be billed
+    <b>half of my remaining balance</b>. This applies again for every additional pair of consecutive missed days.</p>
+    <p><b>No cancellation:</b> Once signed, this commitment cannot be cancelled. The only exception is a genuine
+    health reason, which pauses billing.</p>
+    <p>I understand this app is a prototype and, in this version, no real money is collected.</p>
+  </div>`;
+}
+
+/* ---------- HISTORY ---------- */
+function renderHistory(){
+  const t=document.getElementById('logTable');
+  const keys=Object.keys(state.log).sort().reverse();
+  let rows=`<tr><th>Date</th><th>Day</th><th>Status</th><th>Reps</th></tr>`;
+  if(!keys.length) rows+=`<tr><td colspan="4" class="muted">No workouts logged yet.</td></tr>`;
+  keys.forEach(k=>{
+    const reg=state.regimen[dowOf(k)];
+    const rec=state.log[k];
+    rows+=`<tr><td>${k}</td><td>${DAYS[dowOf(k)]}</td>
+      <td><span class="pill ${rec.completed?'done':'miss'}">${rec.completed?'Done':'Missed'}</span></td>
+      <td>${rec.reps||''}</td></tr>`;
+  });
+  t.innerHTML=rows;
+  document.getElementById('resetAll').onclick=()=>{
+    if(confirm('Erase ALL data (regimen, log, contract)? This cannot be undone.')){
+      localStorage.clear(); state=store.load(); state.regimen=defaultRegimen(); showScreen('home');
+    }
+  };
+}
+
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+renderHome();
+</script>
+</body>
+</html>
