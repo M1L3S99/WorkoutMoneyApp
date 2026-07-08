@@ -10,6 +10,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#121415">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icon.svg">
 <style>
   :root{
     --bg:#121415; --surf:#1e2021; --surf-low:#1a1c1d; --surf-high:#282a2b; --surf-highest:#333536; --surf-lowest:#0c0e0f;
@@ -147,7 +152,7 @@
 
   /* camera */
   .camwrap{position:relative;height:300px;border-radius:14px;overflow:hidden;background:#000;margin-top:8px}
-  .camwrap video,.camwrap canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .camwrap video,.camwrap canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
   .camplaceholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--muted)}
   .repbig{font-family:var(--fh);font-size:56px;font-weight:700;text-align:center;margin:14px 0 4px;letter-spacing:-.02em}
   .repbig .t{color:var(--muted);font-size:26px}
@@ -275,6 +280,7 @@
 const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const FULLDAY = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const EXERCISES = ['Pushups','Squats','Situps','Lunges','Burpees'];
+const CHARITIES = ['🩸 Red Cross','🐼 WWF','🍲 Local food bank','😤 A cause you oppose'];
 
 const store = {
   load(){
@@ -285,6 +291,9 @@ const store = {
       health: JSON.parse(localStorage.getItem('wm_health')||'false'),
       regimenSaved: JSON.parse(localStorage.getItem('wm_regimenSaved')||'false'),
       avatar: JSON.parse(localStorage.getItem('wm_avatar')||'null'),
+      exempt: JSON.parse(localStorage.getItem('wm_exempt')||'[]'),
+      skipsUsed: JSON.parse(localStorage.getItem('wm_skipsUsed')||'0'),
+      healthSince: JSON.parse(localStorage.getItem('wm_healthSince')||'null'),
     };
   },
   saveRegimen(r){ localStorage.setItem('wm_regimen', JSON.stringify(r)); },
@@ -292,6 +301,9 @@ const store = {
   saveContract(c){ localStorage.setItem('wm_contract', JSON.stringify(c)); },
   saveHealth(h){ localStorage.setItem('wm_health', JSON.stringify(h)); },
   saveRegimenSaved(v){ localStorage.setItem('wm_regimenSaved', JSON.stringify(v)); },
+  saveExempt(v){ localStorage.setItem('wm_exempt', JSON.stringify(v)); },
+  saveSkipsUsed(v){ localStorage.setItem('wm_skipsUsed', JSON.stringify(v)); },
+  saveHealthSince(v){ localStorage.setItem('wm_healthSince', JSON.stringify(v)); },
 };
 function defaultRegimen(){ const r={}; DAYS.forEach((d,i)=>{ r[i]={rest:(i===0||i===6),exercises:[{exercise:'Pushups',target:20}]}; }); return r; }
 // normalize a day to the multi-exercise shape (handles the old single-exercise format)
@@ -305,10 +317,20 @@ function normRegimen(r){ const o={}; DAYS.forEach((_,i)=>{ o[i]=normDay(r&&r[i])
 function addMonths(d,n){ const x=new Date(d); const day=x.getDate(); x.setDate(1); x.setMonth(x.getMonth()+n);
   const dim=new Date(x.getFullYear(),x.getMonth()+1,0).getDate(); x.setDate(Math.min(day,dim)); return x; }
 function daySummary(reg){ return reg.exercises.map(e=>`${e.target} ${e.exercise}`).join(' · '); }
-function todayKey(d=new Date()){ return d.toISOString().slice(0,10); }
+// LOCAL calendar date (not UTC) so an evening workout logs on the right day
+function todayKey(d=new Date()){ const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),da=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${da}`; }
 function dowOf(key){ return new Date(key+'T00:00:00').getDay(); }
 function money(n){ return '$'+(Math.round(n*100)/100).toLocaleString(); }
 function escapeHtml(s){ return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+// A day is "exempt" (never a miss, never breaks a streak) if covered by a skip token or a health-exception freeze.
+function isExempt(key){
+  if(state.exempt && state.exempt.indexOf(key)>=0) return true;
+  if(state.health && state.healthSince && key>=state.healthSince) return true;
+  return false;
+}
+function completedCount(){ return Object.keys(state.log).filter(k=>state.log[k]&&state.log[k].completed).length; }
+function tokensEarned(){ return Math.floor(completedCount()/7); }          // earn 1 skip token per 7 completed workouts
+function tokensAvailable(){ return Math.max(0, tokensEarned() - (state.skipsUsed||0)); }
 
 let state = store.load();
 state.regimen = state.regimen ? normRegimen(state.regimen) : defaultRegimen();
@@ -326,7 +348,7 @@ function computeStats(){
   let consecutiveMiss = 0;
   for(let d=new Date(start); d<today; d.setDate(d.getDate()+1)){
     const reg = state.regimen[d.getDay()];
-    if(!reg || reg.rest) continue;
+    if(!reg || reg.rest || isExempt(todayKey(d))) continue;
     const done = state.log[todayKey(d)] && state.log[todayKey(d)].completed;
     if(done){ consecutiveMiss=0; streak++; }
     else { consecutiveMiss++; streak=0; if(consecutiveMiss>=2){ if(c&&c.signed&&balance>0){ const loss=balance/2; forfeited+=loss; balance-=loss; } consecutiveMiss=0; } }
@@ -339,7 +361,7 @@ function computeStats(){
       const cs=addMonths(sign,k), ce=addMonths(sign,k+1);
       let missed=0;
       for(let d=new Date(cs); d<ce; d.setDate(d.getDate()+1)){
-        const reg=state.regimen[d.getDay()]; if(!reg||reg.rest) continue;
+        const reg=state.regimen[d.getDay()]; if(!reg||reg.rest||isExempt(todayKey(d))) continue;
         const done=state.log[todayKey(d)] && state.log[todayKey(d)].completed;
         if(!done) missed++;
       }
@@ -359,7 +381,7 @@ function cycleInfo(){
   const start=addMonths(sign,k), end=addMonths(sign,k+1);
   let missed=0;
   for(let d=new Date(start); d<today; d.setDate(d.getDate()+1)){
-    const reg=state.regimen[d.getDay()]; if(!reg||reg.rest) continue;
+    const reg=state.regimen[d.getDay()]; if(!reg||reg.rest||isExempt(todayKey(d))) continue;
     const done=state.log[todayKey(d)] && state.log[todayKey(d)].completed;
     if(!done) missed++;
   }
@@ -443,7 +465,7 @@ function renderHome(){
     ${contractCard}
     <div class="card"><div class="card-head"><h2 style="font-size:18px">Recent activity</h2>${recent.length?`<button class="link" onclick="showScreen('history')">View all</button>`:''}</div>${recentRows}</div>`;
 }
-function setHealth(v){ state.health=v; store.saveHealth(v); renderHome(); }
+function setHealth(v){ if(v) startHealth(); else endHealth(); renderHome(); }
 
 /* ---------- SCHEDULE (setup) ---------- */
 let planDraft=null;
@@ -503,18 +525,21 @@ function renderWorkout(){
     return;
   }
   const already = state.log[key] && state.log[key].completed;
+  const exemptToday = isExempt(key);
   const staked = (state.contract && state.contract.signed) ? state.contract.amount : 0;
+  const tokens = tokensAvailable();
   sessionItems = reg.exercises.map(e=>({exercise:e.exercise,target:e.target,reps:already?e.target:0,done:!!already}));
   activeIdx=0; phase='up';
   const list = sessionItems.map((it,j)=>`
     <div class="exline">
-      <span class="exname">${it.exercise}</span>
+      <span class="exname">${it.exercise}${it.exercise!=='Pushups'?' <span class="pill rest" style="margin-left:6px">honor</span>':''}</span>
       <span class="exprog" id="exprog-${j}">${it.reps} / ${it.target}</span>
       <span class="exdot ${it.done?'done':''}" id="exdot-${j}"></span>
     </div>`).join('');
   el.innerHTML=`
     <h1 class="page">My journey</h1>
     <p class="lead">High performance is the only currency that counts.</p>
+    ${exemptToday&&!already?`<div class="banner" style="margin-top:14px">🎟️ Today is covered by a skip token — it won't count against you.</div>`:''}
     <div class="card">
       <div class="card-head">
         <span class="pill done" style="text-transform:uppercase">Today's target</span>
@@ -532,16 +557,31 @@ function renderWorkout(){
       <div class="muted num" id="aiStatus" style="text-align:center;font-size:12px;min-height:16px"></div>
       <div id="camControls"></div>
     </div>
-    <p class="disclaimer">The camera + AI counts each full pushup (down &amp; up) automatically — get in position with your
-    upper body visible. Reps count into the current exercise; at its target it advances to the next one.
-    On browsers without the AI model it still shows the camera to keep you honest.</p>`;
-  renderCamControls();
+    ${(!already&&!exemptToday&&tokens>0)?`<button class="btn ghost" id="useToken">🎟️ Use a skip token · ${tokens} left</button>`:''}
+    <p class="disclaimer">The AI verifies <b>pushups</b>: you must be in a straight plank and reach full depth for a rep to count.
+    Other exercises are on the honor system (tap to mark done) until pose logic is added. The camera view is mirrored.</p>`;
+  renderActiveControls();
+  const ut=document.getElementById('useToken'); if(ut) ut.onclick=useSkipToken;
 }
-function renderCamControls(){
-  const c=document.getElementById('camControls');
-  if(!running){ c.innerHTML=`<button class="btn" id="startCam">▶ Start session</button>`;
-    document.getElementById('startCam').onclick=startCamera;
-  } else { c.innerHTML=`<div class="muted num" style="text-align:center;font-size:12px">Counting automatically…</div>`; }
+function renderActiveControls(){
+  const c=document.getElementById('camControls'); if(!c) return;
+  const it=sessionItems[activeIdx];
+  if(!it){ c.innerHTML=''; return; }
+  if(it.exercise==='Pushups'){
+    if(!running){ c.innerHTML=`<button class="btn" id="startCam">▶ Start camera</button>`; document.getElementById('startCam').onclick=startCamera; }
+    else c.innerHTML=`<div class="muted num" style="text-align:center;font-size:12px">Verifying automatically…</div>`;
+  } else {
+    c.innerHTML=`<button class="btn container" id="honorDone">Mark ${it.exercise} done · honor system</button>`;
+    document.getElementById('honorDone').onclick=honorComplete;
+  }
+}
+function useSkipToken(){
+  const key=todayKey();
+  if(tokensAvailable()<=0){ toast('No skip tokens available.'); return; }
+  if(!state.exempt.includes(key)) state.exempt.push(key);
+  state.skipsUsed=(state.skipsUsed||0)+1;
+  store.saveExempt(state.exempt); store.saveSkipsUsed(state.skipsUsed);
+  toast('Skip token used — today is covered.'); showScreen('home');
 }
 async function startCamera(){
   const status=document.getElementById('aiStatus');
@@ -555,64 +595,95 @@ async function startCamera(){
     status.textContent='Loading AI model…';
     if(window.poseDetection){
       detector=await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet,{modelType:poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING});
-      status.textContent='AI ready — start doing pushups!'; running=true; renderCamControls(); loop();
-    } else { running=true; renderCamControls(); status.textContent='AI unavailable here — open the hosted site for automatic counting.'; }
+      status.textContent='AI ready — get into plank position.'; running=true; renderActiveControls(); loop();
+    } else { running=true; renderActiveControls(); status.textContent='AI unavailable here — open the hosted site for automatic counting.'; }
   }catch(err){ status.textContent='Camera unavailable: '+err.message; }
 }
 function stopCamera(){ running=false; if(rafId) cancelAnimationFrame(rafId); if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; } }
 function angle(a,b,c){ const ab=[a.x-b.x,a.y-b.y], cb=[c.x-b.x,c.y-b.y]; const dot=ab[0]*cb[0]+ab[1]*cb[1], m=Math.hypot(...ab)*Math.hypot(...cb)||1; return Math.acos(Math.max(-1,Math.min(1,dot/m)))*180/Math.PI; }
 function good(a,b,c){ return a&&b&&c&&a.score>0.3&&b.score>0.3&&c.score>0.3; }
+// straightness of the body: angle at the hip (shoulder-hip-ankle, falling back to knee). ~180 = flat plank.
+function plankAngle(kp){
+  const combos=[['left_shoulder','left_hip','left_ankle'],['right_shoulder','right_hip','right_ankle'],
+                ['left_shoulder','left_hip','left_knee'],['right_shoulder','right_hip','right_knee']];
+  for(const [s,h,e] of combos){ if(good(kp[s],kp[h],kp[e])) return angle(kp[s],kp[h],kp[e]); }
+  return null;
+}
 async function loop(){
   if(!running) return;
+  const status=document.getElementById('aiStatus');
   try{
+    const active=sessionItems[activeIdx];
     const video=document.getElementById('video'), overlay=document.getElementById('overlay');
     const poses=await detector.estimatePoses(video);
     const ctx=overlay.getContext('2d'); ctx.clearRect(0,0,overlay.width,overlay.height);
+    if(!active || active.exercise!=='Pushups'){ if(status) status.textContent='Honor system — tap “Mark done”.'; rafId=requestAnimationFrame(loop); return; }
     if(poses[0]){
       const kp={}; poses[0].keypoints.forEach(p=>kp[p.name]=p);
       ctx.fillStyle='#91d78a'; poses[0].keypoints.forEach(p=>{ if(p.score>0.3){ ctx.beginPath();ctx.arc(p.x,p.y,4,0,7);ctx.fill(); }});
       const angles=[];
       if(good(kp.left_shoulder,kp.left_elbow,kp.left_wrist)) angles.push(angle(kp.left_shoulder,kp.left_elbow,kp.left_wrist));
       if(good(kp.right_shoulder,kp.right_elbow,kp.right_wrist)) angles.push(angle(kp.right_shoulder,kp.right_elbow,kp.right_wrist));
-      if(angles.length){ const avg=angles.reduce((a,b)=>a+b,0)/angles.length;
-        if(phase==='up' && avg<95) phase='down'; else if(phase==='down' && avg>150){ phase='up'; addRep(); }
-        document.getElementById('aiStatus').textContent=`Elbow ${Math.round(avg)}° — ${phase==='down'?'go up ⬆':'go down ⬇'}`; }
-    }
+      const body=plankAngle(kp);                 // null if body not visible
+      const inPlank = body!==null && body>150;    // straight body (no hip sag), full lower body in frame
+      if(!inPlank){ phase='up'; if(status) status.textContent = body===null ? 'Show your full body side-on (plank).' : 'Straighten up — hips are sagging.'; }
+      else if(angles.length){ const avg=angles.reduce((a,b)=>a+b,0)/angles.length;
+        if(phase==='up' && avg<90) phase='down';                 // reached full depth
+        else if(phase==='down' && avg>155){ phase='up'; addRep(); }  // pushed back up = 1 rep
+        if(status) status.textContent=`Plank ✓ · elbow ${Math.round(avg)}° — ${phase==='down'?'push up ⬆':'go down ⬇'}`; }
+    } else if(status){ status.textContent='Get into frame…'; }
   }catch(e){}
   rafId=requestAnimationFrame(loop);
 }
+let _ac=null;
+function beep(freq,dur,vol){
+  try{ _ac=_ac||new (window.AudioContext||window.webkitAudioContext)();
+    const o=_ac.createOscillator(), g=_ac.createGain();
+    o.type='sine'; o.frequency.value=freq||660; g.gain.value=vol||0.14;
+    o.connect(g); g.connect(_ac.destination); o.start(); o.stop(_ac.currentTime+(dur||0.06));
+  }catch(e){}
+}
+function buzz(ms){ if(navigator.vibrate){ try{ navigator.vibrate(ms); }catch(e){} } }
+function updateOverall(){
+  const tt=sessionItems.reduce((a,b)=>a+b.target,0), td=sessionItems.reduce((a,b)=>a+Math.min(b.reps,b.target),0);
+  const pct=Math.min(100,Math.round(td/tt*100));
+  const rb=document.getElementById('repBar'); if(rb) rb.style.width=pct+'%';
+  const rp=document.getElementById('repPct'); if(rp) rp.textContent=pct;
+}
 function addRep(){
-  if(activeIdx>=sessionItems.length) return;
-  const it=sessionItems[activeIdx];
+  const it=sessionItems[activeIdx]; if(!it) return;
   it.reps++;
   const prog=document.getElementById('exprog-'+activeIdx); if(prog) prog.textContent=`${Math.min(it.reps,it.target)} / ${it.target}`;
   const rc=document.getElementById('repCount'); if(rc) rc.textContent=it.reps;
-  const totalTarget=sessionItems.reduce((a,b)=>a+b.target,0);
-  const totalDone=sessionItems.reduce((a,b)=>a+Math.min(b.reps,b.target),0);
-  const pct=Math.min(100,Math.round(totalDone/totalTarget*100));
-  const rb=document.getElementById('repBar'); if(rb) rb.style.width=pct+'%';
-  const rp=document.getElementById('repPct'); if(rp) rp.textContent=pct;
-  if(it.reps>=it.target){
-    it.done=true;
-    const dot=document.getElementById('exdot-'+activeIdx); if(dot) dot.classList.add('done');
-    let next=activeIdx+1; while(next<sessionItems.length && sessionItems[next].done) next++;
-    if(next>=sessionItems.length){ completeDay(); return; }
-    activeIdx=next;
-    const nl=document.getElementById('nowLabel'); if(nl) nl.textContent='Now: '+sessionItems[activeIdx].exercise;
-    const rcx=document.getElementById('repCount'); if(rcx) rcx.textContent=0;
-    const rt=document.getElementById('repTarget'); if(rt) rt.textContent=sessionItems[activeIdx].target;
-  }
+  updateOverall(); beep(600,0.05,0.12); buzz(20);
+  if(it.reps>=it.target) markDoneAndAdvance();
+}
+function honorComplete(){ const it=sessionItems[activeIdx]; if(!it) return; it.reps=it.target; markDoneAndAdvance(); }
+function markDoneAndAdvance(){
+  const it=sessionItems[activeIdx]; if(!it) return;
+  it.done=true; it.reps=Math.max(it.reps,it.target);
+  const prog=document.getElementById('exprog-'+activeIdx); if(prog) prog.textContent=`${it.target} / ${it.target}`;
+  const dot=document.getElementById('exdot-'+activeIdx); if(dot) dot.classList.add('done');
+  updateOverall(); beep(880,0.09,0.16); buzz(40); phase='up';
+  let next=activeIdx+1; while(next<sessionItems.length && sessionItems[next].done) next++;
+  if(next>=sessionItems.length){ completeDay(); return; }
+  activeIdx=next;
+  const nl=document.getElementById('nowLabel'); if(nl) nl.textContent='Now: '+sessionItems[activeIdx].exercise;
+  const rcx=document.getElementById('repCount'); if(rcx) rcx.textContent=0;
+  const rt=document.getElementById('repTarget'); if(rt) rt.textContent=sessionItems[activeIdx].target;
+  renderActiveControls();
 }
 function completeDay(){
   const key=todayKey();
   const totalReps=sessionItems.reduce((a,b)=>a+b.reps,0);
   state.log[key]={completed:true,reps:totalReps,items:sessionItems.map(it=>({exercise:it.exercise,reps:it.reps}))};
   store.saveLog(state.log); stopCamera();
+  beep(988,0.1,0.18); setTimeout(()=>beep(1319,0.14,0.18),120); buzz([40,50,90]);
   toast(`Nice — ${totalReps} reps logged ✅`); showScreen('home');
 }
 
 /* ---------- WALLET (contract) ---------- */
-let selectedAmount=50;
+let selectedAmount=50, selectedCharity='';
 function contractText(amount, editable){
   const a = editable ? `<b data-amt>$${amount}</b>` : `<b>$${amount}</b>`;
   return `<div class="contract"><h3>Commitment Contract</h3>
@@ -637,6 +708,7 @@ function renderContract(){
       <div class="card"><div class="card-head"><h2>⚖ Active contract</h2><span class="pill binding">Binding</span></div>
         <div class="kv"><span class="k">Commitment</span><span class="v">${scheduledPerWeek()}× weekly sessions</span></div>
         <div class="kv"><span class="k">Forfeit clause</span><span class="v" style="color:var(--error)">−${money(s.invested/2)} / breach</span></div>
+        <div class="kv"><span class="k">Forfeits go to</span><span class="v">${escapeHtml(state.contract.charity||'—')}</span></div>
         <div class="kv"><span class="k">Signed</span><span class="v">${state.contract.date.slice(0,10)}</span></div>
         ${contractText(state.contract.amount)}${WARN}
         <p class="muted">There is no cancel. The only way out is a health exception — find it in your Profile.</p>
@@ -644,13 +716,16 @@ function renderContract(){
       <p class="disclaimer">Prototype only — no real money is charged. Not an enforceable contract.</p>`;
     return;
   }
-  selectedAmount=50;
+  selectedAmount=50; selectedCharity=CHARITIES[0];
   const set = state.regimenSaved;
   el.innerHTML=`<h1 class="page">Invest in your effort</h1>
     <p class="lead">Optional — but signing is what makes it real.</p>
     <div class="card"><div class="step">1 · Choose your stake</div>
       <div class="amtrow" id="amts">${[25,50,100,250].map(a=>`<div class="amt ${a===50?'sel':''}" data-a="${a}">$${a}</div>`).join('')}</div>
       <div class="row" style="margin-top:14px"><span class="muted">or custom</span><div class="field"><span class="u">$</span><input type="number" min="1" id="customAmt" placeholder="0"/></div></div>
+      <div class="eyebrow" style="margin-top:18px">Where forfeited money goes</div>
+      <div class="exrow" id="charityChips">${CHARITIES.map((ch,idx)=>`<button class="chip ${idx===0?'sel':''}" data-ch="${escapeHtml(ch)}">${ch}</button>`).join('')}</div>
+      <input type="text" id="customCharity" class="textinput" placeholder="…or name your own (an anti-charity works best)"/>
     </div>
     <div class="card"><div class="step">2 · Read the contract</div>${contractText(selectedAmount,true)}${WARN}</div>
     <div class="card"><div class="step">3 · Sign</div>
@@ -672,6 +747,9 @@ function renderContract(){
   const amtEls=el.querySelectorAll('.amt');
   amtEls.forEach(a=>a.onclick=()=>{ amtEls.forEach(x=>x.classList.remove('sel')); a.classList.add('sel'); selectedAmount=+a.dataset.a; document.getElementById('customAmt').value=''; refreshAmt(); });
   document.getElementById('customAmt').oninput=(e)=>{ amtEls.forEach(x=>x.classList.remove('sel')); selectedAmount=Math.max(0,+e.target.value||0); refreshAmt(); };
+  const chChips=el.querySelectorAll('#charityChips .chip');
+  chChips.forEach(c=>c.onclick=()=>{ chChips.forEach(x=>x.classList.remove('sel')); c.classList.add('sel'); selectedCharity=c.dataset.ch; document.getElementById('customCharity').value=''; });
+  document.getElementById('customCharity').oninput=(e)=>{ chChips.forEach(x=>x.classList.remove('sel')); selectedCharity=e.target.value.trim()||CHARITIES[0]; };
   let agreed=false, agreed2=false;
   const agree=document.getElementById('agree'), agree2=document.getElementById('agree2'), name=document.getElementById('sigName'), btn=document.getElementById('signBtn');
   agree.onclick=()=>{ if(!set) return; agreed=!agreed; agree.classList.toggle('on',agreed); agree.querySelector('.box').textContent=agreed?'✓':''; upd(); };
@@ -679,8 +757,8 @@ function renderContract(){
   function upd(){ btn.disabled=!(set && agreed && agreed2 && name.value.trim().length>1 && selectedAmount>0); }
   name.oninput=upd;
   btn.onclick=()=>{
-    state.contract={signed:true,amount:selectedAmount,name:name.value.trim(),date:new Date().toISOString()};
-    state.health=false; store.saveHealth(false); store.saveContract(state.contract);
+    state.contract={signed:true,amount:selectedAmount,charity:selectedCharity||CHARITIES[0],name:name.value.trim(),date:new Date().toISOString()};
+    state.health=false; state.healthSince=null; store.saveHealth(false); store.saveHealthSince(null); store.saveContract(state.contract);
     toast('Signed — your money is on the line. Show up.'); showScreen('workout');
   };
 }
@@ -715,7 +793,8 @@ function renderSettings(){
   document.getElementById('settings').insertAdjacentHTML('beforeend',`
     <div class="card"><div class="k eyebrow">Total amount invested</div>
       <div style="font-family:var(--fh);font-size:40px;font-weight:700;letter-spacing:-.02em;margin-top:6px">${money(s.invested)}</div>
-      <div class="num" style="color:var(--primary);font-size:13px;margin-top:6px">${money(s.balance)} balance at stake · ${money(s.forfeited)} forfeited</div></div>
+      <div class="num" style="color:var(--primary);font-size:13px;margin-top:6px">${money(s.balance)} balance at stake · ${money(s.forfeited)} forfeited</div>
+      <div class="num" style="color:var(--muted);font-size:13px;margin-top:6px">🎟️ ${tokensAvailable()} skip token${tokensAvailable()===1?'':'s'} · earn 1 per 7 workouts</div></div>
 
     <div style="margin-top:22px" class="eyebrow">Preference hub</div>
     <div class="card"><h2 style="font-size:18px">Health exception</h2><div style="margin-top:8px">${health}</div></div>
@@ -733,11 +812,22 @@ function renderSettings(){
     <p class="disclaimer">WorkoutMoney prototype. No real money is charged and the contract is not legally binding.
     All data is stored only in this browser.</p>`);
 }
-function setHealthFromSettings(v){ state.health=v; store.saveHealth(v); renderSettings(); toast(v?'Health exception on — billing paused.':'Commitment resumed.'); }
-function claimHealth(){ state.health=true; store.saveHealth(true); renderSettings(); toast('Health exception on — billing paused.'); }
+// Health exception freezes days so they never count as misses (aligns the miss counter with paused billing).
+function startHealth(){ state.health=true; state.healthSince=todayKey(); store.saveHealth(true); store.saveHealthSince(state.healthSince); }
+function endHealth(){
+  if(state.healthSince){
+    const start=new Date(state.healthSince+'T00:00:00'), today=new Date(todayKey()+'T00:00:00');
+    const ex=new Set(state.exempt||[]);
+    for(let d=new Date(start); d<today; d.setDate(d.getDate()+1)){ const reg=state.regimen[d.getDay()]; if(reg&&!reg.rest) ex.add(todayKey(d)); }
+    state.exempt=[...ex]; store.saveExempt(state.exempt);
+  }
+  state.health=false; state.healthSince=null; store.saveHealth(false); store.saveHealthSince(null);
+}
+function setHealthFromSettings(v){ if(v) startHealth(); else endHealth(); renderSettings(); toast(v?'Health exception on — billing paused.':'Commitment resumed.'); }
+function claimHealth(){ startHealth(); renderSettings(); toast('Health exception on — billing & misses paused.'); }
 function resetAll(){
   if(!resetArmed){ resetArmed=true; renderSettings(); toast('Tap “Reset all data” again to confirm — this erases everything.'); setTimeout(()=>{ if(resetArmed){ resetArmed=false; renderSettings(); } },4000); return; }
-  ['wm_regimen','wm_log','wm_contract','wm_health','wm_regimenSaved'].forEach(k=>localStorage.removeItem(k));
+  ['wm_regimen','wm_log','wm_contract','wm_health','wm_regimenSaved','wm_exempt','wm_skipsUsed','wm_healthSince'].forEach(k=>localStorage.removeItem(k));
   state=store.load(); state.regimen=defaultRegimen(); resetArmed=false; showScreen('home'); toast('All data erased.');
 }
 /* ---------- profile photo ---------- */
@@ -777,6 +867,7 @@ function renderHistory(){
 
 renderHome();
 updateHeaderAvatar();
+if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
 </script>
 </body>
 </html>

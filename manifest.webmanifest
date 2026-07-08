@@ -1,0 +1,14 @@
+{
+  "name": "WorkoutMoney",
+  "short_name": "WorkoutMoney",
+  "description": "Commit money to your workouts. Show up, or forfeit it.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#121415",
+  "theme_color": "#121415",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
