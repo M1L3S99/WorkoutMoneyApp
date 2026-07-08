@@ -476,15 +476,7 @@ function renderHome(){
       <div class="stat neg"><div class="k">Forfeited</div><div class="v">${money(s.forfeited)}</div></div>
     </div>
     ${signed?`<div class="card"><div class="card-head"><h2 style="font-size:18px">Skip tokens</h2></div>
-      <div class="row" style="gap:12px;flex-wrap:nowrap">
-        <div class="stat ${tk>0?'pos':'neg'}" style="flex:1"><div class="k">Available</div>
-          <div class="v small">${tk}</div></div>
-        <div class="stat" style="flex:1"><div class="k">Next token in</div>
-          <div class="v small">${nextIn}<span class="num" style="font-size:12px;color:var(--muted);font-weight:400"> days</span></div></div>
-      </div>
-      <p class="muted" style="margin-top:12px">Miss a scheduled day? Spend 1 skip token to cover it and keep your contract intact. You earn 1 token every 2 weeks.</p>
-      ${(misses.length&&tk>0)?`<button class="btn ghost" onclick="coverMiss('${misses[misses.length-1]}')">🎟️ Cover missed ${FULLDAY[dowOf(misses[misses.length-1])]} · ${misses.length} uncovered</button>`:''}
-      ${(misses.length&&tk<=0)?`<div class="banner" style="margin-top:12px">⚠️ ${misses.length} uncovered missed day${misses.length===1?'':'s'} and no skip tokens left.</div>`:''}</div>`:''}
+      ${tk>0?Array.from({length:tk}).map((_,i)=>`<div class="recent"><span class="icontile sm">🎟️</span><div style="flex:1">Skip token ${i+1}</div><span class="pill done">Available</span></div>`).join(''):`<p class="muted">No skip tokens yet — you earn 1 every 2 weeks.</p>`}</div>`:''}
     <div class="card"><div class="card-head"><span class="eyebrow" style="color:var(--primary)">Today • ${DAYS[dow]}</span>${pill}</div>${todayInner}</div>
     ${contractCard}
     <div class="card"><div class="card-head"><h2 style="font-size:18px">Recent activity</h2>${recent.length?`<button class="link" onclick="showScreen('history')">View all</button>`:''}</div>${recentRows}</div>`;
