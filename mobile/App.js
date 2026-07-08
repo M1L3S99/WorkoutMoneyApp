@@ -74,18 +74,21 @@ export default function App() {
   const [log, setLog] = useState({});
   const [contract, setContract] = useState(null);
   const [health, setHealth] = useState(false);
+  const [regimenSaved, setRegimenSaved] = useState(false);
 
   useEffect(() => {
     (async () => {
       try {
-        const [r, l, c, h] = await Promise.all([
+        const [r, l, c, h, rs] = await Promise.all([
           AsyncStorage.getItem('wm_regimen'), AsyncStorage.getItem('wm_log'),
           AsyncStorage.getItem('wm_contract'), AsyncStorage.getItem('wm_health'),
+          AsyncStorage.getItem('wm_regimenSaved'),
         ]);
         if (r) setRegimen(JSON.parse(r));
         if (l) setLog(JSON.parse(l));
         if (c) setContract(JSON.parse(c));
         if (h) setHealth(JSON.parse(h));
+        if (rs) setRegimenSaved(JSON.parse(rs));
       } catch (e) {}
       setLoaded(true);
     })();
@@ -95,8 +98,9 @@ export default function App() {
   const saveLog = useCallback((l) => { setLog(l); AsyncStorage.setItem('wm_log', JSON.stringify(l)); }, []);
   const saveContract = useCallback((c) => { setContract(c); AsyncStorage.setItem('wm_contract', JSON.stringify(c)); }, []);
   const saveHealth = useCallback((h) => { setHealth(h); AsyncStorage.setItem('wm_health', JSON.stringify(h)); }, []);
+  const saveRegimenSaved = useCallback((v) => { setRegimenSaved(v); AsyncStorage.setItem('wm_regimenSaved', JSON.stringify(v)); }, []);
 
-  const state = { regimen, log, contract, health };
+  const state = { regimen, log, contract, health, regimenSaved };
 
   if (!loaded) {
     return <SafeAreaView style={styles.app}><Text style={styles.h1}>Loading…</Text></SafeAreaView>;
@@ -123,12 +127,12 @@ export default function App() {
       </View>
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 60 }}>
         {screen === 'home' && <Home state={state} go={setScreen} clearHealth={() => saveHealth(false)} />}
-        {screen === 'setup' && <Setup regimen={regimen} onSave={saveRegimen} />}
+        {screen === 'setup' && <Setup regimen={regimen} onSave={saveRegimen} onSavedFlag={saveRegimenSaved} locked={!!(contract && contract.signed)} go={setScreen} />}
         {screen === 'workout' && <Workout state={state} saveLog={saveLog} go={setScreen} />}
         {screen === 'contract' && <Contract state={state} saveContract={saveContract} saveHealth={saveHealth} go={setScreen} />}
         {screen === 'history' && <History state={state} onReset={() => {
-          AsyncStorage.multiRemove(['wm_regimen', 'wm_log', 'wm_contract', 'wm_health']);
-          setRegimen(defaultRegimen()); setLog({}); setContract(null); setHealth(false); setScreen('home');
+          AsyncStorage.multiRemove(['wm_regimen', 'wm_log', 'wm_contract', 'wm_health', 'wm_regimenSaved']);
+          setRegimen(defaultRegimen()); setLog({}); setContract(null); setHealth(false); setRegimenSaved(false); setScreen('home');
         }} />}
       </ScrollView>
     </SafeAreaView>
@@ -195,21 +199,26 @@ function Home({ state, go, clearHealth }) {
 }
 
 // ---------------- SETUP ----------------
-function Setup({ regimen, onSave }) {
+function Setup({ regimen, onSave, onSavedFlag, locked, go }) {
   const [draft, setDraft] = useState(JSON.parse(JSON.stringify(regimen)));
   const [msg, setMsg] = useState('');
-  const upd = (i, patch) => setDraft((d) => ({ ...d, [i]: { ...d[i], ...patch } }));
+  const upd = (i, patch) => { if (locked) return; setDraft((d) => ({ ...d, [i]: { ...d[i], ...patch } })); };
   return (
     <View>
       <Text style={styles.h1}>Set your regimen</Text>
       <Text style={styles.muted}>Pick an exercise and target for each day. Toggle rest days.</Text>
+      {locked && (
+        <View style={styles.banner}>
+          <Text style={{ color: '#ffd88a' }}>🔒 Your regimen is locked. You signed a contract, so it can no longer be changed.</Text>
+        </View>
+      )}
       <View style={styles.card}>
         {DAYS.map((d, i) => (
-          <View key={i} style={styles.dayrow}>
+          <View key={i} style={[styles.dayrow, locked && { opacity: 0.6 }]}>
             <Text style={styles.dayName}>{d}</Text>
             <View style={styles.exRow}>
               {EXERCISES.map((e) => (
-                <TouchableOpacity key={e} onPress={() => upd(i, { exercise: e })}
+                <TouchableOpacity key={e} disabled={locked} onPress={() => upd(i, { exercise: e })}
                   style={[styles.chip, draft[i].exercise === e && styles.chipSel]}>
                   <Text style={[styles.chipTxt, draft[i].exercise === e && { color: C.accent }]}>{e}</Text>
                 </TouchableOpacity>
@@ -217,20 +226,25 @@ function Setup({ regimen, onSave }) {
             </View>
             <View style={styles.rowBetween}>
               <View style={styles.row}>
-                <TextInput style={styles.numInput} keyboardType="number-pad"
+                <TextInput style={styles.numInput} keyboardType="number-pad" editable={!locked}
                   value={String(draft[i].target)}
                   onChangeText={(t) => upd(i, { target: Math.max(1, parseInt(t || '0', 10) || 0) })} />
                 <Text style={styles.muted}> reps</Text>
               </View>
               <View style={styles.row}>
                 <Text style={styles.muted}>Rest </Text>
-                <Switch value={draft[i].rest} onValueChange={(v) => upd(i, { rest: v })}
+                <Switch value={draft[i].rest} disabled={locked} onValueChange={(v) => upd(i, { rest: v })}
                   trackColor={{ true: C.blue }} />
               </View>
             </View>
           </View>
         ))}
-        <Btn text="Save regimen" onPress={() => { onSave(draft); setMsg('Saved ✓'); setTimeout(() => setMsg(''), 1500); }} />
+        {!locked && (
+          <Btn text="Save regimen" onPress={() => {
+            onSave(draft); onSavedFlag(true);
+            setMsg('Saved ✓ — you can now invest'); setTimeout(() => setMsg(''), 2500);
+          }} />
+        )}
         {!!msg && <Text style={[styles.muted, { marginTop: 8 }]}>{msg}</Text>}
       </View>
     </View>
@@ -328,7 +342,7 @@ function Contract({ state, saveContract, saveHealth, go }) {
           </View>
           <Stat k="Forfeited" v={money(s.forfeited)} color={C.danger} />
           <ContractText amount={state.contract.amount} />
-          <View style={styles.warnBox}><Text style={styles.warnTxt}>IF YOU MISS 2 DAYS IN A ROW I AGREE TO BE BILLED HALF THE SUM I INVEST.</Text></View>
+          <View style={styles.warnBox}><Text style={styles.warnTxt}>If you miss two days in a row you will be billed half the sum you agreed on.</Text></View>
           <Text style={styles.muted}>There is no cancel. The only way out is a health exception.</Text>
           <Btn text="Claim health exception" danger onPress={() =>
             Alert.alert('Health exception', 'This pauses billing. Confirm you are stopping for genuine health reasons?',
@@ -340,7 +354,8 @@ function Contract({ state, saveContract, saveHealth, go }) {
   }
 
   const finalAmount = custom ? Math.max(0, parseInt(custom, 10) || 0) : amount;
-  const canSign = agree && name.trim().length > 1 && finalAmount > 0;
+  const regimenSet = state.regimenSaved;
+  const canSign = regimenSet && agree && name.trim().length > 1 && finalAmount > 0;
 
   return (
     <View>
@@ -367,21 +382,30 @@ function Contract({ state, saveContract, saveHealth, go }) {
       <View style={styles.card}>
         <Text style={styles.h2}>2. Read the contract</Text>
         <ContractText amount={finalAmount} />
-        <View style={styles.warnBox}><Text style={styles.warnTxt}>IF YOU MISS 2 DAYS IN A ROW I AGREE TO BE BILLED HALF THE SUM I INVEST.</Text></View>
+        <View style={styles.warnBox}><Text style={styles.warnTxt}>If you miss two days in a row you will be billed half the sum you agreed on.</Text></View>
       </View>
 
       <View style={styles.card}>
         <Text style={styles.h2}>3. Sign</Text>
+        <View style={styles.warnBox}><Text style={styles.warnTxt}>Once you sign, your regimen is LOCKED and cannot be changed. Set it exactly how you want it before signing.</Text></View>
+        {!regimenSet && (
+          <View style={styles.banner}>
+            <Text style={{ color: '#ffd88a' }}>⚠️ You must set your regimen first. </Text>
+            <TouchableOpacity onPress={() => go('setup')}><Text style={{ color: C.blue }}>Go to Regimen</Text></TouchableOpacity>
+            <Text style={{ color: '#ffd88a' }}> and press Save, then you can invest.</Text>
+          </View>
+        )}
         <Text style={styles.muted}>Type your full name to sign.</Text>
-        <TextInput style={styles.textInput} value={name} onChangeText={setName}
+        <TextInput style={styles.textInput} value={name} onChangeText={setName} editable={regimenSet}
           placeholder="Full name" placeholderTextColor={C.muted} />
-        <TouchableOpacity style={styles.agreeRow} onPress={() => setAgree(!agree)}>
+        <TouchableOpacity style={styles.agreeRow} disabled={!regimenSet} onPress={() => setAgree(!agree)}>
           <View style={[styles.checkbox, agree && { backgroundColor: C.accent, borderColor: C.accent }]}>
             {agree && <Text style={{ color: '#04170a', fontWeight: '900' }}>✓</Text>}
           </View>
           <Text style={[styles.muted, { flex: 1 }]}>
             I have read and understand this contract. There is no cancellation except for genuine health
-            reasons, and if I miss two scheduled days in a row I will be billed half my balance each time.
+            reasons, my regimen is now locked and cannot be changed, and if I miss two days in a row I will
+            be billed half the sum I agreed on.
           </Text>
         </TouchableOpacity>
         <Btn text="Sign & commit" disabled={!canSign} onPress={() => {
@@ -404,6 +428,7 @@ function ContractText({ amount }) {
       <Text style={styles.contractH}>Commitment Contract</Text>
       <Text style={styles.contractP}>I am voluntarily investing ${amount} in my own fitness commitment.</Text>
       <Text style={styles.contractP}>I agree to complete my chosen exercise on every scheduled (non-rest) day, verified by the app.</Text>
+      <Text style={styles.contractP}>Locked plan: my regimen is fixed at the moment of signing and cannot be changed afterward.</Text>
       <Text style={styles.contractP}>Penalty: if I fail two scheduled days in a row, I agree to be billed half of my remaining balance. This applies again for every additional pair of consecutive missed days.</Text>
       <Text style={styles.contractP}>No cancellation: once signed, this cannot be cancelled. The only exception is a genuine health reason, which pauses billing.</Text>
       <Text style={styles.contractP}>I understand this app is a prototype and no real money is collected in this version.</Text>

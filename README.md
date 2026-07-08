@@ -23,7 +23,7 @@ access when prompted so the AI can count your reps. No install or server needed.
   manual "I did it" button is available if the camera/AI can't load.
 - **Contract & invest** — pick a preset stake or a custom amount, read the
   contract, and sign by typing your name and agreeing. The contract states:
-  **"IF YOU MISS 2 DAYS IN A ROW I AGREE TO BE BILLED HALF THE SUM I INVEST."**
+  **"If you miss two days in a row you will be billed half the sum you agreed on."**
 - **No cancellation** — once signed there is no cancel, only a health exception
   that pauses billing.
 - **Forfeiture engine** — two consecutive missed scheduled days forfeit half the

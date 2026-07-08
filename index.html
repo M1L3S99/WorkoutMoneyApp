@@ -112,6 +112,7 @@
     <h1>Set your regimen</h1>
     <p class="muted">Pick your exercise and target for each day. Mark the days you rest.</p>
     <div class="card">
+      <div id="setupLock"></div>
       <div class="grid7" id="regimenGrid"></div>
       <div class="row" style="margin-top:16px">
         <button class="btn" id="saveRegimen">Save regimen</button>
@@ -179,12 +180,14 @@ const store = {
       log: JSON.parse(localStorage.getItem('wm_log')||'{}'),
       contract: JSON.parse(localStorage.getItem('wm_contract')||'null'),
       health: JSON.parse(localStorage.getItem('wm_health')||'false'),
+      regimenSaved: JSON.parse(localStorage.getItem('wm_regimenSaved')||'false'),
     };
   },
   saveRegimen(r){ localStorage.setItem('wm_regimen', JSON.stringify(r)); },
   saveLog(l){ localStorage.setItem('wm_log', JSON.stringify(l)); },
   saveContract(c){ localStorage.setItem('wm_contract', JSON.stringify(c)); },
   saveHealth(h){ localStorage.setItem('wm_health', JSON.stringify(h)); },
+  saveRegimenSaved(v){ localStorage.setItem('wm_regimenSaved', JSON.stringify(v)); },
 };
 
 function defaultRegimen(){
@@ -304,31 +307,43 @@ function clearHealth(){ state.health=false; store.saveHealth(false); renderHome(
 
 /* ---------- SETUP ---------- */
 function renderSetup(){
+  const locked = !!(state.contract && state.contract.signed);
+  const lock = document.getElementById('setupLock');
+  lock.innerHTML = locked
+    ? `<div class="banner">🔒 Your regimen is locked. You signed a contract on ${state.contract.date.slice(0,10)}, so it can no longer be changed.</div>`
+    : '';
   const grid = document.getElementById('regimenGrid');
   grid.innerHTML='';
   DAYS.forEach((d,i)=>{
     const reg = state.regimen[i];
     const row = document.createElement('div');
     row.className='dayrow';
+    const dis = locked ? 'disabled' : '';
     row.innerHTML = `
       <span class="name">${d}</span>
-      <select data-i="${i}" data-f="exercise">${EXERCISES.map(e=>`<option ${e===reg.exercise?'selected':''}>${e}</option>`).join('')}</select>
-      <input type="number" min="1" data-i="${i}" data-f="target" value="${reg.target}" /> reps
-      <label class="rest"><input type="checkbox" data-i="${i}" data-f="rest" ${reg.rest?'checked':''}/> rest day</label>`;
+      <select data-i="${i}" data-f="exercise" ${dis}>${EXERCISES.map(e=>`<option ${e===reg.exercise?'selected':''}>${e}</option>`).join('')}</select>
+      <input type="number" min="1" data-i="${i}" data-f="target" value="${reg.target}" ${dis}/> reps
+      <label class="rest"><input type="checkbox" data-i="${i}" data-f="rest" ${reg.rest?'checked':''} ${dis}/> rest day</label>`;
     grid.appendChild(row);
   });
-  grid.querySelectorAll('[data-f]').forEach(el=>{
-    el.addEventListener('change',()=>{
-      const i=+el.dataset.i, f=el.dataset.f;
-      if(f==='rest') state.regimen[i].rest = el.checked;
-      else if(f==='target') state.regimen[i].target = Math.max(1,+el.value||1);
-      else state.regimen[i][f]=el.value;
+  if(!locked){
+    grid.querySelectorAll('[data-f]').forEach(el=>{
+      el.addEventListener('change',()=>{
+        const i=+el.dataset.i, f=el.dataset.f;
+        if(f==='rest') state.regimen[i].rest = el.checked;
+        else if(f==='target') state.regimen[i].target = Math.max(1,+el.value||1);
+        else state.regimen[i][f]=el.value;
+      });
     });
-  });
-  document.getElementById('saveRegimen').onclick=()=>{
+  }
+  const saveBtn=document.getElementById('saveRegimen');
+  saveBtn.disabled=locked;
+  saveBtn.onclick=()=>{
+    if(locked) return;
     store.saveRegimen(state.regimen);
-    const m=document.getElementById('saveMsg'); m.textContent='Saved ✓';
-    setTimeout(()=>m.textContent='',1500);
+    state.regimenSaved=true; store.saveRegimenSaved(true);
+    const m=document.getElementById('saveMsg'); m.textContent='Saved ✓ — you can now invest';
+    setTimeout(()=>m.textContent='',2500);
   };
 }
 
@@ -449,7 +464,7 @@ function renderContract(){
           <div class="stat"><div class="k">Forfeited</div><div class="v" style="color:var(--danger)">${money(s.forfeited)}</div></div>
         </div>
         ${contractText(state.contract.amount)}
-        <div class="warnbox">IF YOU MISS 2 DAYS IN A ROW I AGREE TO BE BILLED HALF THE SUM I INVEST.</div>
+        <div class="warnbox">If you miss two days in a row you will be billed half the sum you agreed on.</div>
         <p class="muted">There is no cancel. The only way out is a health exception.</p>
         <button class="btn danger" id="healthBtn">Claim health exception</button>
         <div class="disclaimer">Prototype only — no real money is charged. Not legal advice or an enforceable contract.</div>
@@ -477,17 +492,19 @@ function renderContract(){
     <div class="card">
       <h2>2. Read the contract</h2>
       ${contractText(selectedAmount, true)}
-      <div class="warnbox">IF YOU MISS 2 DAYS IN A ROW I AGREE TO BE BILLED HALF THE SUM I INVEST.</div>
+      <div class="warnbox">If you miss two days in a row you will be billed half the sum you agreed on.</div>
     </div>
     <div class="card">
       <h2>3. Sign</h2>
+      <div class="warnbox">Once you sign, your regimen is LOCKED and cannot be changed. Set it exactly how you want it before signing.</div>
+      ${state.regimenSaved ? '' : `<div class="banner">⚠️ You must set your regimen first. Go to <a class="link" onclick="showScreen('setup')">Regimen</a>, set it up, and press Save — then you can invest.</div>`}
       <p class="muted">Type your full legal name to sign.</p>
-      <input type="text" id="sigName" placeholder="Full name" style="width:100%;max-width:360px" />
+      <input type="text" id="sigName" placeholder="Full name" style="width:100%;max-width:360px" ${state.regimenSaved?'':'disabled'} />
       <label style="display:flex;gap:8px;align-items:flex-start;margin:14px 0;color:var(--muted)">
-        <input type="checkbox" id="agree" style="margin-top:4px"/>
+        <input type="checkbox" id="agree" style="margin-top:4px" ${state.regimenSaved?'':'disabled'}/>
         <span>I have read and understand this contract. I understand there is <b>no cancellation</b> except for
-        genuine health reasons, and that if I miss two scheduled days in a row I will be billed half my balance
-        each time it happens.</span>
+        genuine health reasons, that <b>my regimen is now locked and cannot be changed</b>, and that if I miss two
+        days in a row I will be billed half the sum I agreed on.</span>
       </label>
       <button class="btn" id="signBtn" disabled>Sign &amp; commit</button>
       <div class="disclaimer">Prototype only — no real money is charged, stored, or transferred. This is a
@@ -507,7 +524,7 @@ function renderContract(){
     refreshContractText();
   };
   const agree=document.getElementById('agree'), name=document.getElementById('sigName'), btn=document.getElementById('signBtn');
-  function upd(){ btn.disabled=!(agree.checked && name.value.trim().length>1 && selectedAmount>0); }
+  function upd(){ btn.disabled=!(state.regimenSaved && agree.checked && name.value.trim().length>1 && selectedAmount>0); }
   agree.onchange=upd; name.oninput=upd;
   btn.onclick=()=>{
     state.contract={signed:true,amount:selectedAmount,name:name.value.trim(),date:new Date().toISOString()};
@@ -527,6 +544,7 @@ function contractText(amount, editable){
     <h3>Commitment Contract</h3>
     <p>I am voluntarily investing ${a} in my own fitness commitment.</p>
     <p>I agree to complete my chosen exercise on every scheduled (non-rest) day, verified by the app.</p>
+    <p><b>Locked plan:</b> My regimen is fixed at the moment of signing and cannot be changed afterward.</p>
     <p><b>Penalty:</b> If I fail to complete my exercise <b>two scheduled days in a row</b>, I agree to be billed
     <b>half of my remaining balance</b>. This applies again for every additional pair of consecutive missed days.</p>
     <p><b>No cancellation:</b> Once signed, this commitment cannot be cancelled. The only exception is a genuine
