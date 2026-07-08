@@ -51,21 +51,27 @@ function computeStats(state) {
   for (let d = new Date(start); d < today; d.setDate(d.getDate() + 1)) {
     const key = todayKey(d);
     const reg = state.regimen[d.getDay()];
-    if (!reg || reg.rest) continue;
+    if (!reg || reg.rest) continue;                 // rest day: never a requirement, never a miss
     const done = state.log[key] && state.log[key].completed;
     if (done) { consecutiveMiss = 0; streak++; }
     else {
       consecutiveMiss++; streak = 0;
       if (consecutiveMiss >= 2) {
-        if (c && c.signed && balance > 0) {
-          const loss = balance / 2; forfeited += loss; balance -= loss;
-        }
+        if (c && c.signed && balance > 0) { const loss = balance / 2; forfeited += loss; balance -= loss; }
         consecutiveMiss = 0;
       }
     }
   }
   return { invested, balance, forfeited, streak };
 }
+
+const TABS = [
+  ['home', 'Home', '🏠'],
+  ['workout', 'Today', '💪'],
+  ['setup', 'Plan', '📋'],
+  ['contract', 'Invest', '💰'],
+  ['settings', 'Settings', '⚙️'],
+];
 
 export default function App() {
   const [screen, setScreen] = useState('home');
@@ -100,41 +106,46 @@ export default function App() {
   const saveHealth = useCallback((h) => { setHealth(h); AsyncStorage.setItem('wm_health', JSON.stringify(h)); }, []);
   const saveRegimenSaved = useCallback((v) => { setRegimenSaved(v); AsyncStorage.setItem('wm_regimenSaved', JSON.stringify(v)); }, []);
 
+  const resetAll = () => {
+    AsyncStorage.multiRemove(['wm_regimen', 'wm_log', 'wm_contract', 'wm_health', 'wm_regimenSaved']);
+    setRegimen(defaultRegimen()); setLog({}); setContract(null); setHealth(false); setRegimenSaved(false); setScreen('home');
+  };
+
   const state = { regimen, log, contract, health, regimenSaved };
 
   if (!loaded) {
-    return <SafeAreaView style={styles.app}><Text style={styles.h1}>Loading…</Text></SafeAreaView>;
+    return <SafeAreaView style={styles.app}><Text style={[styles.h1, { padding: 20 }]}>Loading…</Text></SafeAreaView>;
   }
-
-  const tabs = [
-    ['home', 'Home'], ['setup', 'Regimen'], ['workout', 'Today'],
-    ['contract', 'Invest'], ['history', 'History'],
-  ];
 
   return (
     <SafeAreaView style={styles.app}>
       <StatusBar style="light" />
       <View style={styles.header}>
         <Text style={styles.logo}>Workout<Text style={{ color: C.accent }}>Money</Text></Text>
+        <Text style={styles.headerSub}>Commit. Show up. Or pay up.</Text>
       </View>
-      <View style={styles.nav}>
-        {tabs.map(([id, label]) => (
-          <TouchableOpacity key={id} onPress={() => setScreen(id)}
-            style={[styles.navBtn, screen === id && styles.navBtnActive]}>
-            <Text style={[styles.navTxt, screen === id && { color: C.text }]}>{label}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 60 }}>
+
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
         {screen === 'home' && <Home state={state} go={setScreen} clearHealth={() => saveHealth(false)} />}
-        {screen === 'setup' && <Setup regimen={regimen} onSave={saveRegimen} onSavedFlag={saveRegimenSaved} locked={!!(contract && contract.signed)} go={setScreen} />}
+        {screen === 'setup' && <Setup regimen={regimen} onSave={saveRegimen} onSavedFlag={saveRegimenSaved} locked={!!(contract && contract.signed)} />}
         {screen === 'workout' && <Workout state={state} saveLog={saveLog} go={setScreen} />}
         {screen === 'contract' && <Contract state={state} saveContract={saveContract} saveHealth={saveHealth} go={setScreen} />}
-        {screen === 'history' && <History state={state} onReset={() => {
-          AsyncStorage.multiRemove(['wm_regimen', 'wm_log', 'wm_contract', 'wm_health', 'wm_regimenSaved']);
-          setRegimen(defaultRegimen()); setLog({}); setContract(null); setHealth(false); setRegimenSaved(false); setScreen('home');
-        }} />}
+        {screen === 'settings' && <Settings state={state} saveHealth={saveHealth} onReset={resetAll} go={setScreen} />}
+        {screen === 'history' && <History state={state} go={setScreen} />}
       </ScrollView>
+
+      <View style={styles.tabbar}>
+        {TABS.map(([id, label, icon]) => {
+          const active = screen === id || (id === 'settings' && screen === 'history');
+          return (
+            <TouchableOpacity key={id} style={styles.tabItem} onPress={() => setScreen(id)}>
+              <View style={[styles.tabDot, active ? { backgroundColor: C.accent } : { backgroundColor: 'transparent' }]} />
+              <Text style={[styles.tabIcon, !active && { opacity: 0.55 }]}>{icon}</Text>
+              <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>{label}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
     </SafeAreaView>
   );
 }
@@ -146,45 +157,52 @@ function Home({ state, go, clearHealth }) {
   const reg = state.regimen[dow];
   const key = todayKey();
   const doneToday = state.log[key] && state.log[key].completed;
+  const recent = Object.keys(state.log).sort().reverse().slice(0, 4);
+
   return (
     <View>
       <Text style={styles.h1}>Your commitment</Text>
       <Text style={styles.muted}>Do your workout every scheduled day. Miss two in a row and you forfeit half your balance.</Text>
+
       {state.health && (
         <View style={styles.banner}>
-          <Text style={{ color: '#ffd88a' }}>🩺 Health exception active — billing paused. </Text>
-          <TouchableOpacity onPress={clearHealth}><Text style={{ color: C.blue }}>Resume</Text></TouchableOpacity>
+          <Text style={styles.bannerTxt}>🩺 Health exception active — billing paused. </Text>
+          <TouchableOpacity onPress={clearHealth}><Text style={styles.link}>Resume</Text></TouchableOpacity>
         </View>
       )}
-      <View style={styles.statRow}>
+
+      <View style={styles.statGrid}>
         <Stat k="Streak" v={String(s.streak)} />
         <Stat k="Invested" v={money(s.invested)} />
-      </View>
-      <View style={styles.statRow}>
         <Stat k="Balance" v={money(s.balance)} />
         <Stat k="Forfeited" v={money(s.forfeited)} color={C.danger} />
       </View>
-      <View style={styles.card}>
-        <Text style={styles.h2}>Today — {DAYS[dow]}</Text>
+
+      <Card>
+        <View style={styles.cardHead}>
+          <Text style={styles.h2}>Today · {DAYS[dow]}</Text>
+          {reg.rest
+            ? <Pill kind="rest" text="Rest day" />
+            : doneToday ? <Pill kind="done" text="Done ✓" /> : <Pill kind="today" text="To do" />}
+        </View>
         {reg.rest ? (
-          <><Pill kind="rest" text="Rest day" /><Text style={styles.muted}>Enjoy it. Nothing to do today.</Text></>
+          <Text style={styles.muted}>🌙 It's a rest day — no workout required. Enjoy it.</Text>
         ) : doneToday ? (
-          <><Pill kind="done" text="Completed ✓" /><Text style={styles.muted}>{state.log[key].reps} {reg.exercise.toLowerCase()} logged.</Text></>
+          <Text style={styles.muted}>{state.log[key].reps} {reg.exercise.toLowerCase()} logged. See you tomorrow.</Text>
         ) : (
           <>
-            <Pill kind="today" text="Not done yet" />
             <Text style={styles.muted}>Target: {reg.target} {reg.exercise.toLowerCase()}.</Text>
             <Btn text="Start workout" onPress={() => go('workout')} />
           </>
         )}
-      </View>
-      <View style={styles.card}>
+      </Card>
+
+      <Card>
         {state.contract && state.contract.signed ? (
           <>
             <Text style={styles.h2}>Your contract</Text>
             <Text style={styles.text}>Signed by {state.contract.name} on {state.contract.date.slice(0, 10)}.</Text>
             <Text style={styles.muted}>Miss 2 scheduled days in a row → half your balance is billed each time.</Text>
-            <Btn text="View contract" secondary onPress={() => go('contract')} />
           </>
         ) : (
           <>
@@ -193,65 +211,86 @@ function Home({ state, go, clearHealth }) {
             <Btn text="Read contract & invest" onPress={() => go('contract')} />
           </>
         )}
-      </View>
+      </Card>
+
+      <Card>
+        <View style={styles.cardHead}>
+          <Text style={styles.h2}>Recent activity</Text>
+          {recent.length > 0 && <TouchableOpacity onPress={() => go('history')}><Text style={styles.link}>View all</Text></TouchableOpacity>}
+        </View>
+        {recent.length === 0
+          ? <Text style={styles.muted}>No workouts logged yet.</Text>
+          : recent.map((k) => (
+            <View key={k} style={styles.recentRow}>
+              <Text style={styles.text}>{DAYS[dowOf(k)]} · {k}</Text>
+              <Pill kind={state.log[k].completed ? 'done' : 'miss'} text={state.log[k].completed ? `${state.log[k].reps} reps` : 'Missed'} />
+            </View>
+          ))}
+      </Card>
     </View>
   );
 }
 
-// ---------------- SETUP ----------------
-function Setup({ regimen, onSave, onSavedFlag, locked, go }) {
+// ---------------- SETUP (Plan) ----------------
+function Setup({ regimen, onSave, onSavedFlag, locked }) {
   const [draft, setDraft] = useState(JSON.parse(JSON.stringify(regimen)));
   const [msg, setMsg] = useState('');
   const upd = (i, patch) => { if (locked) return; setDraft((d) => ({ ...d, [i]: { ...d[i], ...patch } })); };
   return (
     <View>
-      <Text style={styles.h1}>Set your regimen</Text>
-      <Text style={styles.muted}>Pick an exercise and target for each day. Toggle rest days.</Text>
+      <Text style={styles.h1}>Your plan</Text>
+      <Text style={styles.muted}>Pick an exercise and target for each day. Toggle rest days off if you train that day.</Text>
       {locked && (
-        <View style={styles.banner}>
-          <Text style={{ color: '#ffd88a' }}>🔒 Your regimen is locked. You signed a contract, so it can no longer be changed.</Text>
+        <View style={styles.lockBanner}>
+          <Text style={styles.lockTxt}>🔒 Your plan is locked. You signed a contract, so it can no longer be changed.</Text>
         </View>
       )}
-      <View style={styles.card}>
-        {DAYS.map((d, i) => (
-          <View key={i} style={[styles.dayrow, locked && { opacity: 0.6 }]}>
+      {DAYS.map((d, i) => (
+        <Card key={i} style={[locked && { opacity: 0.6 }]}>
+          <View style={styles.cardHead}>
             <Text style={styles.dayName}>{d}</Text>
-            <View style={styles.exRow}>
-              {EXERCISES.map((e) => (
-                <TouchableOpacity key={e} disabled={locked} onPress={() => upd(i, { exercise: e })}
-                  style={[styles.chip, draft[i].exercise === e && styles.chipSel]}>
-                  <Text style={[styles.chipTxt, draft[i].exercise === e && { color: C.accent }]}>{e}</Text>
-                </TouchableOpacity>
-              ))}
+            <View style={styles.row}>
+              <Text style={styles.muted}>Rest  </Text>
+              <Switch value={draft[i].rest} disabled={locked} onValueChange={(v) => upd(i, { rest: v })}
+                trackColor={{ true: C.blue, false: C.border }} thumbColor="#fff" />
             </View>
-            <View style={styles.rowBetween}>
+          </View>
+          {draft[i].rest ? (
+            <Text style={styles.muted}>Rest day — no workout required.</Text>
+          ) : (
+            <>
+              <View style={styles.exRow}>
+                {EXERCISES.map((e) => (
+                  <TouchableOpacity key={e} disabled={locked} onPress={() => upd(i, { exercise: e })}
+                    style={[styles.chip, draft[i].exercise === e && styles.chipSel]}>
+                    <Text style={[styles.chipTxt, draft[i].exercise === e && { color: C.accent }]}>{e}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
               <View style={styles.row}>
                 <TextInput style={styles.numInput} keyboardType="number-pad" editable={!locked}
                   value={String(draft[i].target)}
                   onChangeText={(t) => upd(i, { target: Math.max(1, parseInt(t || '0', 10) || 0) })} />
-                <Text style={styles.muted}> reps</Text>
+                <Text style={styles.muted}> reps target</Text>
               </View>
-              <View style={styles.row}>
-                <Text style={styles.muted}>Rest </Text>
-                <Switch value={draft[i].rest} disabled={locked} onValueChange={(v) => upd(i, { rest: v })}
-                  trackColor={{ true: C.blue }} />
-              </View>
-            </View>
-          </View>
-        ))}
-        {!locked && (
-          <Btn text="Save regimen" onPress={() => {
+            </>
+          )}
+        </Card>
+      ))}
+      {!locked && (
+        <>
+          <Btn text="Save plan" onPress={() => {
             onSave(draft); onSavedFlag(true);
             setMsg('Saved ✓ — you can now invest'); setTimeout(() => setMsg(''), 2500);
           }} />
-        )}
-        {!!msg && <Text style={[styles.muted, { marginTop: 8 }]}>{msg}</Text>}
-      </View>
+          {!!msg && <Text style={[styles.muted, { marginTop: 8, textAlign: 'center' }]}>{msg}</Text>}
+        </>
+      )}
     </View>
   );
 }
 
-// ---------------- WORKOUT ----------------
+// ---------------- WORKOUT (Today) ----------------
 function Workout({ state, saveLog, go }) {
   const dow = new Date().getDay();
   const reg = state.regimen[dow];
@@ -261,45 +300,45 @@ function Workout({ state, saveLog, go }) {
   const [camOn, setCamOn] = useState(false);
   const [reps, setReps] = useState(0);
 
-  const complete = (n) => {
-    const l = { ...state.log, [key]: { completed: true, reps: n, exercise: reg.exercise } };
-    saveLog(l);
-    setCamOn(false);
-    Alert.alert('Nice!', `${n} reps logged for today. ✅`, [{ text: 'OK', onPress: () => go('home') }]);
-  };
-  const addRep = () => {
-    const n = reps + 1; setReps(n);
-    if (n >= reg.target) complete(n);
-  };
-
+  // Rest day: no requirements at all.
   if (reg.rest) {
     return (
       <View>
-        <Text style={styles.h1}>Today's workout</Text>
-        <View style={styles.banner}><Text style={{ color: '#ffd88a' }}>Today is a rest day — nothing to do. 🌙</Text></View>
+        <Text style={styles.h1}>Today</Text>
+        <Card>
+          <Text style={{ fontSize: 40, textAlign: 'center' }}>🌙</Text>
+          <Text style={[styles.h2, { textAlign: 'center', marginTop: 8 }]}>Rest day</Text>
+          <Text style={[styles.muted, { textAlign: 'center' }]}>Nothing to do today. Rest days never count against you.</Text>
+        </Card>
       </View>
     );
   }
 
+  const complete = (n) => {
+    saveLog({ ...state.log, [key]: { completed: true, reps: n, exercise: reg.exercise } });
+    setCamOn(false);
+    Alert.alert('Nice!', `${n} reps logged for today. ✅`, [{ text: 'OK', onPress: () => go('home') }]);
+  };
+  const addRep = () => { const n = reps + 1; setReps(n); if (n >= reg.target) complete(n); };
+
   return (
     <View>
-      <Text style={styles.h1}>Today's workout</Text>
+      <Text style={styles.h1}>Today · {reg.exercise}</Text>
       {already
-        ? <View style={styles.banner}><Text style={{ color: '#ffd88a' }}>✅ Already completed today ({state.log[key].reps} reps). You're covered.</Text></View>
-        : <Text style={styles.muted}>Target: {reg.target} {reg.exercise}. Reach it to mark today complete.</Text>}
+        ? <View style={styles.banner}><Text style={styles.bannerTxt}>✅ Completed today ({state.log[key].reps} reps). You're covered.</Text></View>
+        : <Text style={styles.muted}>Target: {reg.target} {reg.exercise.toLowerCase()}. Reach it to mark today complete.</Text>}
 
-      <View style={styles.card}>
+      <Card>
         <View style={styles.camBox}>
           {camOn && permission?.granted
             ? <CameraView style={{ flex: 1 }} facing="front" />
-            : <View style={styles.camPlaceholder}><Text style={styles.muted}>Camera off</Text></View>}
+            : <View style={styles.camPlaceholder}><Text style={{ fontSize: 34 }}>📷</Text><Text style={styles.muted}>Camera off</Text></View>}
         </View>
 
-        <Text style={styles.repBig}>{reps}</Text>
-        <Text style={[styles.muted, { textAlign: 'center' }]}>Tap once per rep. Camera keeps you honest.</Text>
+        <Text style={styles.repBig}>{reps}<Text style={styles.repTarget}> / {reg.target}</Text></Text>
 
-        <View style={{ marginTop: 14 }}>
-          {!camOn ? (
+        {!camOn ? (
+          <>
             <Btn text="Start camera" blue onPress={async () => {
               if (!permission?.granted) {
                 const res = await requestPermission();
@@ -307,21 +346,25 @@ function Workout({ state, saveLog, go }) {
               }
               setCamOn(true); setReps(0);
             }} />
-          ) : (
-            <Btn text={`Count rep  (+1)   ·   ${reps}/${reg.target}`} onPress={addRep} />
-          )}
-          <Btn text="Mark complete (manual)" secondary onPress={() => complete(Math.max(reps, reg.target))} />
-        </View>
-      </View>
+            <Text style={[styles.muted, { textAlign: 'center', marginTop: 8 }]}>Turn on the camera to start counting.</Text>
+          </>
+        ) : (
+          <>
+            <BigTapBtn text={`Count rep  ·  +1`} onPress={addRep} />
+            <Text style={[styles.muted, { textAlign: 'center', marginTop: 8 }]}>Tap once per rep. Auto-completes at {reg.target}.</Text>
+          </>
+        )}
+      </Card>
+
       <Text style={styles.disclaimer}>
-        Automatic AI rep-counting isn't available in Expo Go (it needs a custom dev build with native
-        camera processing). This version verifies with the camera + tap-to-count.
+        Automatic AI rep-counting isn't available in Expo Go (it needs a custom dev build with native camera
+        processing). This version verifies with the camera and you tap to count.
       </Text>
     </View>
   );
 }
 
-// ---------------- CONTRACT ----------------
+// ---------------- CONTRACT (Invest) ----------------
 function Contract({ state, saveContract, saveHealth, go }) {
   const signed = state.contract && state.contract.signed;
   const [amount, setAmount] = useState(50);
@@ -334,21 +377,18 @@ function Contract({ state, saveContract, saveHealth, go }) {
     return (
       <View>
         <Text style={styles.h1}>Contract active</Text>
-        <View style={styles.card}>
+        <Card>
           <Text style={styles.text}>Signed by {state.contract.name} on {state.contract.date.slice(0, 10)}.</Text>
-          <View style={styles.statRow}>
+          <View style={styles.statGrid}>
             <Stat k="Invested" v={money(s.invested)} />
             <Stat k="Balance" v={money(s.balance)} />
           </View>
-          <Stat k="Forfeited" v={money(s.forfeited)} color={C.danger} />
           <ContractText amount={state.contract.amount} />
-          <View style={styles.warnBox}><Text style={styles.warnTxt}>If you miss two days in a row you will be billed half the sum you agreed on.</Text></View>
-          <Text style={styles.muted}>There is no cancel. The only way out is a health exception.</Text>
-          <Btn text="Claim health exception" danger onPress={() =>
-            Alert.alert('Health exception', 'This pauses billing. Confirm you are stopping for genuine health reasons?',
-              [{ text: 'Cancel' }, { text: 'Confirm', onPress: () => { saveHealth(true); go('home'); } }])} />
+          <WarnBox />
+          <Text style={styles.muted}>There is no cancel. The only way out is a health exception — find it in Settings.</Text>
+          <Btn text="Go to Settings" secondary onPress={() => go('settings')} />
           <Text style={styles.disclaimer}>Prototype only — no real money is charged. Not an enforceable contract.</Text>
-        </View>
+        </Card>
       </View>
     );
   }
@@ -362,9 +402,9 @@ function Contract({ state, saveContract, saveHealth, go }) {
       <Text style={styles.h1}>Invest in your effort</Text>
       <Text style={styles.muted}>Optional — but signing is what makes it real.</Text>
 
-      <View style={styles.card}>
-        <Text style={styles.h2}>1. Choose your stake</Text>
-        <View style={styles.row}>
+      <Card>
+        <Text style={styles.step}>1 · Choose your stake</Text>
+        <View style={styles.amtRow}>
           {[25, 50, 100, 250].map((a) => (
             <TouchableOpacity key={a} onPress={() => { setAmount(a); setCustom(''); }}
               style={[styles.amt, finalAmount === a && !custom && styles.amtSel]}>
@@ -373,26 +413,26 @@ function Contract({ state, saveContract, saveHealth, go }) {
           ))}
         </View>
         <View style={[styles.row, { marginTop: 12 }]}>
-          <Text style={styles.muted}>or custom:  $</Text>
+          <Text style={styles.muted}>or custom  $</Text>
           <TextInput style={styles.numInput} keyboardType="number-pad" value={custom}
             onChangeText={setCustom} placeholder="amount" placeholderTextColor={C.muted} />
         </View>
-      </View>
+      </Card>
 
-      <View style={styles.card}>
-        <Text style={styles.h2}>2. Read the contract</Text>
+      <Card>
+        <Text style={styles.step}>2 · Read the contract</Text>
         <ContractText amount={finalAmount} />
-        <View style={styles.warnBox}><Text style={styles.warnTxt}>If you miss two days in a row you will be billed half the sum you agreed on.</Text></View>
-      </View>
+        <WarnBox />
+      </Card>
 
-      <View style={styles.card}>
-        <Text style={styles.h2}>3. Sign</Text>
-        <View style={styles.warnBox}><Text style={styles.warnTxt}>Once you sign, your regimen is LOCKED and cannot be changed. Set it exactly how you want it before signing.</Text></View>
+      <Card>
+        <Text style={styles.step}>3 · Sign</Text>
+        <View style={styles.warnBox}><Text style={styles.warnTxt}>Once you sign, your plan is LOCKED and cannot be changed. Set it exactly how you want it before signing.</Text></View>
         {!regimenSet && (
           <View style={styles.banner}>
-            <Text style={{ color: '#ffd88a' }}>⚠️ You must set your regimen first. </Text>
-            <TouchableOpacity onPress={() => go('setup')}><Text style={{ color: C.blue }}>Go to Regimen</Text></TouchableOpacity>
-            <Text style={{ color: '#ffd88a' }}> and press Save, then you can invest.</Text>
+            <Text style={styles.bannerTxt}>⚠️ You must set your plan first. </Text>
+            <TouchableOpacity onPress={() => go('setup')}><Text style={styles.link}>Go to Plan</Text></TouchableOpacity>
+            <Text style={styles.bannerTxt}> and press Save, then you can invest.</Text>
           </View>
         )}
         <Text style={styles.muted}>Type your full name to sign.</Text>
@@ -404,8 +444,8 @@ function Contract({ state, saveContract, saveHealth, go }) {
           </View>
           <Text style={[styles.muted, { flex: 1 }]}>
             I have read and understand this contract. There is no cancellation except for genuine health
-            reasons, my regimen is now locked and cannot be changed, and if I miss two days in a row I will
-            be billed half the sum I agreed on.
+            reasons, my plan is now locked and cannot be changed, and if I miss two days in a row I will be
+            billed half the sum I agreed on.
           </Text>
         </TouchableOpacity>
         <Btn text="Sign & commit" disabled={!canSign} onPress={() => {
@@ -417,7 +457,7 @@ function Contract({ state, saveContract, saveHealth, go }) {
           Prototype only — no real money is charged, stored, or transferred. This is a demonstration, not a
           legally binding agreement. Consult a lawyer and a payment provider before doing this for real.
         </Text>
-      </View>
+      </Card>
     </View>
   );
 }
@@ -428,51 +468,100 @@ function ContractText({ amount }) {
       <Text style={styles.contractH}>Commitment Contract</Text>
       <Text style={styles.contractP}>I am voluntarily investing ${amount} in my own fitness commitment.</Text>
       <Text style={styles.contractP}>I agree to complete my chosen exercise on every scheduled (non-rest) day, verified by the app.</Text>
-      <Text style={styles.contractP}>Locked plan: my regimen is fixed at the moment of signing and cannot be changed afterward.</Text>
+      <Text style={styles.contractP}>Locked plan: my plan is fixed at the moment of signing and cannot be changed afterward.</Text>
       <Text style={styles.contractP}>Penalty: if I fail two scheduled days in a row, I agree to be billed half of my remaining balance. This applies again for every additional pair of consecutive missed days.</Text>
       <Text style={styles.contractP}>No cancellation: once signed, this cannot be cancelled. The only exception is a genuine health reason, which pauses billing.</Text>
       <Text style={styles.contractP}>I understand this app is a prototype and no real money is collected in this version.</Text>
     </View>
   );
 }
+function WarnBox() {
+  return <View style={styles.warnBox}><Text style={styles.warnTxt}>If you miss two days in a row you will be billed half the sum you agreed on.</Text></View>;
+}
+
+// ---------------- SETTINGS ----------------
+function Settings({ state, saveHealth, onReset, go }) {
+  const signed = state.contract && state.contract.signed;
+  return (
+    <View>
+      <Text style={styles.h1}>Settings</Text>
+
+      <Card>
+        <Text style={styles.h2}>Health exception</Text>
+        {!signed ? (
+          <Text style={styles.muted}>No active contract — there's nothing to pause. The health exception appears here once you've signed.</Text>
+        ) : state.health ? (
+          <>
+            <View style={styles.banner}><Text style={styles.bannerTxt}>🩺 Health exception is active — billing is paused.</Text></View>
+            <Btn text="Resume commitment" onPress={() => saveHealth(false)} />
+          </>
+        ) : (
+          <>
+            <Text style={styles.muted}>Stopping for a genuine health reason? This is the only way out of a signed contract. It pauses all billing.</Text>
+            <Btn text="Claim health exception" danger onPress={() =>
+              Alert.alert('Health exception', 'This pauses billing. Confirm you are stopping for genuine health reasons?',
+                [{ text: 'Cancel' }, { text: 'Confirm', onPress: () => saveHealth(true) }])} />
+          </>
+        )}
+      </Card>
+
+      <Card>
+        <Text style={styles.h2}>History</Text>
+        <Text style={styles.muted}>See every day you've logged.</Text>
+        <Btn text="View full history" secondary onPress={() => go('history')} />
+      </Card>
+
+      <Card>
+        <Text style={styles.h2}>Danger zone</Text>
+        <Text style={styles.muted}>Erase your plan, log, and contract from this device.</Text>
+        <Btn text="Reset all data" danger onPress={() =>
+          Alert.alert('Reset', 'Erase ALL data (plan, log, contract)?',
+            [{ text: 'Cancel' }, { text: 'Erase', style: 'destructive', onPress: onReset }])} />
+      </Card>
+
+      <Text style={styles.disclaimer}>
+        WorkoutMoneyApp prototype. No real money is charged and the contract is not legally binding.
+        All data is stored only on this device.
+      </Text>
+    </View>
+  );
+}
 
 // ---------------- HISTORY ----------------
-function History({ state, onReset }) {
+function History({ state, go }) {
   const keys = Object.keys(state.log).sort().reverse();
   return (
     <View>
-      <Text style={styles.h1}>History</Text>
-      <View style={styles.card}>
+      <View style={styles.cardHead}>
+        <Text style={styles.h1}>History</Text>
+        <TouchableOpacity onPress={() => go('settings')}><Text style={styles.link}>Back</Text></TouchableOpacity>
+      </View>
+      <Card>
         <View style={styles.trHead}>
           <Text style={[styles.th, { flex: 2 }]}>Date</Text>
           <Text style={[styles.th, { flex: 1 }]}>Day</Text>
-          <Text style={[styles.th, { flex: 1.5 }]}>Status</Text>
-          <Text style={[styles.th, { flex: 1 }]}>Reps</Text>
+          <Text style={[styles.th, { flex: 1.6 }]}>Status</Text>
+          <Text style={[styles.th, { flex: 0.8, textAlign: 'right' }]}>Reps</Text>
         </View>
-        {keys.length === 0 && <Text style={[styles.muted, { padding: 8 }]}>No workouts logged yet.</Text>}
+        {keys.length === 0 && <Text style={[styles.muted, { paddingVertical: 10 }]}>No workouts logged yet.</Text>}
         {keys.map((k) => {
           const rec = state.log[k];
           return (
             <View key={k} style={styles.tr}>
               <Text style={[styles.td, { flex: 2 }]}>{k}</Text>
               <Text style={[styles.td, { flex: 1 }]}>{DAYS[dowOf(k)]}</Text>
-              <View style={{ flex: 1.5 }}><Pill kind={rec.completed ? 'done' : 'miss'} text={rec.completed ? 'Done' : 'Missed'} /></View>
-              <Text style={[styles.td, { flex: 1 }]}>{rec.reps || ''}</Text>
+              <View style={{ flex: 1.6 }}><Pill kind={rec.completed ? 'done' : 'miss'} text={rec.completed ? 'Done' : 'Missed'} /></View>
+              <Text style={[styles.td, { flex: 0.8, textAlign: 'right' }]}>{rec.reps || '—'}</Text>
             </View>
           );
         })}
-      </View>
-      <View style={styles.card}>
-        <Text style={styles.h2}>Danger zone</Text>
-        <Btn text="Reset all data" danger onPress={() =>
-          Alert.alert('Reset', 'Erase ALL data (regimen, log, contract)?',
-            [{ text: 'Cancel' }, { text: 'Erase', style: 'destructive', onPress: onReset }])} />
-      </View>
+      </Card>
     </View>
   );
 }
 
-// ---------------- small components ----------------
+// ---------------- shared components ----------------
+function Card({ children, style }) { return <View style={[styles.card, style]}>{children}</View>; }
 function Stat({ k, v, color }) {
   return (
     <View style={styles.stat}>
@@ -496,59 +585,92 @@ function Btn({ text, onPress, secondary, danger, blue, disabled }) {
   if (blue) { bg = C.blue; fg = '#fff'; }
   return (
     <TouchableOpacity onPress={onPress} disabled={disabled}
-      style={[styles.btn, { backgroundColor: bg }, secondary && styles.btnSecondary, disabled && { opacity: 0.45 }]}>
+      style={[styles.btn, { backgroundColor: bg }, secondary && styles.btnSecondary, disabled && { opacity: 0.4 }]}>
       <Text style={{ color: fg, fontWeight: '700', fontSize: 15 }}>{text}</Text>
+    </TouchableOpacity>
+  );
+}
+function BigTapBtn({ text, onPress }) {
+  return (
+    <TouchableOpacity onPress={onPress} activeOpacity={0.7} style={styles.bigTap}>
+      <Text style={{ color: '#04170a', fontWeight: '900', fontSize: 20 }}>{text}</Text>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   app: { flex: 1, backgroundColor: C.bg },
-  header: { paddingHorizontal: 16, paddingTop: Platform.OS === 'android' ? 8 : 0, paddingBottom: 8, borderBottomWidth: 1, borderColor: C.border },
-  logo: { color: C.text, fontWeight: '800', fontSize: 20 },
-  nav: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, padding: 10, borderBottomWidth: 1, borderColor: C.border },
-  navBtn: { borderWidth: 1, borderColor: C.border, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 },
-  navBtnActive: { borderColor: C.accent, backgroundColor: C.panel },
-  navTxt: { color: C.muted, fontSize: 13 },
-  h1: { color: C.text, fontSize: 24, fontWeight: '800', marginBottom: 4 },
-  h2: { color: C.text, fontSize: 18, fontWeight: '700', marginBottom: 10 },
-  text: { color: C.text },
-  muted: { color: C.muted, marginTop: 2 },
-  card: { backgroundColor: C.panel, borderWidth: 1, borderColor: C.border, borderRadius: 14, padding: 16, marginTop: 14 },
-  statRow: { flexDirection: 'row', gap: 10, marginTop: 12 },
-  stat: { flex: 1, backgroundColor: C.panel2, borderWidth: 1, borderColor: C.border, borderRadius: 12, padding: 12 },
-  statK: { color: C.muted, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 },
+  header: { paddingHorizontal: 16, paddingTop: Platform.OS === 'android' ? 10 : 4, paddingBottom: 10, borderBottomWidth: 1, borderColor: C.border },
+  logo: { color: C.text, fontWeight: '800', fontSize: 22 },
+  headerSub: { color: C.muted, fontSize: 12, marginTop: 2 },
+
+  h1: { color: C.text, fontSize: 26, fontWeight: '800', marginBottom: 4 },
+  h2: { color: C.text, fontSize: 17, fontWeight: '700' },
+  step: { color: C.accent, fontSize: 13, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 10 },
+  text: { color: C.text, fontSize: 14 },
+  muted: { color: C.muted, marginTop: 2, fontSize: 14, lineHeight: 20 },
+  link: { color: C.blue, fontWeight: '700' },
+
+  card: { backgroundColor: C.panel, borderWidth: 1, borderColor: C.border, borderRadius: 16, padding: 16, marginTop: 14 },
+  cardHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+
+  statGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 14 },
+  stat: { flexGrow: 1, flexBasis: '46%', backgroundColor: C.panel2, borderWidth: 1, borderColor: C.border, borderRadius: 14, padding: 14 },
+  statK: { color: C.muted, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.6 },
   statV: { color: C.text, fontSize: 24, fontWeight: '800', marginTop: 4 },
-  pill: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999, marginBottom: 6 },
-  btn: { paddingVertical: 12, paddingHorizontal: 16, borderRadius: 10, alignItems: 'center', marginTop: 10 },
+
+  pill: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999 },
+  recentRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8, borderTopWidth: 1, borderColor: C.border },
+
+  btn: { paddingVertical: 13, paddingHorizontal: 16, borderRadius: 12, alignItems: 'center', marginTop: 12 },
   btnSecondary: { borderWidth: 1, borderColor: C.border },
-  dayrow: { backgroundColor: C.panel2, borderWidth: 1, borderColor: C.border, borderRadius: 10, padding: 10, marginBottom: 10 },
-  dayName: { color: C.text, fontWeight: '700', fontSize: 15, marginBottom: 6 },
-  exRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 },
-  chip: { borderWidth: 1, borderColor: C.border, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5 },
-  chipSel: { borderColor: C.accent },
-  chipTxt: { color: C.muted, fontSize: 12 },
+  bigTap: { backgroundColor: C.accent, paddingVertical: 22, borderRadius: 16, alignItems: 'center', marginTop: 6 },
+
+  dayName: { color: C.text, fontWeight: '800', fontSize: 16 },
+  exRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
+  chip: { borderWidth: 1, borderColor: C.border, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 7 },
+  chipSel: { borderColor: C.accent, backgroundColor: 'rgba(63,185,80,.1)' },
+  chipTxt: { color: C.muted, fontSize: 13 },
+
   row: { flexDirection: 'row', alignItems: 'center' },
-  rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  numInput: { backgroundColor: '#0b0f14', borderWidth: 1, borderColor: C.border, color: C.text, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, minWidth: 64, textAlign: 'center' },
-  textInput: { backgroundColor: '#0b0f14', borderWidth: 1, borderColor: C.border, color: C.text, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 10, marginTop: 8 },
-  camBox: { height: 300, borderRadius: 12, overflow: 'hidden', backgroundColor: '#000' },
-  camPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  repBig: { color: C.text, fontSize: 60, fontWeight: '900', textAlign: 'center', marginVertical: 10 },
-  banner: { backgroundColor: 'rgba(210,153,34,.12)', borderWidth: 1, borderColor: C.warn, borderRadius: 10, padding: 12, marginTop: 12, flexDirection: 'row', flexWrap: 'wrap' },
-  contract: { backgroundColor: '#0b0f14', borderWidth: 1, borderColor: C.border, borderRadius: 10, padding: 14 },
+  numInput: { backgroundColor: '#0b0f14', borderWidth: 1, borderColor: C.border, color: C.text, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, minWidth: 70, textAlign: 'center', fontSize: 15 },
+  textInput: { backgroundColor: '#0b0f14', borderWidth: 1, borderColor: C.border, color: C.text, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 11, marginTop: 8, fontSize: 15 },
+
+  camBox: { height: 320, borderRadius: 14, overflow: 'hidden', backgroundColor: '#000' },
+  camPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 6 },
+  repBig: { color: C.text, fontSize: 56, fontWeight: '900', textAlign: 'center', marginVertical: 10 },
+  repTarget: { color: C.muted, fontSize: 26, fontWeight: '700' },
+
+  banner: { backgroundColor: 'rgba(210,153,34,.12)', borderWidth: 1, borderColor: C.warn, borderRadius: 12, padding: 12, marginTop: 12, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' },
+  bannerTxt: { color: '#ffd88a', fontSize: 14 },
+  lockBanner: { backgroundColor: 'rgba(56,139,253,.12)', borderWidth: 1, borderColor: C.blue, borderRadius: 12, padding: 12, marginTop: 12 },
+  lockTxt: { color: '#bcd6ff', fontSize: 14, fontWeight: '600' },
+
+  contract: { backgroundColor: '#0b0f14', borderWidth: 1, borderColor: C.border, borderRadius: 12, padding: 14, marginTop: 4 },
   contractH: { color: C.text, fontWeight: '700', fontSize: 16, marginBottom: 8 },
-  contractP: { color: C.muted, fontSize: 14, marginBottom: 8 },
-  warnBox: { backgroundColor: 'rgba(248,81,73,.1)', borderWidth: 1, borderColor: C.danger, borderRadius: 10, padding: 14, marginTop: 14 },
-  warnTxt: { color: '#ffb3ae', fontWeight: '800', textAlign: 'center' },
-  amt: { backgroundColor: C.panel2, borderWidth: 2, borderColor: C.border, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 18, marginRight: 8 },
+  contractP: { color: C.muted, fontSize: 14, marginBottom: 8, lineHeight: 20 },
+  warnBox: { backgroundColor: 'rgba(248,81,73,.1)', borderWidth: 1, borderColor: C.danger, borderRadius: 12, padding: 14, marginTop: 14 },
+  warnTxt: { color: '#ffb3ae', fontWeight: '800', textAlign: 'center', lineHeight: 20 },
+
+  amtRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  amt: { backgroundColor: C.panel2, borderWidth: 2, borderColor: C.border, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 22 },
   amtSel: { borderColor: C.accent },
   amtTxt: { color: C.text, fontSize: 18, fontWeight: '800' },
+
   agreeRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginVertical: 14 },
-  checkbox: { width: 24, height: 24, borderWidth: 2, borderColor: C.border, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
-  disclaimer: { color: C.muted, fontSize: 12, marginTop: 12, borderTopWidth: 1, borderTopColor: C.border, paddingTop: 10 },
+  checkbox: { width: 26, height: 26, borderWidth: 2, borderColor: C.border, borderRadius: 7, alignItems: 'center', justifyContent: 'center' },
+
+  disclaimer: { color: C.muted, fontSize: 12, marginTop: 14, lineHeight: 18 },
+
   trHead: { flexDirection: 'row', borderBottomWidth: 1, borderColor: C.border, paddingBottom: 6 },
   th: { color: C.muted, fontSize: 12, fontWeight: '700' },
-  tr: { flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderColor: C.border, paddingVertical: 8 },
+  tr: { flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderColor: C.border, paddingVertical: 9 },
   td: { color: C.text, fontSize: 13 },
+
+  tabbar: { flexDirection: 'row', borderTopWidth: 1, borderColor: C.border, backgroundColor: C.panel, paddingTop: 6, paddingBottom: Platform.OS === 'ios' ? 8 : 6 },
+  tabItem: { flex: 1, alignItems: 'center', paddingVertical: 2 },
+  tabDot: { width: 22, height: 3, borderRadius: 2, marginBottom: 5 },
+  tabIcon: { fontSize: 20 },
+  tabLabel: { fontSize: 11, marginTop: 2, color: C.muted },
+  tabLabelActive: { color: C.accent, fontWeight: '700' },
 });
