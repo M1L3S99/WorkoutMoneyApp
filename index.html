@@ -329,8 +329,29 @@ function isExempt(key){
   return false;
 }
 function completedCount(){ return Object.keys(state.log).filter(k=>state.log[k]&&state.log[k].completed).length; }
-function tokensEarned(){ return Math.floor(completedCount()/7); }          // earn 1 skip token per 7 completed workouts
+function daysSinceSign(){ const c=state.contract; if(!c||!c.signed) return -1; const sign=new Date(c.date); sign.setHours(0,0,0,0); return Math.floor((new Date(todayKey()+'T00:00:00')-sign)/86400000); }
+function tokensEarned(){ const d=daysSinceSign(); return d<0?0:Math.floor(d/14); }   // 1 skip token every 2 weeks since signing
+function tokenNextInDays(){ const d=daysSinceSign(); return d<0?0:(14-(d%14)); }       // days until the next token
 function tokensAvailable(){ return Math.max(0, tokensEarned() - (state.skipsUsed||0)); }
+// scheduled non-rest days that were missed and are not yet covered by a token/health freeze
+function uncoveredMisses(){
+  const c=state.contract; if(!c||!c.signed) return [];
+  const sign=new Date(c.date); sign.setHours(0,0,0,0);
+  const today=new Date(todayKey()+'T00:00:00'); const out=[];
+  for(let d=new Date(sign); d<today; d.setDate(d.getDate()+1)){
+    const reg=state.regimen[d.getDay()]; if(!reg||reg.rest) continue;
+    const k=todayKey(d); if(isExempt(k)) continue;
+    if(!(state.log[k]&&state.log[k].completed)) out.push(k);
+  }
+  return out;
+}
+function coverMiss(key){
+  if(tokensAvailable()<=0){ toast('No skip tokens available.'); return; }
+  if(!state.exempt.includes(key)) state.exempt.push(key);
+  state.skipsUsed=(state.skipsUsed||0)+1;
+  store.saveExempt(state.exempt); store.saveSkipsUsed(state.skipsUsed);
+  toast('Skip token used — that day is covered.'); renderHome();
+}
 
 let state = store.load();
 state.regimen = state.regimen ? normRegimen(state.regimen) : defaultRegimen();
@@ -412,7 +433,8 @@ function showScreen(name){
 /* ---------- HOME ---------- */
 function renderHome(){
   const s = computeStats();
-  const cyc = cycleInfo();
+  const signed = state.contract && state.contract.signed;
+  const tk = tokensAvailable(), nextIn = tokenNextInDays(), misses = uncoveredMisses();
   const dow = new Date().getDay(), reg = state.regimen[dow], key = todayKey();
   const done = state.log[key] && state.log[key].completed;
   const recent = Object.keys(state.log).sort().reverse().slice(0,3);
@@ -453,14 +475,16 @@ function renderHome(){
       <div class="stat pos glow"><div class="k">Balance</div><div class="v">${money(s.balance)}</div></div>
       <div class="stat neg"><div class="k">Forfeited</div><div class="v">${money(s.forfeited)}</div></div>
     </div>
-    ${cyc?`<div class="card"><div class="card-head"><h2 style="font-size:18px">This month</h2></div>
+    ${signed?`<div class="card"><div class="card-head"><h2 style="font-size:18px">Skip tokens</h2></div>
       <div class="row" style="gap:12px;flex-wrap:nowrap">
-        <div class="stat ${cyc.missed>2?'neg':'pos'}" style="flex:1"><div class="k">Missed days</div>
-          <div class="v small">${cyc.missed}<span class="num" style="font-size:12px;color:var(--muted);font-weight:400"> / 2</span></div></div>
-        <div class="stat" style="flex:1"><div class="k">Resets in</div>
-          <div class="v small">${cyc.daysUntilReset}<span class="num" style="font-size:12px;color:var(--muted);font-weight:400"> days</span></div></div>
+        <div class="stat ${tk>0?'pos':'neg'}" style="flex:1"><div class="k">Available</div>
+          <div class="v small">${tk}</div></div>
+        <div class="stat" style="flex:1"><div class="k">Next token in</div>
+          <div class="v small">${nextIn}<span class="num" style="font-size:12px;color:var(--muted);font-weight:400"> days</span></div></div>
       </div>
-      <p class="muted" style="margin-top:12px">Miss more than 2 non-rest days this month and you forfeit ¼ of what you invested. The month runs from your signing date.</p></div>`:''}
+      <p class="muted" style="margin-top:12px">Miss a scheduled day? Spend 1 skip token to cover it and keep your contract intact. You earn 1 token every 2 weeks.</p>
+      ${(misses.length&&tk>0)?`<button class="btn ghost" onclick="coverMiss('${misses[misses.length-1]}')">🎟️ Cover missed ${FULLDAY[dowOf(misses[misses.length-1])]} · ${misses.length} uncovered</button>`:''}
+      ${(misses.length&&tk<=0)?`<div class="banner" style="margin-top:12px">⚠️ ${misses.length} uncovered missed day${misses.length===1?'':'s'} and no skip tokens left.</div>`:''}</div>`:''}
     <div class="card"><div class="card-head"><span class="eyebrow" style="color:var(--primary)">Today • ${DAYS[dow]}</span>${pill}</div>${todayInner}</div>
     ${contractCard}
     <div class="card"><div class="card-head"><h2 style="font-size:18px">Recent activity</h2>${recent.length?`<button class="link" onclick="showScreen('history')">View all</button>`:''}</div>${recentRows}</div>`;
@@ -794,7 +818,7 @@ function renderSettings(){
     <div class="card"><div class="k eyebrow">Total amount invested</div>
       <div style="font-family:var(--fh);font-size:40px;font-weight:700;letter-spacing:-.02em;margin-top:6px">${money(s.invested)}</div>
       <div class="num" style="color:var(--primary);font-size:13px;margin-top:6px">${money(s.balance)} balance at stake · ${money(s.forfeited)} forfeited</div>
-      <div class="num" style="color:var(--muted);font-size:13px;margin-top:6px">🎟️ ${tokensAvailable()} skip token${tokensAvailable()===1?'':'s'} · earn 1 per 7 workouts</div></div>
+      <div class="num" style="color:var(--muted);font-size:13px;margin-top:6px">🎟️ ${tokensAvailable()} skip token${tokensAvailable()===1?'':'s'} · earn 1 every 2 weeks</div></div>
 
     <div style="margin-top:22px" class="eyebrow">Preference hub</div>
     <div class="card"><h2 style="font-size:18px">Health exception</h2><div style="margin-top:8px">${health}</div></div>
