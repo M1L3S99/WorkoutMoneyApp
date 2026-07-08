@@ -4,7 +4,13 @@ A commitment-device workout app. Set a daily exercise regimen, verify each
 workout in front of an AI (webcam pushup counter), then optionally put money
 on the line: miss two scheduled days in a row and you forfeit half your balance.
 
-## Run it
+## Two versions
+
+- **Web** — `index.html` at the repo root. Open it in a browser; no install needed.
+- **Mobile (Expo Go)** — in the [`mobile/`](mobile/) folder. Run it on your phone
+  through the free Expo Go app. See [`mobile/README.md`](mobile/README.md).
+
+## Run the web version
 
 Open `index.html` in a modern browser (Chrome, Edge, or Safari). Allow camera
 access when prompted so the AI can count your reps. No install or server needed.
