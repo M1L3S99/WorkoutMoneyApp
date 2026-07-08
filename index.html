@@ -104,6 +104,17 @@
   .progress{height:8px;background:var(--surf-highest);border-radius:999px;overflow:hidden;margin-top:8px}
   .progress > i{display:block;height:100%;width:0;background:var(--primary);border-radius:999px;transition:width .3s}
 
+  /* multiple exercises per day */
+  .exitem{padding-top:14px;border-top:1px solid var(--outline-v);margin-top:14px}
+  .exitem:first-child{border-top:none;padding-top:0;margin-top:0}
+  .exlist{display:flex;flex-direction:column;margin-top:4px}
+  .exline{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--outline-v)}
+  .exline:first-child{border-top:none}
+  .exname{flex:1;font-weight:600}
+  .exprog{color:var(--muted);font-size:13px}
+  .exdot{width:18px;height:18px;border-radius:50%;border:2px solid var(--outline);flex:none}
+  .exdot.done{background:var(--primary);border-color:var(--primary)}
+
   /* schedule day */
   .exrow{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
   .chip{font-family:var(--fb);border:1px solid rgba(138,147,134,.35);border-radius:999px;padding:7px 13px;font-size:13px;
@@ -273,14 +284,25 @@ const store = {
   saveHealth(h){ localStorage.setItem('wm_health', JSON.stringify(h)); },
   saveRegimenSaved(v){ localStorage.setItem('wm_regimenSaved', JSON.stringify(v)); },
 };
-function defaultRegimen(){ const r={}; DAYS.forEach((d,i)=>{ r[i]={exercise:'Pushups',target:20,rest:(i===0||i===6)}; }); return r; }
+function defaultRegimen(){ const r={}; DAYS.forEach((d,i)=>{ r[i]={rest:(i===0||i===6),exercises:[{exercise:'Pushups',target:20}]}; }); return r; }
+// normalize a day to the multi-exercise shape (handles the old single-exercise format)
+function normDay(d){
+  if(!d) return {rest:false,exercises:[{exercise:'Pushups',target:20}]};
+  if(Array.isArray(d.exercises)&&d.exercises.length)
+    return {rest:!!d.rest,exercises:d.exercises.map(e=>({exercise:e.exercise||'Pushups',target:Math.max(1,+e.target||1)}))};
+  return {rest:!!d.rest,exercises:[{exercise:d.exercise||'Pushups',target:Math.max(1,+d.target||20)}]};
+}
+function normRegimen(r){ const o={}; DAYS.forEach((_,i)=>{ o[i]=normDay(r&&r[i]); }); return o; }
+function addMonths(d,n){ const x=new Date(d); const day=x.getDate(); x.setDate(1); x.setMonth(x.getMonth()+n);
+  const dim=new Date(x.getFullYear(),x.getMonth()+1,0).getDate(); x.setDate(Math.min(day,dim)); return x; }
+function daySummary(reg){ return reg.exercises.map(e=>`${e.target} ${e.exercise}`).join(' · '); }
 function todayKey(d=new Date()){ return d.toISOString().slice(0,10); }
 function dowOf(key){ return new Date(key+'T00:00:00').getDay(); }
 function money(n){ return '$'+(Math.round(n*100)/100).toLocaleString(); }
 function escapeHtml(s){ return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 let state = store.load();
-if(!state.regimen){ state.regimen = defaultRegimen(); }
+state.regimen = state.regimen ? normRegimen(state.regimen) : defaultRegimen();
 
 /* ---------- stats / forfeiture engine ---------- */
 function computeStats(){
@@ -291,34 +313,48 @@ function computeStats(){
   const startKey = c ? c.date.slice(0,10) : (logKeys[0]||todayKey());
   const start = new Date(startKey+'T00:00:00');
   const today = new Date(todayKey()+'T00:00:00');
+  // penalty 1: two scheduled days missed in a row -> half the balance
   let consecutiveMiss = 0;
-  let monthTag = start.getFullYear()+'-'+start.getMonth(), monthMiss = 0;
-  const settleMonth = ()=>{ if(c&&c.signed&&monthMiss>2&&balance>0){ const loss=Math.min(invested/4,balance); forfeited+=loss; balance-=loss; } monthMiss=0; };
   for(let d=new Date(start); d<today; d.setDate(d.getDate()+1)){
-    const tag = d.getFullYear()+'-'+d.getMonth();
-    if(tag!==monthTag){ settleMonth(); monthTag=tag; }   // a month ended: apply the 1/4 monthly penalty
     const reg = state.regimen[d.getDay()];
     if(!reg || reg.rest) continue;
     const done = state.log[todayKey(d)] && state.log[todayKey(d)].completed;
     if(done){ consecutiveMiss=0; streak++; }
-    else { consecutiveMiss++; streak=0; monthMiss++;
-      if(consecutiveMiss>=2){ if(c&&c.signed&&balance>0){ const loss=balance/2; forfeited+=loss; balance-=loss; } consecutiveMiss=0; } }
+    else { consecutiveMiss++; streak=0; if(consecutiveMiss>=2){ if(c&&c.signed&&balance>0){ const loss=balance/2; forfeited+=loss; balance-=loss; } consecutiveMiss=0; } }
+  }
+  // penalty 2: >2 missed non-rest days in a monthly cycle anchored to the signing date -> forfeit 1/4
+  if(c&&c.signed){
+    const sign=new Date(c.date); sign.setHours(0,0,0,0);
+    let k=0;
+    while(addMonths(sign,k+1)<=today){
+      const cs=addMonths(sign,k), ce=addMonths(sign,k+1);
+      let missed=0;
+      for(let d=new Date(cs); d<ce; d.setDate(d.getDate()+1)){
+        const reg=state.regimen[d.getDay()]; if(!reg||reg.rest) continue;
+        const done=state.log[todayKey(d)] && state.log[todayKey(d)].completed;
+        if(!done) missed++;
+      }
+      if(missed>2&&balance>0){ const loss=Math.min(invested/4,balance); forfeited+=loss; balance-=loss; }
+      k++;
+    }
   }
   return {invested,balance,forfeited,streak};
 }
 function scheduledPerWeek(){ return DAYS.filter((_,i)=>!state.regimen[i].rest).length; }
-// Missed non-rest days in the CURRENT calendar month (past days only) + days until the counter resets.
-function monthMissedThisMonth(){
-  const now=new Date(), y=now.getFullYear(), mo=now.getMonth();
-  const first=new Date(y,mo,1), today=new Date(todayKey()+'T00:00:00');
+// Current signing-anchored month: missed non-rest days so far + days until it resets. Null until signed.
+function cycleInfo(){
+  const c=state.contract; if(!c||!c.signed) return null;
+  const sign=new Date(c.date); sign.setHours(0,0,0,0);
+  const today=new Date(todayKey()+'T00:00:00');
+  let k=0; while(addMonths(sign,k+1)<=today) k++;
+  const start=addMonths(sign,k), end=addMonths(sign,k+1);
   let missed=0;
-  for(let d=new Date(first); d<today; d.setDate(d.getDate()+1)){
-    const reg=state.regimen[d.getDay()];
-    if(!reg||reg.rest) continue;
+  for(let d=new Date(start); d<today; d.setDate(d.getDate()+1)){
+    const reg=state.regimen[d.getDay()]; if(!reg||reg.rest) continue;
     const done=state.log[todayKey(d)] && state.log[todayKey(d)].completed;
     if(!done) missed++;
   }
-  const daysUntilReset=Math.max(0,Math.ceil((new Date(y,mo+1,1)-today)/86400000));
+  const daysUntilReset=Math.max(0,Math.ceil((end-today)/86400000));
   return {missed,daysUntilReset,allowed:2};
 }
 let resetArmed=false;
@@ -345,16 +381,16 @@ function showScreen(name){
 /* ---------- HOME ---------- */
 function renderHome(){
   const s = computeStats();
-  const m = monthMissedThisMonth();
+  const cyc = cycleInfo();
   const dow = new Date().getDay(), reg = state.regimen[dow], key = todayKey();
   const done = state.log[key] && state.log[key].completed;
   const recent = Object.keys(state.log).sort().reverse().slice(0,3);
 
   let pill, todayInner;
   if(reg.rest){ pill=`<span class="pill rest">Rest</span>`; todayInner=`<p class="muted">🌙 Rest day — no workout required. Rest days never count against you.</p>`; }
-  else if(done){ pill=`<span class="pill done">Done</span>`; todayInner=`<p class="muted">${state.log[key].reps} ${reg.exercise.toLowerCase()} logged. Capital protected.</p>`; }
+  else if(done){ pill=`<span class="pill done">Done</span>`; todayInner=`<p class="muted">${state.log[key].reps} reps logged. Capital protected.</p>`; }
   else { pill=`<span class="pill todo">To do</span>`;
-    todayInner=`<h2 style="margin:2px 0 0">Target: ${reg.target} ${reg.exercise.toLowerCase()}</h2>
+    todayInner=`<h2 style="margin:2px 0 0">${daySummary(reg)}</h2>
       <button class="btn" onclick="showScreen('workout')">▶ Start workout</button>`; }
 
   const contractCard = (state.contract && state.contract.signed)
@@ -386,14 +422,14 @@ function renderHome(){
       <div class="stat pos glow"><div class="k">Balance</div><div class="v">${money(s.balance)}</div></div>
       <div class="stat neg"><div class="k">Forfeited</div><div class="v">${money(s.forfeited)}</div></div>
     </div>
-    <div class="card"><div class="card-head"><h2 style="font-size:18px">This month</h2></div>
+    ${cyc?`<div class="card"><div class="card-head"><h2 style="font-size:18px">This month</h2></div>
       <div class="row" style="gap:12px;flex-wrap:nowrap">
-        <div class="stat ${m.missed>2?'neg':'pos'}" style="flex:1"><div class="k">Missed days</div>
-          <div class="v small">${m.missed}<span class="num" style="font-size:12px;color:var(--muted);font-weight:400"> / 2</span></div></div>
+        <div class="stat ${cyc.missed>2?'neg':'pos'}" style="flex:1"><div class="k">Missed days</div>
+          <div class="v small">${cyc.missed}<span class="num" style="font-size:12px;color:var(--muted);font-weight:400"> / 2</span></div></div>
         <div class="stat" style="flex:1"><div class="k">Resets in</div>
-          <div class="v small">${m.daysUntilReset}<span class="num" style="font-size:12px;color:var(--muted);font-weight:400"> days</span></div></div>
+          <div class="v small">${cyc.daysUntilReset}<span class="num" style="font-size:12px;color:var(--muted);font-weight:400"> days</span></div></div>
       </div>
-      <p class="muted" style="margin-top:12px">Miss more than 2 non-rest days in a month and you forfeit ¼ of what you invested. The counter resets on the 1st.</p></div>
+      <p class="muted" style="margin-top:12px">Miss more than 2 non-rest days this month and you forfeit ¼ of what you invested. The month runs from your signing date.</p></div>`:''}
     <div class="card"><div class="card-head"><span class="eyebrow" style="color:var(--primary)">Today • ${DAYS[dow]}</span>${pill}</div>${todayInner}</div>
     ${contractCard}
     <div class="card"><div class="card-head"><h2 style="font-size:18px">Recent activity</h2>${recent.length?`<button class="link" onclick="showScreen('history')">View all</button>`:''}</div>${recentRows}</div>`;
@@ -407,10 +443,19 @@ function renderSetup(){
   planDraft = JSON.parse(JSON.stringify(state.regimen));
   const dayCards = DAYS.map((d,i)=>{
     const reg = planDraft[i];
-    const body = reg.rest
-      ? `<p class="muted" style="margin-top:12px">Rest day — no workout required.</p>`
-      : `<div class="exrow">${EXERCISES.map(e=>`<button class="chip ${e===reg.exercise?'sel':''}" ${locked?'disabled':''} data-i="${i}" data-ex="${e}">${e}</button>`).join('')}</div>
-         <div class="field"><input type="number" min="1" data-i="${i}" data-target value="${reg.target}" ${locked?'disabled':''}/><span class="u">reps</span></div>`;
+    let body;
+    if(reg.rest){ body = `<p class="muted" style="margin-top:12px">Rest day — no workout required.</p>`; }
+    else {
+      const items = reg.exercises.map((ex,j)=>`
+        <div class="exitem">
+          <div class="exrow">${EXERCISES.map(e=>`<button class="chip ${e===ex.exercise?'sel':''}" ${locked?'disabled':''} data-i="${i}" data-j="${j}" data-ex="${e}">${e}</button>`).join('')}</div>
+          <div class="row" style="justify-content:space-between">
+            <div class="field"><input type="number" min="1" data-i="${i}" data-j="${j}" data-target value="${ex.target}" ${locked?'disabled':''}/><span class="u">reps</span></div>
+            ${(!locked && reg.exercises.length>1)?`<button class="link" data-remove data-i="${i}" data-j="${j}">Remove</button>`:''}
+          </div>
+        </div>`).join('');
+      body = `${items}${locked?'':`<button class="btn ghost" data-add data-i="${i}" style="margin-top:14px">＋ Add exercise</button>`}`;
+    }
     return `<div class="card" style="${locked?'opacity:.6':''}">
       <div class="card-head"><h2>${FULLDAY[i]}</h2>
         <span class="row" style="gap:8px"><span class="eyebrow">Rest day</span>
@@ -419,14 +464,16 @@ function renderSetup(){
   }).join('');
   document.getElementById('setup').innerHTML = `
     <h1 class="page">Weekly schedule</h1>
-    <p class="lead">Optimize your capital. Every workout is an investment.</p>
+    <p class="lead">Optimize your capital. Every workout is an investment. Add as many exercises to a day as you like.</p>
     ${locked?`<div class="lockbanner">🔒 Your schedule is locked. You signed a contract, so it can no longer be changed.</div>`:''}
     ${dayCards}
     ${locked?'':`<button class="btn" id="savePlan">Save schedule</button><div class="muted num" id="saveMsg" style="text-align:center;margin-top:8px"></div>`}`;
   if(locked) return;
-  document.querySelectorAll('#setup .chip').forEach(c=>c.onclick=()=>{ planDraft[+c.dataset.i].exercise=c.dataset.ex; state.regimen=planDraft; renderSetup(); });
+  document.querySelectorAll('#setup .chip').forEach(c=>c.onclick=()=>{ planDraft[+c.dataset.i].exercises[+c.dataset.j].exercise=c.dataset.ex; state.regimen=planDraft; renderSetup(); });
   document.querySelectorAll('#setup [data-rest]').forEach(t=>t.onchange=()=>{ planDraft[+t.dataset.i].rest=t.checked; state.regimen=planDraft; renderSetup(); });
-  document.querySelectorAll('#setup [data-target]').forEach(inp=>inp.onchange=()=>{ planDraft[+inp.dataset.i].target=Math.max(1,+inp.value||1); });
+  document.querySelectorAll('#setup [data-target]').forEach(inp=>inp.onchange=()=>{ planDraft[+inp.dataset.i].exercises[+inp.dataset.j].target=Math.max(1,+inp.value||1); });
+  document.querySelectorAll('#setup [data-remove]').forEach(b=>b.onclick=()=>{ planDraft[+b.dataset.i].exercises.splice(+b.dataset.j,1); state.regimen=planDraft; renderSetup(); });
+  document.querySelectorAll('#setup [data-add]').forEach(b=>b.onclick=()=>{ planDraft[+b.dataset.i].exercises.push({exercise:'Pushups',target:20}); state.regimen=planDraft; renderSetup(); });
   document.getElementById('savePlan').onclick=()=>{
     state.regimen = planDraft; store.saveRegimen(state.regimen);
     state.regimenSaved=true; store.saveRegimenSaved(true);
@@ -435,7 +482,8 @@ function renderSetup(){
 }
 
 /* ---------- TODAY (workout) + AI ---------- */
-let detector=null, camStream=null, rafId=null, running=false, repCount=0, phase='up';
+let detector=null, camStream=null, rafId=null, running=false, phase='up';
+let sessionItems=[], activeIdx=0;
 function renderWorkout(){
   const dow=new Date().getDay(), reg=state.regimen[dow], key=todayKey();
   const el=document.getElementById('workout');
@@ -447,8 +495,14 @@ function renderWorkout(){
   }
   const already = state.log[key] && state.log[key].completed;
   const staked = (state.contract && state.contract.signed) ? state.contract.amount : 0;
-  const pct = already ? 100 : 0;
-  repCount=0; phase='up';
+  sessionItems = reg.exercises.map(e=>({exercise:e.exercise,target:e.target,reps:already?e.target:0,done:!!already}));
+  activeIdx=0; phase='up';
+  const list = sessionItems.map((it,j)=>`
+    <div class="exline">
+      <span class="exname">${it.exercise}</span>
+      <span class="exprog" id="exprog-${j}">${it.reps} / ${it.target}</span>
+      <span class="exdot ${it.done?'done':''}" id="exdot-${j}"></span>
+    </div>`).join('');
   el.innerHTML=`
     <h1 class="page">My journey</h1>
     <p class="lead">High performance is the only currency that counts.</p>
@@ -457,20 +511,21 @@ function renderWorkout(){
         <span class="pill done" style="text-transform:uppercase">Today's target</span>
         <span class="num" style="font-size:12px;color:var(--primary);font-weight:500">${staked?money(staked)+' AT STAKE':'NO STAKE'}</span>
       </div>
-      <h2 style="font-size:26px">Target: ${reg.target} ${reg.exercise}</h2>
-      ${already?`<div class="banner" style="margin-top:12px">✅ Completed today (${state.log[key].reps} reps). You're covered.</div>`:''}
-      <div class="row" style="justify-content:space-between;margin-top:16px"><span class="eyebrow">Progress</span><span class="num" style="color:var(--primary);font-weight:600"><span id="repPct">${pct}</span>%</span></div>
-      <div class="progress"><i id="repBar" style="width:${pct}%"></i></div>
+      <div class="exlist">${list}</div>
+      ${already?`<div class="banner" style="margin-top:12px">✅ Completed today (${state.log[key].reps} reps total). You're covered.</div>`:''}
+      <div class="row" style="justify-content:space-between;margin-top:16px"><span class="eyebrow" id="nowLabel">${already?'All done':'Now: '+sessionItems[0].exercise}</span><span class="num" style="color:var(--primary);font-weight:600"><span id="repPct">${already?100:0}</span>%</span></div>
+      <div class="progress"><i id="repBar" style="width:${already?100:0}%"></i></div>
       <div class="camwrap">
         <video id="video" playsinline muted></video><canvas id="overlay"></canvas>
         <div class="camplaceholder" id="camPh"><div style="font-size:34px">📷</div><div class="num" style="font-size:12px">Camera off</div></div>
       </div>
-      <div class="repbig"><span id="repCount">0</span><span class="t"> / ${reg.target}</span></div>
+      <div class="repbig"><span id="repCount">0</span><span class="t"> / <span id="repTarget">${sessionItems[0].target}</span></span></div>
       <div class="muted num" id="aiStatus" style="text-align:center;font-size:12px;min-height:16px"></div>
       <div id="camControls"></div>
     </div>
     <p class="disclaimer">The camera + AI counts each full pushup (down &amp; up) automatically — get in position with your
-    upper body visible. On browsers without the AI model it still shows the camera to keep you honest.</p>`;
+    upper body visible. Reps count into the current exercise; at its target it advances to the next one.
+    On browsers without the AI model it still shows the camera to keep you honest.</p>`;
   renderCamControls();
 }
 function renderCamControls(){
@@ -518,19 +573,33 @@ async function loop(){
   rafId=requestAnimationFrame(loop);
 }
 function addRep(){
-  repCount++;
-  const reg=state.regimen[new Date().getDay()];
-  const pct=Math.min(100,Math.round(repCount/reg.target*100));
-  const rc=document.getElementById('repCount'); if(rc) rc.textContent=repCount;
+  if(activeIdx>=sessionItems.length) return;
+  const it=sessionItems[activeIdx];
+  it.reps++;
+  const prog=document.getElementById('exprog-'+activeIdx); if(prog) prog.textContent=`${Math.min(it.reps,it.target)} / ${it.target}`;
+  const rc=document.getElementById('repCount'); if(rc) rc.textContent=it.reps;
+  const totalTarget=sessionItems.reduce((a,b)=>a+b.target,0);
+  const totalDone=sessionItems.reduce((a,b)=>a+Math.min(b.reps,b.target),0);
+  const pct=Math.min(100,Math.round(totalDone/totalTarget*100));
   const rb=document.getElementById('repBar'); if(rb) rb.style.width=pct+'%';
   const rp=document.getElementById('repPct'); if(rp) rp.textContent=pct;
-  if(repCount>=reg.target) completeToday(repCount);
+  if(it.reps>=it.target){
+    it.done=true;
+    const dot=document.getElementById('exdot-'+activeIdx); if(dot) dot.classList.add('done');
+    let next=activeIdx+1; while(next<sessionItems.length && sessionItems[next].done) next++;
+    if(next>=sessionItems.length){ completeDay(); return; }
+    activeIdx=next;
+    const nl=document.getElementById('nowLabel'); if(nl) nl.textContent='Now: '+sessionItems[activeIdx].exercise;
+    const rcx=document.getElementById('repCount'); if(rcx) rcx.textContent=0;
+    const rt=document.getElementById('repTarget'); if(rt) rt.textContent=sessionItems[activeIdx].target;
+  }
 }
-function completeToday(reps){
+function completeDay(){
   const key=todayKey();
-  state.log[key]={completed:true,reps,exercise:state.regimen[new Date().getDay()].exercise};
+  const totalReps=sessionItems.reduce((a,b)=>a+b.reps,0);
+  state.log[key]={completed:true,reps:totalReps,items:sessionItems.map(it=>({exercise:it.exercise,reps:it.reps}))};
   store.saveLog(state.log); stopCamera();
-  toast(`Nice — ${reps} reps logged ✅`); showScreen('home');
+  toast(`Nice — ${totalReps} reps logged ✅`); showScreen('home');
 }
 
 /* ---------- WALLET (contract) ---------- */
@@ -542,7 +611,7 @@ function contractText(amount, editable){
     <p>I agree to complete my chosen exercise on every scheduled (non-rest) day, verified by the app.</p>
     <p><b>Locked plan:</b> My schedule is fixed at the moment of signing and cannot be changed afterward.</p>
     <p><b>Penalty:</b> If I fail two scheduled days in a row, I agree to be billed <b>half of my remaining balance</b>. This applies again for every additional pair of consecutive missed days.</p>
-    <p><b>Monthly penalty:</b> If I miss more than 2 non-rest days in a calendar month, I forfeit <b>1/4 of what I invested</b>. The monthly counter resets on the 1st.</p>
+    <p><b>Monthly penalty:</b> If I miss more than 2 non-rest days in any month (counted from my signing date), I forfeit <b>1/4 of what I invested</b>.</p>
     <p><b>No cancellation:</b> Once signed, this cannot be cancelled. The only exception is a genuine health reason, which pauses billing.</p>
     <p>I understand this app is a prototype and no real money is collected in this version.</p></div>`;
 }
