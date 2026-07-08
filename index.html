@@ -39,7 +39,8 @@
   .avatar{width:32px;height:32px;border-radius:50%;background:var(--surf-high);border:1px solid var(--outline-v);
     display:flex;align-items:center;justify-content:center;color:var(--muted)}
 
-  #content{flex:1;overflow-y:auto;padding:20px 16px 28px}
+  #content{flex:1;overflow-y:auto;padding:20px 16px 28px;scrollbar-width:none;-ms-overflow-style:none}
+  #content::-webkit-scrollbar{display:none}
   .screen{display:none}
   .screen.active{display:block;animation:fade .25s ease}
   @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -188,6 +189,13 @@
   .tab svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
   .tab.active{background:var(--primary-c);color:var(--on-primary-c)}
   .tab:not(.active):hover{color:var(--primary)}
+
+  /* toast (replaces browser popups) */
+  #toast{position:absolute;left:50%;bottom:90px;transform:translateX(-50%) translateY(16px);
+    background:var(--surf-highest);color:var(--text);border:1px solid var(--outline-v);
+    padding:12px 18px;border-radius:12px;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.45);
+    opacity:0;pointer-events:none;transition:.25s;max-width:82%;text-align:center;z-index:60}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
@@ -284,16 +292,42 @@ function computeStats(){
   const start = new Date(startKey+'T00:00:00');
   const today = new Date(todayKey()+'T00:00:00');
   let consecutiveMiss = 0;
+  let monthTag = start.getFullYear()+'-'+start.getMonth(), monthMiss = 0;
+  const settleMonth = ()=>{ if(c&&c.signed&&monthMiss>2&&balance>0){ const loss=Math.min(invested/4,balance); forfeited+=loss; balance-=loss; } monthMiss=0; };
   for(let d=new Date(start); d<today; d.setDate(d.getDate()+1)){
+    const tag = d.getFullYear()+'-'+d.getMonth();
+    if(tag!==monthTag){ settleMonth(); monthTag=tag; }   // a month ended: apply the 1/4 monthly penalty
     const reg = state.regimen[d.getDay()];
     if(!reg || reg.rest) continue;
     const done = state.log[todayKey(d)] && state.log[todayKey(d)].completed;
     if(done){ consecutiveMiss=0; streak++; }
-    else { consecutiveMiss++; streak=0; if(consecutiveMiss>=2){ if(c&&c.signed&&balance>0){ const loss=balance/2; forfeited+=loss; balance-=loss; } consecutiveMiss=0; } }
+    else { consecutiveMiss++; streak=0; monthMiss++;
+      if(consecutiveMiss>=2){ if(c&&c.signed&&balance>0){ const loss=balance/2; forfeited+=loss; balance-=loss; } consecutiveMiss=0; } }
   }
   return {invested,balance,forfeited,streak};
 }
 function scheduledPerWeek(){ return DAYS.filter((_,i)=>!state.regimen[i].rest).length; }
+// Missed non-rest days in the CURRENT calendar month (past days only) + days until the counter resets.
+function monthMissedThisMonth(){
+  const now=new Date(), y=now.getFullYear(), mo=now.getMonth();
+  const first=new Date(y,mo,1), today=new Date(todayKey()+'T00:00:00');
+  let missed=0;
+  for(let d=new Date(first); d<today; d.setDate(d.getDate()+1)){
+    const reg=state.regimen[d.getDay()];
+    if(!reg||reg.rest) continue;
+    const done=state.log[todayKey(d)] && state.log[todayKey(d)].completed;
+    if(!done) missed++;
+  }
+  const daysUntilReset=Math.max(0,Math.ceil((new Date(y,mo+1,1)-today)/86400000));
+  return {missed,daysUntilReset,allowed:2};
+}
+let resetArmed=false;
+function toast(msg){
+  let t=document.getElementById('toast');
+  if(!t){ t=document.createElement('div'); t.id='toast'; document.querySelector('.app').appendChild(t); }
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2800);
+}
 
 /* ---------- navigation ---------- */
 document.querySelectorAll('#tabbar .tab').forEach(b=>b.addEventListener('click',()=>showScreen(b.dataset.screen)));
@@ -311,6 +345,7 @@ function showScreen(name){
 /* ---------- HOME ---------- */
 function renderHome(){
   const s = computeStats();
+  const m = monthMissedThisMonth();
   const dow = new Date().getDay(), reg = state.regimen[dow], key = todayKey();
   const done = state.log[key] && state.log[key].completed;
   const recent = Object.keys(state.log).sort().reverse().slice(0,3);
@@ -351,6 +386,14 @@ function renderHome(){
       <div class="stat pos glow"><div class="k">Balance</div><div class="v">${money(s.balance)}</div></div>
       <div class="stat neg"><div class="k">Forfeited</div><div class="v">${money(s.forfeited)}</div></div>
     </div>
+    <div class="card"><div class="card-head"><h2 style="font-size:18px">This month</h2></div>
+      <div class="row" style="gap:12px;flex-wrap:nowrap">
+        <div class="stat ${m.missed>2?'neg':'pos'}" style="flex:1"><div class="k">Missed days</div>
+          <div class="v small">${m.missed}<span class="num" style="font-size:12px;color:var(--muted);font-weight:400"> / 2</span></div></div>
+        <div class="stat" style="flex:1"><div class="k">Resets in</div>
+          <div class="v small">${m.daysUntilReset}<span class="num" style="font-size:12px;color:var(--muted);font-weight:400"> days</span></div></div>
+      </div>
+      <p class="muted" style="margin-top:12px">Miss more than 2 non-rest days in a month and you forfeit ¼ of what you invested. The counter resets on the 1st.</p></div>
     <div class="card"><div class="card-head"><span class="eyebrow" style="color:var(--primary)">Today • ${DAYS[dow]}</span>${pill}</div>${todayInner}</div>
     ${contractCard}
     <div class="card"><div class="card-head"><h2 style="font-size:18px">Recent activity</h2>${recent.length?`<button class="link" onclick="showScreen('history')">View all</button>`:''}</div>${recentRows}</div>`;
@@ -487,7 +530,7 @@ function completeToday(reps){
   const key=todayKey();
   state.log[key]={completed:true,reps,exercise:state.regimen[new Date().getDay()].exercise};
   store.saveLog(state.log); stopCamera();
-  alert(`Nice — ${reps} reps logged for today. ✅`); showScreen('home');
+  toast(`Nice — ${reps} reps logged ✅`); showScreen('home');
 }
 
 /* ---------- WALLET (contract) ---------- */
@@ -499,6 +542,7 @@ function contractText(amount, editable){
     <p>I agree to complete my chosen exercise on every scheduled (non-rest) day, verified by the app.</p>
     <p><b>Locked plan:</b> My schedule is fixed at the moment of signing and cannot be changed afterward.</p>
     <p><b>Penalty:</b> If I fail two scheduled days in a row, I agree to be billed <b>half of my remaining balance</b>. This applies again for every additional pair of consecutive missed days.</p>
+    <p><b>Monthly penalty:</b> If I miss more than 2 non-rest days in a calendar month, I forfeit <b>1/4 of what I invested</b>. The monthly counter resets on the 1st.</p>
     <p><b>No cancellation:</b> Once signed, this cannot be cancelled. The only exception is a genuine health reason, which pauses billing.</p>
     <p>I understand this app is a prototype and no real money is collected in this version.</p></div>`;
 }
@@ -540,6 +584,9 @@ function renderContract(){
         <span>I have read and understand this contract. There is <b>no cancellation</b> except for genuine health
         reasons, <b>my schedule is now locked and cannot be changed</b>, and if I miss two days in a row I will be
         billed half the sum I agreed on.</span></div>
+      <div class="agree" id="agree2"><span class="box"></span>
+        <span>I am aware that if I miss more than 2 days in one month that are not rest days, I forfeit
+        <b>1/4 of what I invested</b> into this programme.</span></div>
       <button class="btn" id="signBtn" disabled>✎ Sign &amp; commit</button>
       <p class="disclaimer">Prototype only — no real money is charged, stored, or transferred. This is a demonstration,
       not a legally binding agreement. Consult a lawyer and a payment provider before doing this for real.</p>
@@ -547,15 +594,16 @@ function renderContract(){
   const amtEls=el.querySelectorAll('.amt');
   amtEls.forEach(a=>a.onclick=()=>{ amtEls.forEach(x=>x.classList.remove('sel')); a.classList.add('sel'); selectedAmount=+a.dataset.a; document.getElementById('customAmt').value=''; refreshAmt(); });
   document.getElementById('customAmt').oninput=(e)=>{ amtEls.forEach(x=>x.classList.remove('sel')); selectedAmount=Math.max(0,+e.target.value||0); refreshAmt(); };
-  let agreed=false;
-  const agree=document.getElementById('agree'), name=document.getElementById('sigName'), btn=document.getElementById('signBtn');
+  let agreed=false, agreed2=false;
+  const agree=document.getElementById('agree'), agree2=document.getElementById('agree2'), name=document.getElementById('sigName'), btn=document.getElementById('signBtn');
   agree.onclick=()=>{ if(!set) return; agreed=!agreed; agree.classList.toggle('on',agreed); agree.querySelector('.box').textContent=agreed?'✓':''; upd(); };
-  function upd(){ btn.disabled=!(set && agreed && name.value.trim().length>1 && selectedAmount>0); }
+  agree2.onclick=()=>{ if(!set) return; agreed2=!agreed2; agree2.classList.toggle('on',agreed2); agree2.querySelector('.box').textContent=agreed2?'✓':''; upd(); };
+  function upd(){ btn.disabled=!(set && agreed && agreed2 && name.value.trim().length>1 && selectedAmount>0); }
   name.oninput=upd;
   btn.onclick=()=>{
     state.contract={signed:true,amount:selectedAmount,name:name.value.trim(),date:new Date().toISOString()};
     state.health=false; store.saveHealth(false); store.saveContract(state.contract);
-    alert('Signed. Your money is on the line now. Show up.'); showScreen('home');
+    toast('Signed — your money is on the line. Show up.'); showScreen('workout');
   };
 }
 function refreshAmt(){ document.querySelectorAll('#contract [data-amt]').forEach(h=>h.textContent='$'+selectedAmount); }
@@ -590,15 +638,19 @@ function renderSettings(){
 
     <div class="prefrow danger" onclick="resetAll()">
       <span class="icontile sm" style="color:var(--error)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg></span>
-      <div><div class="t">Reset all data</div><div class="s">Erase schedule, log &amp; contract</div></div>
+      <div><div class="t">${resetArmed?'Tap again to confirm':'Reset all data'}</div><div class="s">${resetArmed?'This erases everything':'Erase schedule, log &amp; contract'}</div></div>
       <span class="chev" style="color:var(--error)">›</span></div>
 
     <p class="disclaimer">WorkoutMoney prototype. No real money is charged and the contract is not legally binding.
     All data is stored only in this browser.</p>`;
 }
-function setHealthFromSettings(v){ state.health=v; store.saveHealth(v); renderSettings(); }
-function claimHealth(){ if(confirm('This pauses billing. Confirm you are stopping for genuine health reasons?')){ state.health=true; store.saveHealth(true); renderSettings(); } }
-function resetAll(){ if(confirm('Erase ALL data (schedule, log, contract)?')){ ['wm_regimen','wm_log','wm_contract','wm_health','wm_regimenSaved'].forEach(k=>localStorage.removeItem(k)); state=store.load(); state.regimen=defaultRegimen(); showScreen('home'); } }
+function setHealthFromSettings(v){ state.health=v; store.saveHealth(v); renderSettings(); toast(v?'Health exception on — billing paused.':'Commitment resumed.'); }
+function claimHealth(){ state.health=true; store.saveHealth(true); renderSettings(); toast('Health exception on — billing paused.'); }
+function resetAll(){
+  if(!resetArmed){ resetArmed=true; renderSettings(); toast('Tap “Reset all data” again to confirm — this erases everything.'); setTimeout(()=>{ if(resetArmed){ resetArmed=false; renderSettings(); } },4000); return; }
+  ['wm_regimen','wm_log','wm_contract','wm_health','wm_regimenSaved'].forEach(k=>localStorage.removeItem(k));
+  state=store.load(); state.regimen=defaultRegimen(); resetArmed=false; showScreen('home'); toast('All data erased.');
+}
 
 /* ---------- HISTORY ---------- */
 function renderHistory(){
