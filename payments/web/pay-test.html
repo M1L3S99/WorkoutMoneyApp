@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>WorkoutMoney — payments test</title>
+<script src="https://js.stripe.com/v3"></script>
+<script src="./config.js"></script>
+<style>
+  body{font-family:system-ui,-apple-system,sans-serif;background:#121415;color:#e2e2e3;max-width:520px;margin:0 auto;padding:24px;line-height:1.5}
+  h1{color:#91d78a}
+  button{display:block;width:100%;background:#1b5e20;color:#90d689;border:none;padding:12px;border-radius:10px;font-weight:700;margin:8px 0;cursor:pointer;font-size:15px}
+  button:disabled{opacity:.4}
+  #card{background:#0c0e0f;border:1px solid #41493e;border-radius:10px;padding:12px;margin:8px 0}
+  #log{background:#0c0e0f;border:1px solid #41493e;border-radius:10px;padding:12px;white-space:pre-wrap;font-family:ui-monospace,monospace;font-size:12px;min-height:120px}
+  .muted{color:#8a9386;font-size:13px}
+</style>
+</head>
+<body>
+<h1>Payments test harness</h1>
+<p class="muted">Verifies the whole pipeline against Stripe <b>test mode</b>. Use test card <b>4242 4242 4242 4242</b>, any future expiry, any CVC/ZIP.</p>
+
+<button id="bInit">1 · Init + sign in (anonymous)</button>
+<div id="card"></div>
+<button id="bCard" disabled>2 · Save card</button>
+<button id="bContract" disabled>3 · Sign contract ($25, Pushups Mon–Fri)</button>
+<button id="bLog" disabled>4 · Log a workout for today</button>
+<button id="bAssess" disabled>5 · Assess &amp; charge forfeits now</button>
+
+<div id="log">…</div>
+
+<script type="module">
+import * as pay from './payments.js';
+const $ = (id) => document.getElementById(id);
+const logEl = $('log'); let lines = [];
+const log = (m) => { lines.unshift(new Date().toLocaleTimeString() + '  ' + m); logEl.textContent = lines.join('\n'); };
+const run = (fn) => async () => { try { await fn(); } catch (e) { log('❌ ' + (e.message || e)); console.error(e); } };
+
+$('bInit').onclick = run(async () => {
+  await pay.init();
+  await pay.signInAnon();
+  log('✅ signed in: ' + pay.currentUser().uid);
+  pay.mountCard('#card');
+  $('bCard').disabled = false;
+});
+$('bCard').onclick = run(async () => {
+  const pm = await pay.addCard();
+  log('✅ card saved (payment method ' + pm + ')');
+  $('bContract').disabled = false;
+});
+$('bContract').onclick = run(async () => {
+  const schedule = [0,1,2,3,4,5,6].map((i) => ({ rest: (i === 0 || i === 6), exercises: [{ exercise: 'Pushups', target: 20 }] }));
+  await pay.saveContract({ amount: 25, charity: '🍲 Local food bank', name: 'Test User', schedule });
+  log('✅ contract signed');
+  $('bLog').disabled = false; $('bAssess').disabled = false;
+});
+$('bLog').onclick = run(async () => {
+  const d = new Date(); const k = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  await pay.logWorkout({ dateKey: k, reps: 20, items: [{ exercise: 'Pushups', reps: 20 }] });
+  log('✅ workout logged for ' + k);
+});
+$('bAssess').onclick = run(async () => {
+  const r = await pay.assessMe();
+  log('✅ assess: ' + JSON.stringify(r));
+});
+</script>
+</body>
+</html>
