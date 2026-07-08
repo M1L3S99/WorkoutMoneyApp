@@ -3,140 +3,250 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>WorkoutMoneyApp</title>
+<title>WorkoutMoney</title>
 <!-- AI pose detection (loads from the internet; served live it counts pushups automatically) -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.3/dist/pose-detection.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0d1117; --panel:#161b22; --panel2:#1c2330; --border:#2b3442;
-    --text:#e6edf3; --muted:#9aa7b4; --accent:#3fb950; --accent2:#2ea043;
-    --danger:#f85149; --warn:#d29922; --blue:#388bfd;
+    --bg:#121415; --surf:#1e2021; --surf-low:#1a1c1d; --surf-high:#282a2b; --surf-highest:#333536; --surf-lowest:#0c0e0f;
+    --primary:#91d78a; --primary-c:#1b5e20; --on-primary:#003909; --on-primary-c:#90d689;
+    --text:#e2e2e3; --muted:#c0c9bb; --outline:#8a9386; --outline-v:#41493e;
+    --error:#ffb4ab; --error-c:#93000a; --on-error-c:#ffdad6;
+    --fh:'Hanken Grotesk',system-ui,-apple-system,sans-serif;
+    --fb:'Inter',system-ui,-apple-system,sans-serif;
+    --fm:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;
   }
   *{box-sizing:border-box}
   html,body{height:100%}
-  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    background:var(--bg);color:var(--text);line-height:1.5;display:flex;justify-content:center}
-  .app{width:100%;max-width:600px;height:100dvh;display:flex;flex-direction:column;
-    border-left:1px solid var(--border);border-right:1px solid var(--border)}
-  header{padding:12px 18px;border-bottom:1px solid var(--border);background:var(--bg)}
-  header .logo{font-weight:800;font-size:22px}
-  header .logo span{color:var(--accent)}
-  header .sub{color:var(--muted);font-size:12px;margin-top:2px}
-  #content{flex:1;overflow-y:auto;padding:16px;padding-bottom:28px}
+  body{margin:0;font-family:var(--fb);background:var(--bg);color:var(--text);line-height:1.5;
+    display:flex;justify-content:center;-webkit-font-smoothing:antialiased}
+  .app{width:100%;max-width:600px;height:100dvh;display:flex;flex-direction:column;position:relative;
+    border-left:1px solid var(--outline-v);border-right:1px solid var(--outline-v);overflow:hidden}
+
+  /* top app bar */
+  header{height:64px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 16px;
+    background:rgba(18,20,21,.8);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    border-bottom:1px solid rgba(65,73,62,.3);z-index:20}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand .tile{width:32px;height:32px;border-radius:10px;background:var(--primary-c);color:var(--on-primary-c);
+    display:flex;align-items:center;justify-content:center}
+  .brand h1{font-family:var(--fh);font-size:20px;font-weight:700;color:var(--primary);margin:0;letter-spacing:-.01em}
+  .brand h1 span{color:var(--text)}
+  .avatar{width:32px;height:32px;border-radius:50%;background:var(--surf-high);border:1px solid var(--outline-v);
+    display:flex;align-items:center;justify-content:center;color:var(--muted)}
+
+  #content{flex:1;overflow-y:auto;padding:20px 16px 28px}
   .screen{display:none}
-  .screen.active{display:block}
-  h1{font-size:26px;margin:0 0 4px}
-  h2{font-size:17px;margin:0;font-weight:700}
-  .muted{color:var(--muted);font-size:14px;margin-top:2px}
-  .step{color:var(--accent);font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
-  .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:16px;margin-top:14px}
-  .card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:10px}
-  .statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:14px}
-  .stat{background:var(--panel2);border:1px solid var(--border);border-radius:14px;padding:14px}
-  .stat .k{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
-  .stat .v{font-size:24px;font-weight:800;margin-top:4px}
-  .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700}
-  .pill.done{background:rgba(63,185,80,.15);color:var(--accent)}
-  .pill.miss{background:rgba(248,81,73,.15);color:var(--danger)}
-  .pill.rest{background:rgba(56,139,253,.15);color:var(--blue)}
-  .pill.today{background:rgba(210,153,34,.18);color:var(--warn)}
-  .btn{display:block;width:100%;background:var(--accent);color:#04170a;border:none;padding:13px 16px;border-radius:12px;
-    font-weight:700;cursor:pointer;font-size:15px;margin-top:12px}
-  .btn:hover{background:var(--accent2)}
-  .btn.secondary{background:transparent;border:1px solid var(--border);color:var(--text)}
-  .btn.danger{background:var(--danger);color:#fff}
-  .btn.blue{background:var(--blue);color:#fff}
-  .btn:disabled{opacity:.4;cursor:not-allowed}
-  .bigtap{width:100%;background:var(--accent);color:#04170a;border:none;padding:22px;border-radius:16px;
-    font-size:20px;font-weight:900;cursor:pointer;margin-top:6px}
-  .link{color:var(--blue);cursor:pointer;font-weight:700;background:none;border:none;font-size:14px;padding:0}
-  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  .recent-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--border)}
-  .dayname{font-weight:800;font-size:16px}
-  .exrow{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 12px}
-  .chip{border:1px solid var(--border);border-radius:999px;padding:7px 12px;font-size:13px;color:var(--muted);
-    cursor:pointer;background:none}
-  .chip.sel{border-color:var(--accent);color:var(--accent);background:rgba(63,185,80,.1)}
-  input[type=text],input[type=number]{background:#0b0f14;border:1px solid var(--border);color:var(--text);
-    border-radius:10px;padding:9px 12px;font-size:15px}
-  input[type=number]{width:80px;text-align:center}
-  .switch{position:relative;display:inline-block;width:44px;height:26px}
+  .screen.active{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  h1.page{font-family:var(--fh);font-size:24px;font-weight:600;letter-spacing:-.01em;margin:0 0 4px}
+  .lead{color:var(--muted);font-size:15px;max-width:44ch}
+  .eyebrow{font-family:var(--fm);font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+  .muted{color:var(--muted);font-size:14px}
+  .num{font-family:var(--fm)}
+
+  .card{background:rgba(30,32,33,.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    border:1px solid rgba(65,73,62,.3);box-shadow:inset 0 1px 0 0 rgba(255,255,255,.05);
+    border-radius:14px;padding:20px;margin-top:16px}
+  .card.dashed{border-style:dashed;border-color:rgba(138,147,134,.4);background:rgba(26,28,29,.4)}
+  .card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+  h2{font-family:var(--fh);font-size:20px;font-weight:600;margin:0}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+  .stat{background:rgba(30,32,33,.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    border:1px solid rgba(65,73,62,.3);box-shadow:inset 0 1px 0 0 rgba(255,255,255,.05);
+    border-radius:14px;padding:18px;border-left:4px solid transparent}
+  .stat.pos{border-left-color:var(--primary)}
+  .stat.neg{border-left-color:var(--error)}
+  .stat.glow{box-shadow:inset 0 1px 0 0 rgba(255,255,255,.05),0 0 20px rgba(145,215,138,.15)}
+  .stat .k{font-family:var(--fm);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+  .stat .v{font-family:var(--fh);font-size:40px;font-weight:700;letter-spacing:-.02em;margin-top:6px;line-height:1}
+  .stat .v.small{font-size:30px}
+  .stat.pos .v{color:var(--primary)}
+  .stat.neg .v{color:var(--error)}
+
+  .pill{display:inline-flex;align-items:center;font-family:var(--fm);font-size:11px;font-weight:500;
+    padding:4px 12px;border-radius:999px;border:1px solid transparent;text-transform:uppercase;letter-spacing:.04em}
+  .pill.todo{background:var(--surf-highest);color:var(--muted);border-color:rgba(138,147,134,.3)}
+  .pill.done{background:rgba(145,215,138,.15);color:var(--primary)}
+  .pill.miss{background:rgba(255,180,171,.12);color:var(--error)}
+  .pill.rest{background:rgba(180,207,149,.14);color:#b4cf95}
+  .pill.binding{background:var(--primary-c);color:var(--on-primary-c);border:none}
+
+  .btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--primary);
+    color:var(--on-primary);font-family:var(--fb);font-weight:700;border:none;padding:15px 18px;border-radius:12px;
+    font-size:15px;cursor:pointer;margin-top:14px;transition:transform .12s,box-shadow .2s}
+  .btn:hover{box-shadow:0 0 26px rgba(145,215,138,.3)}
+  .btn:active{transform:scale(.98)}
+  .btn.container{background:var(--primary-c);color:var(--on-primary-c)}
+  .btn.container:hover{box-shadow:0 6px 18px rgba(0,0,0,.4)}
+  .btn.ghost{background:transparent;border:1px solid rgba(138,147,134,.4);color:var(--text)}
+  .btn.ghost:hover{box-shadow:none;border-color:var(--primary)}
+  .btn.danger{background:transparent;border:1px solid var(--error-c);color:var(--error)}
+  .btn.danger:hover{box-shadow:none;background:rgba(147,0,10,.15)}
+  .btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+  .link{color:var(--primary);font-family:var(--fm);font-size:12px;font-weight:500;background:none;border:none;
+    cursor:pointer;padding:0;text-transform:uppercase;letter-spacing:.04em}
+  .link:hover{text-decoration:underline}
+
+  .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .icontile{width:48px;height:48px;border-radius:12px;background:var(--surf-highest);color:var(--primary);
+    display:flex;align-items:center;justify-content:center;flex:none}
+  .icontile.sm{width:40px;height:40px;border-radius:10px;background:rgba(138,147,134,.15);color:var(--muted)}
+
+  /* progress */
+  .progress{height:8px;background:var(--surf-highest);border-radius:999px;overflow:hidden;margin-top:8px}
+  .progress > i{display:block;height:100%;width:0;background:var(--primary);border-radius:999px;transition:width .3s}
+
+  /* schedule day */
+  .exrow{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+  .chip{font-family:var(--fb);border:1px solid rgba(138,147,134,.35);border-radius:999px;padding:7px 13px;font-size:13px;
+    color:var(--muted);cursor:pointer;background:none;transition:.15s}
+  .chip.sel{border-color:var(--primary);color:var(--on-primary);background:var(--primary)}
+  .field{display:flex;align-items:center;gap:0;background:var(--surf-lowest);border:1px solid var(--outline-v);
+    border-radius:8px;overflow:hidden;width:max-content}
+  .field input{background:transparent;border:none;color:var(--text);font-family:var(--fm);font-size:16px;
+    width:64px;text-align:center;padding:8px 6px}
+  .field input:focus{outline:none}
+  .field .u{font-family:var(--fm);font-size:11px;color:var(--muted);padding:0 12px;text-transform:uppercase;letter-spacing:.05em}
+  input:focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+
+  /* switch */
+  .switch{position:relative;display:inline-block;width:46px;height:26px;flex:none}
   .switch input{display:none}
-  .slider{position:absolute;inset:0;background:var(--border);border-radius:999px;transition:.2s;cursor:pointer}
+  .slider{position:absolute;inset:0;background:var(--surf-highest);border-radius:999px;transition:.2s;cursor:pointer}
   .slider:before{content:"";position:absolute;height:20px;width:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
-  .switch input:checked+.slider{background:var(--blue)}
-  .switch input:checked+.slider:before{transform:translateX(18px)}
+  .switch input:checked+.slider{background:var(--primary)}
+  .switch input:checked+.slider:before{transform:translateX(20px)}
   .switch input:disabled+.slider{opacity:.5;cursor:not-allowed}
-  .camwrap{position:relative;height:320px;border-radius:14px;overflow:hidden;background:#000}
+
+  /* camera */
+  .camwrap{position:relative;height:300px;border-radius:14px;overflow:hidden;background:#000;margin-top:8px}
   .camwrap video,.camwrap canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-  .camplaceholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--muted)}
-  .repbig{font-size:56px;font-weight:900;text-align:center;margin:10px 0}
-  .repbig .t{color:var(--muted);font-size:26px;font-weight:700}
-  .contract{background:#0b0f14;border:1px solid var(--border);border-radius:12px;padding:14px;font-size:14px;color:var(--muted)}
-  .contract h3{color:var(--text);margin:0 0 8px}
+  .camplaceholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--muted)}
+  .repbig{font-family:var(--fh);font-size:56px;font-weight:700;text-align:center;margin:14px 0 4px;letter-spacing:-.02em}
+  .repbig .t{color:var(--muted);font-size:26px}
+
+  /* contract / forms */
+  .textinput{width:100%;background:var(--surf-lowest);border:1px solid var(--outline-v);color:var(--text);
+    border-radius:10px;padding:12px 14px;font-size:15px;font-family:var(--fb);margin-top:10px}
+  .textinput:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 2px rgba(145,215,138,.25)}
+  .amtrow{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+  .amt{background:var(--surf-low);border:2px solid var(--outline-v);border-radius:12px;padding:14px 22px;cursor:pointer;
+    font-family:var(--fh);font-size:20px;font-weight:700}
+  .amt.sel{border-color:var(--primary);color:var(--primary)}
+  .step{font-family:var(--fm);color:var(--primary);font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px}
+  .contract{background:var(--surf-lowest);border:1px solid var(--outline-v);border-radius:12px;padding:16px;font-size:14px;color:var(--muted)}
+  .contract h3{color:var(--text);font-family:var(--fh);margin:0 0 10px}
   .contract p{margin:0 0 8px}
-  .warnbox{background:rgba(248,81,73,.1);border:1px solid var(--danger);color:#ffb3ae;border-radius:12px;
-    padding:14px;font-weight:800;text-align:center;margin:14px 0}
-  .banner{background:rgba(210,153,34,.12);border:1px solid var(--warn);color:#ffd88a;padding:12px;
-    border-radius:12px;margin-top:12px;font-size:14px}
-  .lockbanner{background:rgba(56,139,253,.12);border:1px solid var(--blue);color:#bcd6ff;padding:12px;
-    border-radius:12px;margin-top:12px;font-size:14px;font-weight:600}
-  .amtrow{display:flex;flex-wrap:wrap;gap:10px}
-  .amt{background:var(--panel2);border:2px solid var(--border);border-radius:14px;padding:14px 22px;cursor:pointer;
-    font-size:18px;font-weight:800}
-  .amt.sel{border-color:var(--accent);color:var(--accent)}
-  .agree{display:flex;gap:10px;align-items:flex-start;margin:14px 0;color:var(--muted);cursor:pointer}
-  .agree .box{width:26px;height:26px;border:2px solid var(--border);border-radius:7px;flex:none;
-    display:flex;align-items:center;justify-content:center;font-weight:900;color:#04170a}
-  .agree.on .box{background:var(--accent);border-color:var(--accent)}
-  .disclaimer{font-size:12px;color:var(--muted);margin-top:14px;line-height:1.5}
+  .kv{display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid var(--outline-v);font-size:14px}
+  .kv:last-child{border-bottom:none}
+  .kv .k{color:var(--muted)}
+  .kv .v{font-family:var(--fm);text-align:right}
+  .warnbox{background:rgba(255,180,171,.08);border:1px solid rgba(255,180,171,.4);color:#ffd7d2;border-radius:12px;
+    padding:14px;font-weight:700;text-align:center;margin:14px 0;font-size:14px}
+  .banner{background:rgba(180,207,149,.1);border:1px solid rgba(180,207,149,.35);color:#cfe6b0;padding:12px 14px;
+    border-radius:12px;margin-top:14px;font-size:14px}
+  .lockbanner{background:rgba(145,215,138,.08);border:1px solid rgba(145,215,138,.35);color:var(--primary);
+    padding:12px 14px;border-radius:12px;margin-top:14px;font-size:14px;font-weight:600}
+  .agree{display:flex;gap:12px;align-items:flex-start;margin:16px 0;color:var(--muted);cursor:pointer;font-size:14px}
+  .agree .box{width:26px;height:26px;border:2px solid var(--outline);border-radius:7px;flex:none;
+    display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--on-primary)}
+  .agree.on .box{background:var(--primary);border-color:var(--primary)}
+  .disclaimer{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.6}
+
+  /* preference hub rows */
+  .prefrow{display:flex;align-items:center;gap:14px;padding:14px 16px;background:rgba(30,32,33,.7);
+    border:1px solid rgba(65,73,62,.3);border-radius:12px;margin-top:12px;cursor:pointer}
+  .prefrow:hover{border-color:rgba(145,215,138,.4)}
+  .prefrow .t{font-weight:600}
+  .prefrow .s{font-family:var(--fm);font-size:11px;color:var(--muted)}
+  .prefrow .chev{margin-left:auto;color:var(--muted)}
+  .prefrow.danger{border-color:var(--error-c);background:rgba(147,0,10,.1)}
+  .prefrow.danger .t{color:var(--error)}
+
+  /* recent + history */
+  .recent{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--outline-v)}
+  .recent:first-child{border-top:none}
   table{width:100%;border-collapse:collapse;font-size:13px}
-  th{color:var(--muted);font-size:12px;text-align:left;border-bottom:1px solid var(--border);padding:6px 4px}
-  td{border-bottom:1px solid var(--border);padding:9px 4px}
-  #tabbar{display:flex;border-top:1px solid var(--border);background:var(--panel)}
-  .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 0 8px;
-    background:none;border:none;cursor:pointer}
-  .tab .dot{width:22px;height:3px;border-radius:2px;background:transparent;margin-bottom:3px}
-  .tab .ic{font-size:20px;opacity:.55}
-  .tab .lb{font-size:11px;color:var(--muted)}
-  .tab.active .dot{background:var(--accent)}
-  .tab.active .ic{opacity:1}
-  .tab.active .lb{color:var(--accent);font-weight:700}
+  th{font-family:var(--fm);color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;
+    text-align:left;border-bottom:1px solid var(--outline-v);padding:8px 4px}
+  td{border-bottom:1px solid var(--outline-v);padding:11px 4px}
+  td.n{font-family:var(--fm)}
+
+  /* bottom nav */
+  #tabbar{flex:none;display:flex;justify-content:space-around;align-items:center;height:74px;padding:0 8px;
+    background:rgba(26,28,29,.96);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    border-top:1px solid rgba(65,73,62,.25)}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);background:none;border:none;
+    cursor:pointer;padding:6px 14px;border-radius:12px;font-family:var(--fm);font-size:10px;transition:.15s}
+  .tab svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .tab.active{background:var(--primary-c);color:var(--on-primary-c)}
+  .tab:not(.active):hover{color:var(--primary)}
 </style>
 </head>
 <body>
 <div class="app">
   <header>
-    <div class="logo">Workout<span>Money</span></div>
-    <div class="sub">Commit. Show up. Or pay up.</div>
+    <div class="brand">
+      <div class="tile">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6.5 6.5l11 11M4 8l-2 2 3 3-3 3 2 2 3-3 3 3 2-2-11-11-2 2z" opacity="0"/><path d="M4 9v6M7 7v10M17 7v10M20 9v6M7 12h10"/></svg>
+      </div>
+      <h1>Workout<span>Money</span></h1>
+    </div>
+    <div class="row" style="gap:14px">
+      <span class="avatar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+      </span>
+    </div>
   </header>
 
   <div id="content">
     <section id="home" class="screen active"></section>
-    <section id="setup" class="screen"></section>
     <section id="workout" class="screen"></section>
+    <section id="setup" class="screen"></section>
     <section id="contract" class="screen"></section>
     <section id="settings" class="screen"></section>
     <section id="history" class="screen"></section>
   </div>
 
   <nav id="tabbar">
-    <button class="tab active" data-screen="home"><span class="dot"></span><span class="ic">🏠</span><span class="lb">Home</span></button>
-    <button class="tab" data-screen="workout"><span class="dot"></span><span class="ic">💪</span><span class="lb">Today</span></button>
-    <button class="tab" data-screen="setup"><span class="dot"></span><span class="ic">📋</span><span class="lb">Plan</span></button>
-    <button class="tab" data-screen="contract"><span class="dot"></span><span class="ic">💰</span><span class="lb">Invest</span></button>
-    <button class="tab" data-screen="settings"><span class="dot"></span><span class="ic">⚙️</span><span class="lb">Settings</span></button>
+    <button class="tab active" data-screen="home">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span>Home</span>
+    </button>
+    <button class="tab" data-screen="workout">
+      <svg viewBox="0 0 24 24"><path d="M4 9v6M7 7v10M17 7v10M20 9v6M7 12h10"/></svg>
+      <span>Today</span>
+    </button>
+    <button class="tab" data-screen="setup">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
+      <span>Schedule</span>
+    </button>
+    <button class="tab" data-screen="contract">
+      <svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 10h20M17 14h2"/></svg>
+      <span>Wallet</span>
+    </button>
+    <button class="tab" data-screen="settings">
+      <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+      <span>Profile</span>
+    </button>
   </nav>
 </div>
 
 <script>
 /* ============================================================
-   WorkoutMoneyApp — web prototype (single file)
+   WorkoutMoney — web prototype. "Kinetic Institutional" UI.
    No real money is charged. Billing/forfeiture is SIMULATED.
    Data is stored locally in your browser (localStorage).
 ============================================================ */
 const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const FULLDAY = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const EXERCISES = ['Pushups','Squats','Situps','Lunges','Burpees'];
 
 const store = {
@@ -155,12 +265,7 @@ const store = {
   saveHealth(h){ localStorage.setItem('wm_health', JSON.stringify(h)); },
   saveRegimenSaved(v){ localStorage.setItem('wm_regimenSaved', JSON.stringify(v)); },
 };
-
-function defaultRegimen(){
-  const r={};
-  DAYS.forEach((d,i)=>{ r[i]={exercise:'Pushups',target:20,rest:(i===0||i===6)}; });
-  return r;
-}
+function defaultRegimen(){ const r={}; DAYS.forEach((d,i)=>{ r[i]={exercise:'Pushups',target:20,rest:(i===0||i===6)}; }); return r; }
 function todayKey(d=new Date()){ return d.toISOString().slice(0,10); }
 function dowOf(key){ return new Date(key+'T00:00:00').getDay(); }
 function money(n){ return '$'+(Math.round(n*100)/100).toLocaleString(); }
@@ -181,19 +286,14 @@ function computeStats(){
   let consecutiveMiss = 0;
   for(let d=new Date(start); d<today; d.setDate(d.getDate()+1)){
     const reg = state.regimen[d.getDay()];
-    if(!reg || reg.rest) continue;                 // rest day: never a requirement, never a miss
+    if(!reg || reg.rest) continue;
     const done = state.log[todayKey(d)] && state.log[todayKey(d)].completed;
     if(done){ consecutiveMiss=0; streak++; }
-    else {
-      consecutiveMiss++; streak=0;
-      if(consecutiveMiss>=2){
-        if(c && c.signed && balance>0){ const loss=balance/2; forfeited+=loss; balance-=loss; }
-        consecutiveMiss=0;
-      }
-    }
+    else { consecutiveMiss++; streak=0; if(consecutiveMiss>=2){ if(c&&c.signed&&balance>0){ const loss=balance/2; forfeited+=loss; balance-=loss; } consecutiveMiss=0; } }
   }
   return {invested,balance,forfeited,streak};
 }
+function scheduledPerWeek(){ return DAYS.filter((_,i)=>!state.regimen[i].rest).length; }
 
 /* ---------- navigation ---------- */
 document.querySelectorAll('#tabbar .tab').forEach(b=>b.addEventListener('click',()=>showScreen(b.dataset.screen)));
@@ -213,43 +313,51 @@ function renderHome(){
   const s = computeStats();
   const dow = new Date().getDay(), reg = state.regimen[dow], key = todayKey();
   const done = state.log[key] && state.log[key].completed;
-  const recent = Object.keys(state.log).sort().reverse().slice(0,4);
+  const recent = Object.keys(state.log).sort().reverse().slice(0,3);
 
-  let todayInner, pill;
-  if(reg.rest){ pill=`<span class="pill rest">Rest day</span>`; todayInner=`<div class="muted">🌙 It's a rest day — no workout required. Enjoy it.</div>`; }
-  else if(done){ pill=`<span class="pill done">Done ✓</span>`; todayInner=`<div class="muted">${state.log[key].reps} ${reg.exercise.toLowerCase()} logged. See you tomorrow.</div>`; }
-  else { pill=`<span class="pill today">To do</span>`; todayInner=`<div class="muted">Target: ${reg.target} ${reg.exercise.toLowerCase()}.</div><button class="btn" onclick="showScreen('workout')">Start workout</button>`; }
+  let pill, todayInner;
+  if(reg.rest){ pill=`<span class="pill rest">Rest</span>`; todayInner=`<p class="muted">🌙 Rest day — no workout required. Rest days never count against you.</p>`; }
+  else if(done){ pill=`<span class="pill done">Done</span>`; todayInner=`<p class="muted">${state.log[key].reps} ${reg.exercise.toLowerCase()} logged. Capital protected.</p>`; }
+  else { pill=`<span class="pill todo">To do</span>`;
+    todayInner=`<h2 style="margin:2px 0 0">Target: ${reg.target} ${reg.exercise.toLowerCase()}</h2>
+      <button class="btn" onclick="showScreen('workout')">▶ Start workout</button>`; }
 
   const contractCard = (state.contract && state.contract.signed)
-    ? `<div class="card"><h2>Your contract</h2>
-        <div style="margin-top:6px">Signed by <b>${escapeHtml(state.contract.name)}</b> on ${state.contract.date.slice(0,10)}.</div>
-        <div class="muted">Miss 2 scheduled days in a row → half your balance is billed each time.</div></div>`
-    : `<div class="card"><h2>No money on the line yet</h2>
-        <div class="muted">Investing money is what makes people show up.</div>
-        <button class="btn" onclick="showScreen('contract')">Read contract &amp; invest</button></div>`;
+    ? `<div class="card"><div class="card-head"><h2>Active contract</h2><span class="pill binding">Binding</span></div>
+        <div class="kv"><span class="k">Signed by</span><span class="v">${escapeHtml(state.contract.name)}</span></div>
+        <div class="kv"><span class="k">Forfeit clause</span><span class="v" style="color:var(--error)">−${money(state.contract.amount/2)} / breach</span></div>
+        <div class="kv"><span class="k">Balance at stake</span><span class="v" style="color:var(--primary)">${money(s.balance)}</span></div></div>`
+    : `<div class="card dashed"><div class="row" style="align-items:flex-start">
+        <div class="icontile"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 10h20"/></svg></div>
+        <div style="flex:1;min-width:180px"><h2 style="font-size:18px">No money on the line yet</h2>
+        <p class="muted">Investing money is what makes people show up.</p></div></div>
+        <button class="btn container" onclick="showScreen('contract')">✎ Sign contract</button></div>`;
 
   const recentRows = recent.length
-    ? recent.map(k=>`<div class="recent-row"><span>${DAYS[dowOf(k)]} · ${k}</span>
+    ? recent.map(k=>`<div class="recent">
+        <span class="icontile sm"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg></span>
+        <div style="flex:1"><div>${FULLDAY[dowOf(k)]}</div><div class="s num" style="font-size:11px;color:var(--muted)">${k}</div></div>
         <span class="pill ${state.log[k].completed?'done':'miss'}">${state.log[k].completed?state.log[k].reps+' reps':'Missed'}</span></div>`).join('')
-    : `<div class="muted">No workouts logged yet.</div>`;
+    : `<div class="recent"><span class="icontile sm"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></span>
+        <div><div>No recent activity</div><div class="s">Start your first workout today</div></div></div>`;
 
   document.getElementById('home').innerHTML = `
-    <h1>Your commitment</h1>
-    <div class="muted">Do your workout every scheduled day. Miss two in a row and you forfeit half your balance.</div>
+    <h1 class="page">Your commitment</h1>
+    <p class="lead">Commit. Show up. Or pay up. Miss two in a row and you forfeit half your balance.</p>
     ${state.health?`<div class="banner">🩺 Health exception active — billing paused. <button class="link" onclick="setHealth(false)">Resume</button></div>`:''}
-    <div class="statgrid">
-      <div class="stat"><div class="k">Streak</div><div class="v">${s.streak}</div></div>
+    <div class="grid2">
+      <div class="stat pos"><div class="k">Streak</div><div class="v">${s.streak}<span class="num" style="font-size:14px;color:var(--muted);font-weight:400"> days</span></div></div>
       <div class="stat"><div class="k">Invested</div><div class="v">${money(s.invested)}</div></div>
-      <div class="stat"><div class="k">Balance</div><div class="v">${money(s.balance)}</div></div>
-      <div class="stat"><div class="k">Forfeited</div><div class="v" style="color:var(--danger)">${money(s.forfeited)}</div></div>
+      <div class="stat pos glow"><div class="k">Balance</div><div class="v">${money(s.balance)}</div></div>
+      <div class="stat neg"><div class="k">Forfeited</div><div class="v">${money(s.forfeited)}</div></div>
     </div>
-    <div class="card"><div class="card-head"><h2>Today · ${DAYS[dow]}</h2>${pill}</div>${todayInner}</div>
+    <div class="card"><div class="card-head"><span class="eyebrow" style="color:var(--primary)">Today • ${DAYS[dow]}</span>${pill}</div>${todayInner}</div>
     ${contractCard}
-    <div class="card"><div class="card-head"><h2>Recent activity</h2>${recent.length?`<button class="link" onclick="showScreen('history')">View all</button>`:''}</div>${recentRows}</div>`;
+    <div class="card"><div class="card-head"><h2 style="font-size:18px">Recent activity</h2>${recent.length?`<button class="link" onclick="showScreen('history')">View all</button>`:''}</div>${recentRows}</div>`;
 }
 function setHealth(v){ state.health=v; store.saveHealth(v); renderHome(); }
 
-/* ---------- PLAN (setup) ---------- */
+/* ---------- SCHEDULE (setup) ---------- */
 let planDraft=null;
 function renderSetup(){
   const locked = !!(state.contract && state.contract.signed);
@@ -257,32 +365,29 @@ function renderSetup(){
   const dayCards = DAYS.map((d,i)=>{
     const reg = planDraft[i];
     const body = reg.rest
-      ? `<div class="muted">Rest day — no workout required.</div>`
+      ? `<p class="muted" style="margin-top:12px">Rest day — no workout required.</p>`
       : `<div class="exrow">${EXERCISES.map(e=>`<button class="chip ${e===reg.exercise?'sel':''}" ${locked?'disabled':''} data-i="${i}" data-ex="${e}">${e}</button>`).join('')}</div>
-         <div class="row"><input type="number" min="1" data-i="${i}" data-target value="${reg.target}" ${locked?'disabled':''}/> <span class="muted">reps target</span></div>`;
+         <div class="field"><input type="number" min="1" data-i="${i}" data-target value="${reg.target}" ${locked?'disabled':''}/><span class="u">reps</span></div>`;
     return `<div class="card" style="${locked?'opacity:.6':''}">
-      <div class="card-head"><span class="dayname">${d}</span>
-        <span class="row"><span class="muted">Rest</span>
+      <div class="card-head"><h2>${FULLDAY[i]}</h2>
+        <span class="row" style="gap:8px"><span class="eyebrow">Rest day</span>
           <label class="switch"><input type="checkbox" data-i="${i}" data-rest ${reg.rest?'checked':''} ${locked?'disabled':''}/><span class="slider"></span></label>
         </span></div>${body}</div>`;
   }).join('');
-
   document.getElementById('setup').innerHTML = `
-    <h1>Your plan</h1>
-    <div class="muted">Pick an exercise and target for each day. Toggle rest days off if you train that day.</div>
-    ${locked?`<div class="lockbanner">🔒 Your plan is locked. You signed a contract, so it can no longer be changed.</div>`:''}
+    <h1 class="page">Weekly schedule</h1>
+    <p class="lead">Optimize your capital. Every workout is an investment.</p>
+    ${locked?`<div class="lockbanner">🔒 Your schedule is locked. You signed a contract, so it can no longer be changed.</div>`:''}
     ${dayCards}
-    ${locked?'':`<button class="btn" id="savePlan">Save plan</button><div class="muted" id="saveMsg" style="text-align:center"></div>`}`;
-
+    ${locked?'':`<button class="btn" id="savePlan">Save schedule</button><div class="muted num" id="saveMsg" style="text-align:center;margin-top:8px"></div>`}`;
   if(locked) return;
-  document.querySelectorAll('#setup .chip').forEach(c=>c.onclick=()=>{ planDraft[+c.dataset.i].exercise=c.dataset.ex; renderSetup(); });
+  document.querySelectorAll('#setup .chip').forEach(c=>c.onclick=()=>{ planDraft[+c.dataset.i].exercise=c.dataset.ex; state.regimen=planDraft; renderSetup(); });
   document.querySelectorAll('#setup [data-rest]').forEach(t=>t.onchange=()=>{ planDraft[+t.dataset.i].rest=t.checked; state.regimen=planDraft; renderSetup(); });
   document.querySelectorAll('#setup [data-target]').forEach(inp=>inp.onchange=()=>{ planDraft[+inp.dataset.i].target=Math.max(1,+inp.value||1); });
   document.getElementById('savePlan').onclick=()=>{
-    state.regimen = planDraft;
-    store.saveRegimen(state.regimen);
+    state.regimen = planDraft; store.saveRegimen(state.regimen);
     state.regimenSaved=true; store.saveRegimenSaved(true);
-    const m=document.getElementById('saveMsg'); m.textContent='Saved ✓ — you can now invest'; setTimeout(()=>m.textContent='',2500);
+    const m=document.getElementById('saveMsg'); m.textContent='SAVED ✓ — you can now invest'; setTimeout(()=>m.textContent='',2500);
   };
 }
 
@@ -292,38 +397,44 @@ function renderWorkout(){
   const dow=new Date().getDay(), reg=state.regimen[dow], key=todayKey();
   const el=document.getElementById('workout');
   if(reg.rest){
-    el.innerHTML=`<h1>Today</h1><div class="card" style="text-align:center">
-      <div style="font-size:40px">🌙</div><h2 style="margin-top:8px">Rest day</h2>
-      <div class="muted">Nothing to do today. Rest days never count against you.</div></div>`;
+    el.innerHTML=`<h1 class="page">My journey</h1><p class="lead">High performance is the only currency that counts.</p>
+      <div class="card" style="text-align:center;padding:36px 20px"><div style="font-size:44px">🌙</div>
+      <h2 style="margin-top:10px">Rest day</h2><p class="muted">Nothing to do today. Rest days never count against you.</p></div>`;
     return;
   }
   const already = state.log[key] && state.log[key].completed;
+  const staked = (state.contract && state.contract.signed) ? state.contract.amount : 0;
+  const pct = already ? 100 : 0;
   repCount=0; phase='up';
   el.innerHTML=`
-    <h1>Today · ${reg.exercise}</h1>
-    ${already?`<div class="banner">✅ Completed today (${state.log[key].reps} reps). You're covered.</div>`
-             :`<div class="muted">Target: ${reg.target} ${reg.exercise.toLowerCase()}. Reach it to mark today complete.</div>`}
+    <h1 class="page">My journey</h1>
+    <p class="lead">High performance is the only currency that counts.</p>
     <div class="card">
+      <div class="card-head">
+        <span class="pill done" style="text-transform:uppercase">Today's target</span>
+        <span class="num" style="font-size:12px;color:var(--primary);font-weight:500">${staked?money(staked)+' AT STAKE':'NO STAKE'}</span>
+      </div>
+      <h2 style="font-size:26px">Target: ${reg.target} ${reg.exercise}</h2>
+      ${already?`<div class="banner" style="margin-top:12px">✅ Completed today (${state.log[key].reps} reps). You're covered.</div>`:''}
+      <div class="row" style="justify-content:space-between;margin-top:16px"><span class="eyebrow">Progress</span><span class="num" style="color:var(--primary);font-weight:600"><span id="repPct">${pct}</span>%</span></div>
+      <div class="progress"><i id="repBar" style="width:${pct}%"></i></div>
       <div class="camwrap">
         <video id="video" playsinline muted></video><canvas id="overlay"></canvas>
-        <div class="camplaceholder" id="camPh"><div style="font-size:34px">📷</div><div>Camera off</div></div>
+        <div class="camplaceholder" id="camPh"><div style="font-size:34px">📷</div><div class="num" style="font-size:12px">Camera off</div></div>
       </div>
       <div class="repbig"><span id="repCount">0</span><span class="t"> / ${reg.target}</span></div>
-      <div class="muted" id="aiStatus" style="text-align:center"></div>
+      <div class="muted num" id="aiStatus" style="text-align:center;font-size:12px;min-height:16px"></div>
       <div id="camControls"></div>
     </div>
-    <div class="disclaimer">The camera + AI counts each full pushup (down &amp; up) automatically. Get in position with your
-    upper body visible. On phones/browsers without the AI model it still shows the camera to keep you honest.</div>`;
+    <p class="disclaimer">The camera + AI counts each full pushup (down &amp; up) automatically — get in position with your
+    upper body visible. On browsers without the AI model it still shows the camera to keep you honest.</p>`;
   renderCamControls();
 }
 function renderCamControls(){
   const c=document.getElementById('camControls');
-  if(!running){ c.innerHTML=`<button class="btn blue" id="startCam">Start camera</button>
-    <div class="muted" style="text-align:center;margin-top:8px">Turn on the camera to start counting.</div>`;
+  if(!running){ c.innerHTML=`<button class="btn" id="startCam">▶ Start session</button>`;
     document.getElementById('startCam').onclick=startCamera;
-  } else {
-    c.innerHTML=`<div class="muted" style="text-align:center">Counting automatically…</div>`;
-  }
+  } else { c.innerHTML=`<div class="muted num" style="text-align:center;font-size:12px">Counting automatically…</div>`; }
 }
 async function startCamera(){
   const status=document.getElementById('aiStatus');
@@ -336,26 +447,13 @@ async function startCamera(){
     overlay.width=video.videoWidth||480; overlay.height=video.videoHeight||360;
     status.textContent='Loading AI model…';
     if(window.poseDetection){
-      detector=await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet,
-        {modelType:poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING});
-      status.textContent='AI ready — start doing pushups!';
-      running=true; renderCamControls(); loop();
-    } else {
-      running=true; renderCamControls();
-      status.textContent='AI model unavailable here — open the hosted site for automatic counting.';
-    }
+      detector=await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet,{modelType:poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING});
+      status.textContent='AI ready — start doing pushups!'; running=true; renderCamControls(); loop();
+    } else { running=true; renderCamControls(); status.textContent='AI unavailable here — open the hosted site for automatic counting.'; }
   }catch(err){ status.textContent='Camera unavailable: '+err.message; }
 }
-function stopCamera(){
-  running=false;
-  if(rafId) cancelAnimationFrame(rafId);
-  if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
-}
-function angle(a,b,c){
-  const ab=[a.x-b.x,a.y-b.y], cb=[c.x-b.x,c.y-b.y];
-  const dot=ab[0]*cb[0]+ab[1]*cb[1], m=Math.hypot(...ab)*Math.hypot(...cb)||1;
-  return Math.acos(Math.max(-1,Math.min(1,dot/m)))*180/Math.PI;
-}
+function stopCamera(){ running=false; if(rafId) cancelAnimationFrame(rafId); if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; } }
+function angle(a,b,c){ const ab=[a.x-b.x,a.y-b.y], cb=[c.x-b.x,c.y-b.y]; const dot=ab[0]*cb[0]+ab[1]*cb[1], m=Math.hypot(...ab)*Math.hypot(...cb)||1; return Math.acos(Math.max(-1,Math.min(1,dot/m)))*180/Math.PI; }
 function good(a,b,c){ return a&&b&&c&&a.score>0.3&&b.score>0.3&&c.score>0.3; }
 async function loop(){
   if(!running) return;
@@ -365,44 +463,41 @@ async function loop(){
     const ctx=overlay.getContext('2d'); ctx.clearRect(0,0,overlay.width,overlay.height);
     if(poses[0]){
       const kp={}; poses[0].keypoints.forEach(p=>kp[p.name]=p);
-      ctx.fillStyle='#3fb950';
-      poses[0].keypoints.forEach(p=>{ if(p.score>0.3){ ctx.beginPath();ctx.arc(p.x,p.y,4,0,7);ctx.fill(); }});
+      ctx.fillStyle='#91d78a'; poses[0].keypoints.forEach(p=>{ if(p.score>0.3){ ctx.beginPath();ctx.arc(p.x,p.y,4,0,7);ctx.fill(); }});
       const angles=[];
       if(good(kp.left_shoulder,kp.left_elbow,kp.left_wrist)) angles.push(angle(kp.left_shoulder,kp.left_elbow,kp.left_wrist));
       if(good(kp.right_shoulder,kp.right_elbow,kp.right_wrist)) angles.push(angle(kp.right_shoulder,kp.right_elbow,kp.right_wrist));
-      if(angles.length){
-        const avg=angles.reduce((a,b)=>a+b,0)/angles.length;
-        if(phase==='up' && avg<95) phase='down';
-        else if(phase==='down' && avg>150){ phase='up'; addRep(); }
-        document.getElementById('aiStatus').textContent=`Elbow ${Math.round(avg)}° — ${phase==='down'?'go up ⬆':'go down ⬇'}`;
-      }
+      if(angles.length){ const avg=angles.reduce((a,b)=>a+b,0)/angles.length;
+        if(phase==='up' && avg<95) phase='down'; else if(phase==='down' && avg>150){ phase='up'; addRep(); }
+        document.getElementById('aiStatus').textContent=`Elbow ${Math.round(avg)}° — ${phase==='down'?'go up ⬆':'go down ⬇'}`; }
     }
   }catch(e){}
   rafId=requestAnimationFrame(loop);
 }
 function addRep(){
   repCount++;
-  const el=document.getElementById('repCount'); if(el) el.textContent=repCount;
   const reg=state.regimen[new Date().getDay()];
+  const pct=Math.min(100,Math.round(repCount/reg.target*100));
+  const rc=document.getElementById('repCount'); if(rc) rc.textContent=repCount;
+  const rb=document.getElementById('repBar'); if(rb) rb.style.width=pct+'%';
+  const rp=document.getElementById('repPct'); if(rp) rp.textContent=pct;
   if(repCount>=reg.target) completeToday(repCount);
 }
 function completeToday(reps){
   const key=todayKey();
   state.log[key]={completed:true,reps,exercise:state.regimen[new Date().getDay()].exercise};
-  store.saveLog(state.log);
-  stopCamera();
-  alert(`Nice — ${reps} reps logged for today. ✅`);
-  showScreen('home');
+  store.saveLog(state.log); stopCamera();
+  alert(`Nice — ${reps} reps logged for today. ✅`); showScreen('home');
 }
 
-/* ---------- INVEST (contract) ---------- */
+/* ---------- WALLET (contract) ---------- */
 let selectedAmount=50;
 function contractText(amount, editable){
   const a = editable ? `<b data-amt>$${amount}</b>` : `<b>$${amount}</b>`;
   return `<div class="contract"><h3>Commitment Contract</h3>
     <p>I am voluntarily investing ${a} in my own fitness commitment.</p>
     <p>I agree to complete my chosen exercise on every scheduled (non-rest) day, verified by the app.</p>
-    <p><b>Locked plan:</b> My plan is fixed at the moment of signing and cannot be changed afterward.</p>
+    <p><b>Locked plan:</b> My schedule is fixed at the moment of signing and cannot be changed afterward.</p>
     <p><b>Penalty:</b> If I fail two scheduled days in a row, I agree to be billed <b>half of my remaining balance</b>. This applies again for every additional pair of consecutive missed days.</p>
     <p><b>No cancellation:</b> Once signed, this cannot be cancelled. The only exception is a genuine health reason, which pauses billing.</p>
     <p>I understand this app is a prototype and no real money is collected in this version.</p></div>`;
@@ -412,41 +507,43 @@ function renderContract(){
   const el=document.getElementById('contract');
   if(state.contract && state.contract.signed){
     const s=computeStats();
-    el.innerHTML=`<h1>Contract active</h1>
-      <div class="card">
-        <div>Signed by <b>${escapeHtml(state.contract.name)}</b> on ${state.contract.date.slice(0,10)}.</div>
-        <div class="statgrid"><div class="stat"><div class="k">Invested</div><div class="v">${money(s.invested)}</div></div>
-          <div class="stat"><div class="k">Balance</div><div class="v">${money(s.balance)}</div></div></div>
+    el.innerHTML=`<h1 class="page">Capital dashboard</h1>
+      <p class="lead">High-stakes performance tracking and liquidity management.</p>
+      <div class="card"><div class="k eyebrow">Total invested</div>
+        <div style="font-family:var(--fh);font-size:44px;font-weight:700;letter-spacing:-.02em;margin-top:6px">${money(s.invested)}</div>
+        <div class="num" style="color:var(--primary);font-size:13px;margin-top:6px">Balance at stake ${money(s.balance)}</div></div>
+      <div class="card"><div class="card-head"><h2>⚖ Active contract</h2><span class="pill binding">Binding</span></div>
+        <div class="kv"><span class="k">Commitment</span><span class="v">${scheduledPerWeek()}× weekly sessions</span></div>
+        <div class="kv"><span class="k">Forfeit clause</span><span class="v" style="color:var(--error)">−${money(s.invested/2)} / breach</span></div>
+        <div class="kv"><span class="k">Signed</span><span class="v">${state.contract.date.slice(0,10)}</span></div>
         ${contractText(state.contract.amount)}${WARN}
-        <div class="muted">There is no cancel. The only way out is a health exception — find it in Settings.</div>
-        <button class="btn secondary" onclick="showScreen('settings')">Go to Settings</button>
-        <div class="disclaimer">Prototype only — no real money is charged. Not an enforceable contract.</div>
-      </div>`;
+        <p class="muted">There is no cancel. The only way out is a health exception — find it in your Profile.</p>
+        <button class="btn ghost" onclick="showScreen('settings')">Go to Profile</button></div>
+      <p class="disclaimer">Prototype only — no real money is charged. Not an enforceable contract.</p>`;
     return;
   }
   selectedAmount=50;
   const set = state.regimenSaved;
-  el.innerHTML=`<h1>Invest in your effort</h1>
-    <div class="muted">Optional — but signing is what makes it real.</div>
+  el.innerHTML=`<h1 class="page">Invest in your effort</h1>
+    <p class="lead">Optional — but signing is what makes it real.</p>
     <div class="card"><div class="step">1 · Choose your stake</div>
       <div class="amtrow" id="amts">${[25,50,100,250].map(a=>`<div class="amt ${a===50?'sel':''}" data-a="${a}">$${a}</div>`).join('')}</div>
-      <div class="row" style="margin-top:12px"><span class="muted">or custom $</span><input type="number" min="1" id="customAmt" placeholder="amount"/></div>
+      <div class="row" style="margin-top:14px"><span class="muted">or custom</span><div class="field"><span class="u">$</span><input type="number" min="1" id="customAmt" placeholder="0"/></div></div>
     </div>
     <div class="card"><div class="step">2 · Read the contract</div>${contractText(selectedAmount,true)}${WARN}</div>
     <div class="card"><div class="step">3 · Sign</div>
-      <div class="warnbox">Once you sign, your plan is LOCKED and cannot be changed. Set it exactly how you want it before signing.</div>
-      ${set?'':`<div class="banner">⚠️ You must set your plan first. <button class="link" onclick="showScreen('setup')">Go to Plan</button> and press Save, then you can invest.</div>`}
-      <div class="muted">Type your full legal name to sign.</div>
-      <input type="text" id="sigName" placeholder="Full name" style="width:100%;margin-top:8px" ${set?'':'disabled'}/>
+      <div class="warnbox">Once you sign, your schedule is LOCKED and cannot be changed. Set it exactly how you want it before signing.</div>
+      ${set?'':`<div class="banner">⚠️ You must set your schedule first. <button class="link" onclick="showScreen('setup')">Go to Schedule</button> and press Save, then you can invest.</div>`}
+      <p class="muted">Type your full legal name to sign.</p>
+      <input type="text" id="sigName" class="textinput" placeholder="Full name" ${set?'':'disabled'}/>
       <div class="agree" id="agree"><span class="box"></span>
         <span>I have read and understand this contract. There is <b>no cancellation</b> except for genuine health
-        reasons, <b>my plan is now locked and cannot be changed</b>, and if I miss two days in a row I will be
+        reasons, <b>my schedule is now locked and cannot be changed</b>, and if I miss two days in a row I will be
         billed half the sum I agreed on.</span></div>
-      <button class="btn" id="signBtn" disabled>Sign &amp; commit</button>
-      <div class="disclaimer">Prototype only — no real money is charged, stored, or transferred. This is a demonstration,
-      not a legally binding agreement. Consult a lawyer and a payment provider before doing this for real.</div>
+      <button class="btn" id="signBtn" disabled>✎ Sign &amp; commit</button>
+      <p class="disclaimer">Prototype only — no real money is charged, stored, or transferred. This is a demonstration,
+      not a legally binding agreement. Consult a lawyer and a payment provider before doing this for real.</p>
     </div>`;
-
   const amtEls=el.querySelectorAll('.amt');
   amtEls.forEach(a=>a.onclick=()=>{ amtEls.forEach(x=>x.classList.remove('sel')); a.classList.add('sel'); selectedAmount=+a.dataset.a; document.getElementById('customAmt').value=''; refreshAmt(); });
   document.getElementById('customAmt').oninput=(e)=>{ amtEls.forEach(x=>x.classList.remove('sel')); selectedAmount=Math.max(0,+e.target.value||0); refreshAmt(); };
@@ -458,44 +555,61 @@ function renderContract(){
   btn.onclick=()=>{
     state.contract={signed:true,amount:selectedAmount,name:name.value.trim(),date:new Date().toISOString()};
     state.health=false; store.saveHealth(false); store.saveContract(state.contract);
-    alert('Signed. Your money is on the line now. Show up.');
-    showScreen('home');
+    alert('Signed. Your money is on the line now. Show up.'); showScreen('home');
   };
 }
 function refreshAmt(){ document.querySelectorAll('#contract [data-amt]').forEach(h=>h.textContent='$'+selectedAmount); }
 
-/* ---------- SETTINGS ---------- */
+/* ---------- PROFILE (settings) ---------- */
 function renderSettings(){
   const signed = state.contract && state.contract.signed;
+  const s = computeStats();
+  const name = signed ? state.contract.name : 'Your account';
   let health;
-  if(!signed) health=`<div class="muted">No active contract — there's nothing to pause. The health exception appears here once you've signed.</div>`;
+  if(!signed) health=`<p class="muted">No active contract — there's nothing to pause. The health exception appears here once you've signed.</p>`;
   else if(state.health) health=`<div class="banner">🩺 Health exception is active — billing is paused.</div><button class="btn" onclick="setHealthFromSettings(false)">Resume commitment</button>`;
-  else health=`<div class="muted">Stopping for a genuine health reason? This is the only way out of a signed contract. It pauses all billing.</div><button class="btn danger" onclick="claimHealth()">Claim health exception</button>`;
+  else health=`<p class="muted">Stopping for a genuine health reason? This is the only way out of a signed contract. It pauses all billing.</p><button class="btn danger" onclick="claimHealth()">Claim health exception</button>`;
 
   document.getElementById('settings').innerHTML=`
-    <h1>Settings</h1>
-    <div class="card"><h2>Health exception</h2><div style="margin-top:6px">${health}</div></div>
-    <div class="card"><h2>History</h2><div class="muted">See every day you've logged.</div>
-      <button class="btn secondary" onclick="showScreen('history')">View full history</button></div>
-    <div class="card"><h2>Danger zone</h2><div class="muted">Erase your plan, log, and contract from this browser.</div>
-      <button class="btn danger" onclick="resetAll()">Reset all data</button></div>
-    <div class="disclaimer">WorkoutMoneyApp prototype. No real money is charged and the contract is not legally binding.
-    All data is stored only in this browser.</div>`;
+    <div class="card" style="text-align:center;padding:24px">
+      <div style="width:64px;height:64px;border-radius:16px;background:var(--surf-highest);border:2px solid var(--primary);margin:0 auto;display:flex;align-items:center;justify-content:center;color:var(--primary)">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/></svg></div>
+      <h2 style="margin-top:12px;font-size:22px">${escapeHtml(name)}</h2>
+    </div>
+    <div class="card"><div class="k eyebrow">Total amount invested</div>
+      <div style="font-family:var(--fh);font-size:40px;font-weight:700;letter-spacing:-.02em;margin-top:6px">${money(s.invested)}</div>
+      <div class="num" style="color:var(--primary);font-size:13px;margin-top:6px">${money(s.balance)} balance at stake · ${money(s.forfeited)} forfeited</div></div>
+
+    <div style="margin-top:22px" class="eyebrow">Preference hub</div>
+    <div class="card"><h2 style="font-size:18px">Health exception</h2><div style="margin-top:8px">${health}</div></div>
+
+    <div class="prefrow" onclick="showScreen('history')">
+      <span class="icontile sm"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg></span>
+      <div><div class="t">History</div><div class="s">Every day you've logged</div></div>
+      <span class="chev">›</span></div>
+
+    <div class="prefrow danger" onclick="resetAll()">
+      <span class="icontile sm" style="color:var(--error)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg></span>
+      <div><div class="t">Reset all data</div><div class="s">Erase schedule, log &amp; contract</div></div>
+      <span class="chev" style="color:var(--error)">›</span></div>
+
+    <p class="disclaimer">WorkoutMoney prototype. No real money is charged and the contract is not legally binding.
+    All data is stored only in this browser.</p>`;
 }
 function setHealthFromSettings(v){ state.health=v; store.saveHealth(v); renderSettings(); }
 function claimHealth(){ if(confirm('This pauses billing. Confirm you are stopping for genuine health reasons?')){ state.health=true; store.saveHealth(true); renderSettings(); } }
-function resetAll(){ if(confirm('Erase ALL data (plan, log, contract)?')){ ['wm_regimen','wm_log','wm_contract','wm_health','wm_regimenSaved'].forEach(k=>localStorage.removeItem(k)); state=store.load(); state.regimen=defaultRegimen(); showScreen('home'); } }
+function resetAll(){ if(confirm('Erase ALL data (schedule, log, contract)?')){ ['wm_regimen','wm_log','wm_contract','wm_health','wm_regimenSaved'].forEach(k=>localStorage.removeItem(k)); state=store.load(); state.regimen=defaultRegimen(); showScreen('home'); } }
 
 /* ---------- HISTORY ---------- */
 function renderHistory(){
   const keys=Object.keys(state.log).sort().reverse();
   const rows = keys.length
-    ? keys.map(k=>{ const r=state.log[k]; return `<tr><td>${k}</td><td>${DAYS[dowOf(k)]}</td>
+    ? keys.map(k=>{ const r=state.log[k]; return `<tr><td class="n">${k}</td><td>${DAYS[dowOf(k)]}</td>
         <td><span class="pill ${r.completed?'done':'miss'}">${r.completed?'Done':'Missed'}</span></td>
-        <td style="text-align:right">${r.reps||'—'}</td></tr>`; }).join('')
+        <td class="n" style="text-align:right">${r.reps||'—'}</td></tr>`; }).join('')
     : `<tr><td colspan="4" class="muted">No workouts logged yet.</td></tr>`;
   document.getElementById('history').innerHTML=`
-    <div class="card-head"><h1>History</h1><button class="link" onclick="showScreen('settings')">Back</button></div>
+    <div class="card-head" style="margin-bottom:0"><h1 class="page">History</h1><button class="link" onclick="showScreen('settings')">Back</button></div>
     <div class="card"><table>
       <tr><th>Date</th><th>Day</th><th>Status</th><th style="text-align:right">Reps</th></tr>${rows}
     </table></div>`;
