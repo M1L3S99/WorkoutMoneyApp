@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>WorkoutMoney — Put money on your workouts</title>
+<meta name="description" content="WorkoutMoney is a fitness commitment app: stake your own money on your workout schedule and forfeit part of it if you don't show up." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<link rel="icon" href="icon.svg">
+</head>
+<body>
+<header class="site"><div class="wrap">
+  <a class="brand" href="about.html"><span class="tile"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 9v6M7 7v10M17 7v10M20 9v6M7 12h10"/></svg></span><b>Workout<span>Money</span></b></a>
+  <nav>
+    <a href="about.html#how">How it works</a>
+    <a href="about.html#pricing">Pricing</a>
+    <a href="terms.html">Terms</a>
+    <a href="privacy.html">Privacy</a>
+    <a href="refunds.html">Refunds</a>
+    <a href="index.html">Open app</a>
+  </nav>
+</div></header>
+
+<main>
+  <section class="hero wrap">
+    <div class="eyebrow">Commitment fitness</div>
+    <h1>Put your money where your muscles are.</h1>
+    <p class="lead">WorkoutMoney lets you stake your own money on a workout schedule you set. Show up and keep it all. Miss your sessions and you forfeit part of your stake — to a charity you choose. Loss aversion, turned into a personal trainer.</p>
+    <p><a class="btn" href="index.html">Open the app</a> <a class="btn ghost" href="#how">See how it works</a></p>
+  </section>
+
+  <section id="how" class="wrap">
+    <h2>How it works</h2>
+    <div class="cards">
+      <div class="card"><div class="n">01</div><h3>Set your schedule</h3><p>Choose your exercises, rep targets and rest days for each day of the week.</p></div>
+      <div class="card"><div class="n">02</div><h3>Stake your money</h3><p>Pick an amount to put on the line and add your card. Your card is saved securely with Stripe — we never see or store your card number.</p></div>
+      <div class="card"><div class="n">03</div><h3>Show up (or pay)</h3><p>Complete your workouts, verified by the app's camera. Miss two scheduled days in a row, or more than two in a month, and a portion is forfeited.</p></div>
+      <div class="card"><div class="n">04</div><h3>Forfeits go to good</h3><p>Forfeited money is charged to your saved card and directed to the charity — or anti-charity — you chose when you signed.</p></div>
+    </div>
+    <p class="notice">Fair by design: rest days never count against you, you earn skip tokens over time to cover the occasional missed day, and a genuine health reason pauses all billing.</p>
+  </section>
+
+  <section id="pricing" class="wrap">
+    <h2>Pricing</h2>
+    <p>WorkoutMoney is free to download and use. The only money involved is the <b>stake you voluntarily choose</b> when you sign a commitment contract — typically $25, $50, $100, $250, or a custom amount.</p>
+    <ul>
+      <li>You are only ever charged if you break the commitment terms you agreed to.</li>
+      <li><b>Two consecutive missed scheduled days:</b> half of your remaining balance is forfeited.</li>
+      <li><b>More than two missed non-rest days in a month:</b> one quarter of your stake is forfeited.</li>
+      <li>Charges are made to the card you saved at signing, via Stripe.</li>
+    </ul>
+  </section>
+
+  <section id="contact" class="wrap legal">
+    <h2>Contact</h2>
+    <p>Questions, refund requests, or support: <a href="mailto:miles1chengscott@gmail.com">miles1chengscott@gmail.com</a>.</p>
+  </section>
+</main>
+
+<footer class="site"><div class="wrap">
+  © <span id="yr"></span> WorkoutMoney ·
+  <a href="terms.html">Terms</a> ·
+  <a href="privacy.html">Privacy</a> ·
+  <a href="refunds.html">Refunds &amp; Cancellation</a> ·
+  <a href="mailto:miles1chengscott@gmail.com">Contact</a>
+  <script>document.getElementById('yr').textContent=new Date().getFullYear();</script>
+</div></footer>
+</body>
+</html>
