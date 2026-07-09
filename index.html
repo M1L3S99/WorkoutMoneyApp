@@ -224,6 +224,15 @@
     padding:12px 18px;border-radius:12px;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.45);
     opacity:0;pointer-events:none;transition:.25s;max-width:82%;text-align:center;z-index:60}
   #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* login gate */
+  #authGate{position:absolute;inset:0;z-index:100;background:var(--bg);display:none;
+    flex-direction:column;align-items:center;justify-content:center;padding:28px}
+  #authGate.show{display:flex}
+  .authcard{width:100%;max-width:360px}
+  .authcard .brand{justify-content:center;margin-bottom:8px}
+  .authcard .tile{width:40px;height:40px;border-radius:12px}
+  .authcard h1{font-size:24px}
 </style>
 </head>
 <body>
@@ -273,6 +282,17 @@
       <span>Profile</span>
     </button>
   </nav>
+
+  <div id="authGate">
+    <div class="authcard">
+      <div class="brand">
+        <div class="tile"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 9v6M7 7v10M17 7v10M20 9v6M7 12h10"/></svg></div>
+        <h1>Workout<span>Money</span></h1>
+      </div>
+      <p class="lead" style="text-align:center;margin-bottom:18px">Commit. Show up. Or pay up.</p>
+      <div id="authBody"></div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -930,10 +950,40 @@ function renderHistory(){
     </table></div>`;
 }
 
+/* ---------- login gate ---------- */
+function cfgConfigured(){ const c=window.WM_CONFIG; return !!(c && c.firebase && c.firebase.apiKey && c.firebase.apiKey.indexOf('PASTE')!==0); }
+function renderAuthLoading(){ const el=document.getElementById('authBody'); if(el) el.innerHTML=`<p class="muted" style="text-align:center">Loading…</p>`; }
+function renderAuthForm(){
+  const el=document.getElementById('authBody'); if(!el) return;
+  el.innerHTML=`
+    <input type="email" id="gEmail" class="textinput" placeholder="Email" autocomplete="username"/>
+    <input type="password" id="gPw" class="textinput" placeholder="Password (6+ characters)" autocomplete="current-password"/>
+    <button class="btn" id="gLogin">Log in</button>
+    <button class="btn ghost" id="gSignup">Create account</button>
+    <div class="muted num" id="gMsg" style="margin-top:10px;text-align:center"></div>`;
+  const email=()=>document.getElementById('gEmail').value.trim(), pw=()=>document.getElementById('gPw').value;
+  const msg=(m)=>{ const x=document.getElementById('gMsg'); if(x) x.textContent=m; };
+  document.getElementById('gLogin').onclick=async()=>{ try{ msg('Logging in…'); await window.WMB.signIn(email(),pw()); }catch(e){ msg(e.message||'Login failed'); } };
+  document.getElementById('gSignup').onclick=async()=>{ try{ msg('Creating account…'); await window.WMB.signUp(email(),pw()); }catch(e){ msg(e.message||'Sign up failed'); } };
+}
+function applyAuthGate(){
+  const gate=document.getElementById('authGate'); if(!gate) return;
+  if(!cfgConfigured()){ gate.classList.remove('show'); return; }      // local-only / preview → no gate
+  const be=window.WMB&&window.WMB.enabled;
+  if(be&&window.WMB.user){ gate.classList.remove('show'); return; }    // already logged in
+  gate.classList.add('show');                                          // configured but not logged in
+  if(be) renderAuthForm(); else renderAuthLoading();
+}
+
 renderHome();
 updateHeaderAvatar();
-// when the backend finishes loading / auth state changes, refresh the visible screen
-document.addEventListener('wmb',()=>{ const a=document.querySelector('.screen.active'); if(a && ['home','settings','contract'].includes(a.id)) showScreen(a.id); });
+applyAuthGate();
+document.addEventListener('wmb',()=>{
+  applyAuthGate();
+  const a=document.querySelector('.screen.active'); if(a && ['home','settings','contract'].includes(a.id)) showScreen(a.id);
+});
+// don't trap the user on a loading screen if the backend never initializes (e.g. offline)
+setTimeout(()=>{ if(!(window.WMB&&window.WMB.enabled)){ const g=document.getElementById('authGate'); if(g) g.classList.remove('show'); } }, 8000);
 if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
 </script>
 </body>
