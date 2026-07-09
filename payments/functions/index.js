@@ -23,7 +23,7 @@ const Stripe = require('stripe');
 admin.initializeApp();
 const db = admin.firestore();
 const STRIPE_SECRET_KEY = defineSecret('STRIPE_SECRET_KEY');
-const stripeClient = () => new Stripe(STRIPE_SECRET_KEY.value(), { apiVersion: '2024-06-20' });
+const stripeClient = () => new Stripe((STRIPE_SECRET_KEY.value() || '').trim(), { apiVersion: '2024-06-20' });
 
 const requireUid = (req) => {
   const uid = req.auth && req.auth.uid;
