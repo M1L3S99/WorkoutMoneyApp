@@ -15,6 +15,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="icon.svg">
+<!-- Optional real backend (accounts + payments). Safe no-op if not configured. -->
+<script src="https://js.stripe.com/v3"></script>
+<script src="payments/web/config.js"></script>
+<script type="module" src="app-backend.js"></script>
 <style>
   :root{
     --bg:#121415; --surf:#1e2021; --surf-low:#1a1c1d; --surf-high:#282a2b; --surf-highest:#333536; --surf-lowest:#0c0e0f;
@@ -350,6 +354,7 @@ function coverMiss(key){
   if(!state.exempt.includes(key)) state.exempt.push(key);
   state.skipsUsed=(state.skipsUsed||0)+1;
   store.saveExempt(state.exempt); store.saveSkipsUsed(state.skipsUsed);
+  if(window.WMB&&window.WMB.enabled&&window.WMB.user){ window.WMB.useSkipToken(key).catch(()=>{}); }
   toast('Skip token used — that day is covered.'); renderHome();
 }
 
@@ -597,6 +602,7 @@ function useSkipToken(){
   if(!state.exempt.includes(key)) state.exempt.push(key);
   state.skipsUsed=(state.skipsUsed||0)+1;
   store.saveExempt(state.exempt); store.saveSkipsUsed(state.skipsUsed);
+  if(window.WMB&&window.WMB.enabled&&window.WMB.user){ window.WMB.useSkipToken(key).catch(()=>{}); }
   toast('Skip token used — today is covered.'); showScreen('home');
 }
 async function startCamera(){
@@ -694,6 +700,7 @@ function completeDay(){
   const totalReps=sessionItems.reduce((a,b)=>a+b.reps,0);
   state.log[key]={completed:true,reps:totalReps,items:sessionItems.map(it=>({exercise:it.exercise,reps:it.reps}))};
   store.saveLog(state.log); stopCamera();
+  if(window.WMB&&window.WMB.enabled&&window.WMB.user){ window.WMB.logWorkout({dateKey:key,reps:totalReps,items:state.log[key].items}).catch(()=>{}); }
   beep(988,0.1,0.18); setTimeout(()=>beep(1319,0.14,0.18),120); buzz([40,50,90]);
   toast(`Nice — ${totalReps} reps logged ✅`); showScreen('home');
 }
@@ -734,6 +741,8 @@ function renderContract(){
   }
   selectedAmount=50; selectedCharity=CHARITIES[0];
   const set = state.regimenSaved;
+  const be = window.WMB && window.WMB.enabled;
+  const user = be && window.WMB.user;
   el.innerHTML=`<h1 class="page">Invest in your effort</h1>
     <p class="lead">Optional — but signing is what makes it real.</p>
     <div class="card"><div class="step">1 · Choose your stake</div>
@@ -747,7 +756,12 @@ function renderContract(){
     <div class="card"><div class="step">3 · Sign</div>
       <div class="warnbox">Once you sign, your schedule is LOCKED and cannot be changed. Set it exactly how you want it before signing.</div>
       ${set?'':`<div class="banner">⚠️ You must set your schedule first. <button class="link" onclick="showScreen('setup')">Go to Schedule</button> and press Save, then you can invest.</div>`}
-      <p class="muted">Type your full legal name to sign.</p>
+      ${be&&!user?`<div class="banner">🔐 Create an account to invest. <button class="link" onclick="showScreen('settings')">Go to Profile</button> to sign up, then come back.</div>`:''}
+      ${be&&user?`<div class="eyebrow" style="margin-top:14px">Your card (Stripe test mode)</div>
+        <div id="cardBox" style="background:#0b0f14;border:1px solid var(--outline-v);border-radius:10px;padding:14px;margin-top:8px"></div>
+        <button class="btn ghost" id="saveCardBtn">Save card</button>
+        <div class="muted num" id="cardMsg" style="margin-top:6px"></div>`:''}
+      <p class="muted" style="margin-top:8px">Type your full legal name to sign.</p>
       <input type="text" id="sigName" class="textinput" placeholder="Full name" ${set?'':'disabled'}/>
       <div class="agree" id="agree"><span class="box"></span>
         <span>I have read and understand this contract. There is <b>no cancellation</b> except for genuine health
@@ -766,14 +780,24 @@ function renderContract(){
   const chChips=el.querySelectorAll('#charityChips .chip');
   chChips.forEach(c=>c.onclick=()=>{ chChips.forEach(x=>x.classList.remove('sel')); c.classList.add('sel'); selectedCharity=c.dataset.ch; document.getElementById('customCharity').value=''; });
   document.getElementById('customCharity').oninput=(e)=>{ chChips.forEach(x=>x.classList.remove('sel')); selectedCharity=e.target.value.trim()||CHARITIES[0]; };
-  let agreed=false, agreed2=false;
+  let agreed=false, agreed2=false, cardOk=false;
   const agree=document.getElementById('agree'), agree2=document.getElementById('agree2'), name=document.getElementById('sigName'), btn=document.getElementById('signBtn');
   agree.onclick=()=>{ if(!set) return; agreed=!agreed; agree.classList.toggle('on',agreed); agree.querySelector('.box').textContent=agreed?'✓':''; upd(); };
   agree2.onclick=()=>{ if(!set) return; agreed2=!agreed2; agree2.classList.toggle('on',agreed2); agree2.querySelector('.box').textContent=agreed2?'✓':''; upd(); };
-  function upd(){ btn.disabled=!(set && agreed && agreed2 && name.value.trim().length>1 && selectedAmount>0); }
+  function upd(){ btn.disabled=!(set && agreed && agreed2 && name.value.trim().length>1 && selectedAmount>0 && (!be || (user && cardOk))); }
   name.oninput=upd;
-  btn.onclick=()=>{
-    state.contract={signed:true,amount:selectedAmount,charity:selectedCharity||CHARITIES[0],name:name.value.trim(),date:new Date().toISOString()};
+  if(be && user){
+    try{ window.WMB.mountCard('#cardBox'); }catch(e){}
+    const scb=document.getElementById('saveCardBtn'), cm=document.getElementById('cardMsg');
+    if(scb) scb.onclick=async()=>{ try{ cm.textContent='Saving card…'; await window.WMB.addCard(); cardOk=true; cm.textContent='Card saved ✓'; scb.disabled=true; upd(); }catch(e){ cm.textContent=e.message||'Card error'; } };
+  }
+  btn.onclick=async()=>{
+    const amount=selectedAmount, charity=selectedCharity||CHARITIES[0], nm=name.value.trim();
+    if(be && user){
+      try{ btn.disabled=true; const schedule=[0,1,2,3,4,5,6].map(i=>state.regimen[i]); await window.WMB.saveContract({amount,charity,name:nm,schedule}); }
+      catch(e){ toast(e.message||'Could not save contract'); btn.disabled=false; return; }
+    }
+    state.contract={signed:true,amount,charity,name:nm,date:new Date().toISOString()};
     state.health=false; state.healthSince=null; store.saveHealth(false); store.saveHealthSince(null); store.saveContract(state.contract);
     toast('Signed — your money is on the line. Show up.'); showScreen('workout');
   };
@@ -807,6 +831,7 @@ function renderSettings(){
   const pp=document.getElementById('pickPhoto'); if(pp) pp.onclick=()=>document.getElementById('avatarInput').click();
   const rp=document.getElementById('removePhoto'); if(rp) rp.onclick=removeAvatar;
   document.getElementById('settings').insertAdjacentHTML('beforeend',`
+    <div class="card"><h2 style="font-size:18px">Account</h2><div id="acctBody" style="margin-top:8px"></div></div>
     <div class="card"><div class="k eyebrow">Total amount invested</div>
       <div style="font-family:var(--fh);font-size:40px;font-weight:700;letter-spacing:-.02em;margin-top:6px">${money(s.invested)}</div>
       <div class="num" style="color:var(--primary);font-size:13px;margin-top:6px">${money(s.balance)} balance at stake · ${money(s.forfeited)} forfeited</div>
@@ -825,8 +850,32 @@ function renderSettings(){
       <div><div class="t">${resetArmed?'Tap again to confirm':'Reset all data'}</div><div class="s">${resetArmed?'This erases everything':'Erase schedule, log &amp; contract'}</div></div>
       <span class="chev" style="color:var(--error)">›</span></div>
 
-    <p class="disclaimer">WorkoutMoney prototype. No real money is charged and the contract is not legally binding.
-    All data is stored only in this browser.</p>`);
+    <p class="disclaimer">WorkoutMoney prototype. When signed in, your contract and workouts are stored on your account
+    (server-side); otherwise data stays only in this browser.</p>`);
+  renderAccount();
+}
+function renderAccount(){
+  const el=document.getElementById('acctBody'); if(!el) return;
+  const be=window.WMB&&window.WMB.enabled;
+  if(!be){ el.innerHTML=`<p class="muted">Accounts &amp; payments aren't available in this offline preview. Open the hosted site (github.io) to sign in and invest for real.</p>`; return; }
+  const u=window.WMB.user;
+  if(u){
+    el.innerHTML=`<p class="text">Signed in as <b>${escapeHtml(u.email||'your account')}</b></p><button class="btn ghost" id="btnSignOut">Log out</button>`;
+    document.getElementById('btnSignOut').onclick=async()=>{ try{ await window.WMB.signOut(); toast('Logged out.'); renderSettings(); }catch(e){ toast(e.message||'Error'); } };
+    return;
+  }
+  el.innerHTML=`
+    <p class="muted">Create an account so your contract follows you across devices (required to invest real money).</p>
+    <input type="email" id="acctEmail" class="textinput" placeholder="Email" autocomplete="username"/>
+    <input type="password" id="acctPw" class="textinput" placeholder="Password (6+ characters)" autocomplete="current-password"/>
+    <button class="btn" id="btnLogin">Log in</button>
+    <button class="btn ghost" id="btnSignup">Create account</button>
+    <div class="muted num" id="acctMsg" style="margin-top:8px"></div>`;
+  const email=()=>document.getElementById('acctEmail').value.trim();
+  const pw=()=>document.getElementById('acctPw').value;
+  const msg=(m)=>{ const x=document.getElementById('acctMsg'); if(x) x.textContent=m; };
+  document.getElementById('btnLogin').onclick=async()=>{ try{ msg('Logging in…'); await window.WMB.signIn(email(),pw()); toast('Logged in.'); renderSettings(); }catch(e){ msg(e.message||'Login failed'); } };
+  document.getElementById('btnSignup').onclick=async()=>{ try{ msg('Creating account…'); await window.WMB.signUp(email(),pw()); toast('Account created.'); renderSettings(); }catch(e){ msg(e.message||'Sign up failed'); } };
 }
 // Health exception freezes days so they never count as misses (aligns the miss counter with paused billing).
 function startHealth(){ state.health=true; state.healthSince=todayKey(); store.saveHealth(true); store.saveHealthSince(state.healthSince); }
@@ -883,6 +932,8 @@ function renderHistory(){
 
 renderHome();
 updateHeaderAvatar();
+// when the backend finishes loading / auth state changes, refresh the visible screen
+document.addEventListener('wmb',()=>{ const a=document.querySelector('.screen.active'); if(a && ['home','settings','contract'].includes(a.id)) showScreen(a.id); });
 if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
 </script>
 </body>
