@@ -759,10 +759,12 @@ function renderContract(){
       ${(window.WMB&&window.WMB.enabled&&window.WMB.user)?`<div class="card"><div class="card-head"><h2 style="font-size:18px">Payment</h2><span class="pill done">Card on file</span></div>
         <div class="muted">Your card is saved with Stripe (test mode). Forfeits are charged automatically each day; you can also run a check now.</div>
         <button class="btn ghost" id="assessBtn">Run forfeit check now</button>
+        <button class="btn ghost" id="testChargeBtn" style="border-color:var(--warn);color:var(--warn)">Send $1 test charge to my card</button>
         <div class="num" id="assessMsg" style="margin-top:8px;color:var(--muted)"></div></div>`:''}
-      <p class="disclaimer">In Stripe test mode, no real money moves. Switch to live keys to charge real cards.</p>`;
-    const ab=document.getElementById('assessBtn');
-    if(ab) ab.onclick=async()=>{ const m=document.getElementById('assessMsg'); try{ ab.disabled=true; m.textContent='Checking…'; const r=await window.WMB.assessMe(); m.textContent=r&&r.charged>0?`Charged ${money(r.charged)} (${r.stripeId||'ok'}).`:'No forfeit owed right now — you\'re on track.'; }catch(e){ m.textContent=e.message||'Error'; } finally{ ab.disabled=false; } };
+      <p class="disclaimer">In Stripe <b>test mode</b>, no real money moves. In <b>live mode</b>, the $1 test charge is a real charge to your card — refund it from your Stripe dashboard afterward.</p>`;
+    const ab=document.getElementById('assessBtn'), tb=document.getElementById('testChargeBtn'), m=()=>document.getElementById('assessMsg');
+    if(ab) ab.onclick=async()=>{ try{ ab.disabled=true; m().textContent='Checking…'; const r=await window.WMB.assessMe(); m().textContent=r&&r.charged>0?`Charged ${money(r.charged)} (${r.stripeId||'ok'}).`:'No forfeit owed right now — you\'re on track.'; }catch(e){ m().textContent=e.message||'Error'; } finally{ ab.disabled=false; } };
+    if(tb) tb.onclick=async()=>{ try{ tb.disabled=true; m().textContent='Charging $1…'; const r=await window.WMB.chargeTest(1); m().textContent=`✅ Charged ${money(r.charged)} — ${r.status}. Refund it in your Stripe dashboard.`; }catch(e){ m().textContent=e.message||'Charge failed'; } finally{ tb.disabled=false; } };
     return;
   }
   selectedAmount=50; selectedCharity=CHARITIES[0];

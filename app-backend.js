@@ -53,6 +53,7 @@ if (!ok) {
     logWorkout: (d) => call('logWorkout', d),
     useSkipToken: (k) => call('useSkipToken', { dateKey: k }),
     assessMe: () => call('assessMe', {}),
+    chargeTest: (amount) => call('chargeTest', { amount }),
   };
   onAuthStateChanged(auth, (u) => {
     window.WMB.user = u; window.WMB.ready = true;

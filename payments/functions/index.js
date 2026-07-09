@@ -159,6 +159,29 @@ exports.assessMe = onCall({ secrets: [STRIPE_SECRET_KEY] }, async (req) => {
   return await assessUser(uid);
 });
 
+/* ---- 5b. Small test charge to the saved card (validate live payments safely) ---- */
+exports.chargeTest = onCall({ secrets: [STRIPE_SECRET_KEY] }, async (req) => {
+  const uid = requireUid(req);
+  let cents = Math.round(((req.data && req.data.amount) || 1) * 100);
+  if (!(cents >= 50)) cents = 100;                    // Stripe minimum is ~$0.50; default $1
+  if (cents > 500) throw new HttpsError('invalid-argument', 'Test charge is capped at $5.');
+  const u = await getUser(uid);
+  if (!u.stripeCustomerId) throw new HttpsError('failed-precondition', 'No customer on file.');
+  const stripe = stripeClient();
+  const cust = await stripe.customers.retrieve(u.stripeCustomerId);
+  const pm = cust.invoice_settings && cust.invoice_settings.default_payment_method;
+  if (!pm) throw new HttpsError('failed-precondition', 'No saved card. Sign a contract (which saves your card) first.');
+  const pi = await stripe.paymentIntents.create({
+    amount: cents, currency: 'usd', customer: u.stripeCustomerId, payment_method: pm,
+    off_session: true, confirm: true, description: 'WorkoutMoney test charge',
+  });
+  await db.collection(`users/${uid}/charges`).add({
+    amount: cents / 100, currency: 'usd', stripeId: pi.id, status: pi.status, test: true,
+    at: admin.firestore.FieldValue.serverTimestamp(),
+  });
+  return { charged: cents / 100, stripeId: pi.id, status: pi.status };
+});
+
 /* ---- Scheduled: charge everyone's newly-owed forfeits once a day ---- */
 exports.assessForfeits = onSchedule({ schedule: 'every day 06:00', timeZone: 'Etc/UTC', secrets: [STRIPE_SECRET_KEY] }, async () => {
   const users = await db.collection('users').get();
