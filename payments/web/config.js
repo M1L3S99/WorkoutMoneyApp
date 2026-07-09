@@ -11,6 +11,6 @@ window.WM_CONFIG = {
     messagingSenderId: "224344577354",
     appId: "1:224344577354:web:06da4371172c9fdb8c5db3"
   },
-  stripePublishableKey: "pk_test_51Tr20FJlUoW67NV0kvZVjjDeYvJnlLnVBagQcA12JI4IyGpTyn6qxfFBagywaAPKXJIpBpLPrc28RDAKKZjVsO9b00qoQt2Zls",
+  stripePublishableKey: "pk_live_51Tr1zxR5HlFh2jiVwe430fj1aXofn5SeBmE6A4i1lvy3mKKY3w9I4dqUncbMowg6MxbMxuO5BiqPh05vPCCOUWNL00FkExsfXR",
   functionsRegion: "us-central1"
 };
