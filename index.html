@@ -756,7 +756,13 @@ function renderContract(){
         ${contractText(state.contract.amount)}${WARN}
         <p class="muted">There is no cancel. The only way out is a health exception — find it in your Profile.</p>
         <button class="btn ghost" onclick="showScreen('settings')">Go to Profile</button></div>
-      <p class="disclaimer">Prototype only — no real money is charged. Not an enforceable contract.</p>`;
+      ${(window.WMB&&window.WMB.enabled&&window.WMB.user)?`<div class="card"><div class="card-head"><h2 style="font-size:18px">Payment</h2><span class="pill done">Card on file</span></div>
+        <div class="muted">Your card is saved with Stripe (test mode). Forfeits are charged automatically each day; you can also run a check now.</div>
+        <button class="btn ghost" id="assessBtn">Run forfeit check now</button>
+        <div class="num" id="assessMsg" style="margin-top:8px;color:var(--muted)"></div></div>`:''}
+      <p class="disclaimer">In Stripe test mode, no real money moves. Switch to live keys to charge real cards.</p>`;
+    const ab=document.getElementById('assessBtn');
+    if(ab) ab.onclick=async()=>{ const m=document.getElementById('assessMsg'); try{ ab.disabled=true; m.textContent='Checking…'; const r=await window.WMB.assessMe(); m.textContent=r&&r.charged>0?`Charged ${money(r.charged)} (${r.stripeId||'ok'}).`:'No forfeit owed right now — you\'re on track.'; }catch(e){ m.textContent=e.message||'Error'; } finally{ ab.disabled=false; } };
     return;
   }
   selectedAmount=50; selectedCharity=CHARITIES[0];
@@ -984,12 +990,34 @@ function applyAuthGate(){
   else renderAuthLoading();                                            // backend still loading
 }
 
+// pull the signed-in user's real state from the server (contract, log, tokens, exempt days)
+async function syncFromServer(){
+  if(!(window.WMB&&window.WMB.enabled&&window.WMB.user&&window.WMB.loadState)) return;
+  try{
+    const srv=await window.WMB.loadState(); if(!srv) return;
+    if(srv.contract && srv.contract.active){
+      state.contract={signed:true,amount:srv.contract.amount,charity:srv.contract.charity||'',name:srv.contract.name||'',date:srv.contract.signedAt};
+      if(Array.isArray(srv.contract.schedule)&&srv.contract.schedule.length===7){
+        const obj={}; srv.contract.schedule.forEach((d,i)=>obj[i]=d); state.regimen=normRegimen(obj); store.saveRegimen(state.regimen);
+      }
+      state.regimenSaved=true; store.saveRegimenSaved(true); store.saveContract(state.contract);
+    } else if(state.contract && state.contract.signed){
+      state.contract=null; store.saveContract(null);   // clear a stale local 'signed' so the payment flow shows
+    }
+    state.exempt=srv.exempt||[]; store.saveExempt(state.exempt);
+    state.skipsUsed=srv.skipsUsed||0; store.saveSkipsUsed(state.skipsUsed);
+    if(srv.log){ Object.keys(srv.log).forEach(k=>{ state.log[k]={completed:!!srv.log[k].completed,reps:srv.log[k].reps||0,items:srv.log[k].items||[]}; }); store.saveLog(state.log); }
+  }catch(e){}
+}
+
 renderHome();
 updateHeaderAvatar();
 applyAuthGate();
 document.addEventListener('wmb',()=>{
   applyAuthGate();
-  const a=document.querySelector('.screen.active'); if(a && ['home','settings','contract'].includes(a.id)) showScreen(a.id);
+  const reRender=()=>{ const a=document.querySelector('.screen.active'); if(a) showScreen(a.id); };
+  if(window.WMB&&window.WMB.user){ syncFromServer().then(reRender); }
+  else { const a=document.querySelector('.screen.active'); if(a && ['home','settings','contract'].includes(a.id)) showScreen(a.id); }
 });
 // if the backend never initializes (e.g. offline), offer demo entry instead of a stuck loading screen
 setTimeout(()=>{ if(!(window.WMB&&window.WMB.enabled)){ const g=document.getElementById('authGate'); if(g&&g.classList.contains('show')) renderDemoForm(); } }, 8000);

@@ -7,6 +7,8 @@ import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWith
   from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js';
 import { getFunctions, httpsCallable }
   from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-functions.js';
+import { getFirestore, doc, getDoc, collection, getDocs }
+  from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js';
 
 const cfg = window.WM_CONFIG;
 const ok = cfg && cfg.firebase && cfg.firebase.apiKey && cfg.firebase.apiKey.indexOf('PASTE') !== 0 && window.Stripe;
@@ -15,6 +17,7 @@ if (!ok) {
 } else {
   const app = initializeApp(cfg.firebase);
   const auth = getAuth(app);
+  const fdb = getFirestore(app);
   const fns = getFunctions(app, cfg.functionsRegion || 'us-central1');
   const stripe = Stripe(cfg.stripePublishableKey);
   const call = (n, d) => httpsCallable(fns, n)(d).then((r) => r.data);
@@ -38,6 +41,15 @@ if (!ok) {
       lastPM = setupIntent.payment_method; return lastPM;
     },
     saveContract: (d) => call('saveContract', { ...d, paymentMethodId: lastPM }),
+    async loadState() {
+      const uid = auth.currentUser && auth.currentUser.uid; if (!uid) return null;
+      const snap = await getDoc(doc(fdb, 'users', uid));
+      const u = snap.exists() ? snap.data() : {};
+      const log = {};
+      const logSnap = await getDocs(collection(fdb, 'users', uid, 'log'));
+      logSnap.forEach((d) => { log[d.id] = d.data(); });
+      return { contract: u.contract || null, exempt: u.exempt || [], skipsUsed: u.skipsUsed || 0, name: u.name || '', log };
+    },
     logWorkout: (d) => call('logWorkout', d),
     useSkipToken: (k) => call('useSkipToken', { dateKey: k }),
     assessMe: () => call('assessMe', {}),
