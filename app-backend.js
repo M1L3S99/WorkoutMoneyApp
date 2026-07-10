@@ -54,6 +54,7 @@ if (!ok) {
     useSkipToken: (k) => call('useSkipToken', { dateKey: k }),
     assessMe: () => call('assessMe', {}),
     chargeTest: (amount) => call('chargeTest', { amount }),
+    clearContract: () => call('clearContract', {}),
   };
   onAuthStateChanged(auth, (u) => {
     window.WMB.user = u; window.WMB.ready = true;

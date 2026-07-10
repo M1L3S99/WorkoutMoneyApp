@@ -82,6 +82,18 @@ exports.saveContract = onCall({ secrets: [STRIPE_SECRET_KEY] }, async (req) => {
   return { ok: true };
 });
 
+/* ---- 2b. Clear the user's contract + history (used by Reset all data) ---- */
+exports.clearContract = onCall(async (req) => {
+  const uid = requireUid(req);
+  await db.doc(`users/${uid}`).set(
+    { contract: admin.firestore.FieldValue.delete(), exempt: [], skipsUsed: 0 },
+    { merge: true }
+  );
+  const logs = await db.collection(`users/${uid}/log`).get();
+  if (!logs.empty) { const batch = db.batch(); logs.forEach((d) => batch.delete(d.ref)); await batch.commit(); }
+  return { ok: true };
+});
+
 /* ---- 3. Log a completed workout ---- */
 exports.logWorkout = onCall(async (req) => {
   const uid = requireUid(req);

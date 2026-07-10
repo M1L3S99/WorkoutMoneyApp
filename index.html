@@ -935,8 +935,9 @@ function endHealth(){
 }
 function setHealthFromSettings(v){ if(v) startHealth(); else endHealth(); renderSettings(); toast(v?'Health exception on — billing paused.':'Commitment resumed.'); }
 function claimHealth(){ startHealth(); renderSettings(); toast('Health exception on — billing & misses paused.'); }
-function resetAll(){
+async function resetAll(){
   if(!resetArmed){ resetArmed=true; renderSettings(); toast('Tap “Reset all data” again to confirm — this erases everything.'); setTimeout(()=>{ if(resetArmed){ resetArmed=false; renderSettings(); } },4000); return; }
+  if(window.WMB&&window.WMB.enabled&&window.WMB.user&&window.WMB.clearContract){ try{ toast('Clearing your account…'); await window.WMB.clearContract(); }catch(e){} }
   ['wm_regimen','wm_log','wm_contract','wm_health','wm_regimenSaved','wm_exempt','wm_skipsUsed','wm_healthSince'].forEach(k=>localStorage.removeItem(k));
   state=store.load(); state.regimen=defaultRegimen(); resetArmed=false; showScreen('home'); toast('All data erased.');
 }
