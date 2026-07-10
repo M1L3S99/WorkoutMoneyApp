@@ -38,19 +38,27 @@ function addMonths(d, n) {
   const dim = new Date(x.getFullYear(), x.getMonth() + 1, 0).getDate(); x.setDate(Math.min(day, dim)); return x;
 }
 
+// surface the real Stripe/error message to the client instead of a generic "internal"
+function surface(e, where) {
+  console.error(where + ' failed:', e && e.message, e);
+  throw new HttpsError('failed-precondition', (e && e.message) ? `${where}: ${e.message}` : `${where} failed.`);
+}
+
 /* ---- 1. Save a card (no charge yet) ---- */
 exports.createSetupIntent = onCall({ secrets: [STRIPE_SECRET_KEY] }, async (req) => {
   const uid = requireUid(req);
-  const stripe = stripeClient();
-  const u = await getUser(uid);
-  let customerId = u.stripeCustomerId;
-  if (!customerId) {
-    const c = await stripe.customers.create({ metadata: { uid } });
-    customerId = c.id;
-    await db.doc(`users/${uid}`).set({ stripeCustomerId: customerId }, { merge: true });
-  }
-  const si = await stripe.setupIntents.create({ customer: customerId, usage: 'off_session', payment_method_types: ['card'] });
-  return { clientSecret: si.client_secret, customerId };
+  try {
+    const stripe = stripeClient();
+    const u = await getUser(uid);
+    let customerId = u.stripeCustomerId;
+    if (!customerId) {
+      const c = await stripe.customers.create({ metadata: { uid } });
+      customerId = c.id;
+      await db.doc(`users/${uid}`).set({ stripeCustomerId: customerId }, { merge: true });
+    }
+    const si = await stripe.setupIntents.create({ customer: customerId, usage: 'off_session', payment_method_types: ['card'] });
+    return { clientSecret: si.client_secret, customerId };
+  } catch (e) { surface(e, 'Card setup'); }
 });
 
 /* ---- 2. Sign the contract ---- */
@@ -64,7 +72,8 @@ exports.saveContract = onCall({ secrets: [STRIPE_SECRET_KEY] }, async (req) => {
   if (!u.stripeCustomerId) throw new HttpsError('failed-precondition', 'Add a card before signing.');
   const stripe = stripeClient();
   // make this card the default for future off-session (automatic) charges
-  await stripe.customers.update(u.stripeCustomerId, { invoice_settings: { default_payment_method: paymentMethodId } });
+  try { await stripe.customers.update(u.stripeCustomerId, { invoice_settings: { default_payment_method: paymentMethodId } }); }
+  catch (e) { surface(e, 'Save contract'); }
   const contract = {
     amount: Math.round(amount), charity: charity || '', name: name || '',
     schedule, signedAt: new Date().toISOString(), forfeitedCharged: 0, active: true,
