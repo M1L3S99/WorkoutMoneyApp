@@ -1,13 +1,13 @@
 {
-  "name": "WorkoutMoney",
-  "short_name": "WorkoutMoney",
-  "description": "Commit money to your workouts. Show up, or forfeit it.",
+  "name": "Commitment",
+  "short_name": "Commitment",
+  "description": "Create commitments, schedule recurring tasks, earn coins, and reward your consistency.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#121415",
-  "theme_color": "#121415",
+  "background_color": "#f5f6f2",
+  "theme_color": "#f7f8f5",
   "icons": [
     { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
   ]

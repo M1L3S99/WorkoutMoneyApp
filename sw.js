@@ -1,5 +1,5 @@
 /* WorkoutMoney service worker — app-shell cache for offline + home-screen install */
-const CACHE = 'wm-v1';
+const CACHE = 'commitment-v3';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', (e) => {
@@ -14,20 +14,17 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// Cache-first for same-origin GETs; fall back to the app shell when offline.
+// Network-first keeps deployed updates fresh; cached app shell remains available offline.
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
   e.respondWith(
-    caches.match(req).then((cached) =>
-      cached ||
-      fetch(req).then((res) => {
-        if (res && res.ok && new URL(req.url).origin === location.origin) {
-          const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(req, copy));
-        }
-        return res;
-      }).catch(() => caches.match('./index.html'))
-    )
+    fetch(req).then((res) => {
+      if (res && res.ok && new URL(req.url).origin === location.origin) {
+        const copy = res.clone();
+        caches.open(CACHE).then((c) => c.put(req, copy));
+      }
+      return res;
+    }).catch(() => caches.match(req).then((cached) => cached || caches.match('./index.html')))
   );
 });
