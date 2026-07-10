@@ -396,16 +396,14 @@ function computeStats(){
   const startKey = c ? c.date.slice(0,10) : (logKeys[0]||todayKey());
   const start = new Date(startKey+'T00:00:00');
   const today = new Date(todayKey()+'T00:00:00');
-  // penalty 1: two scheduled days missed in a row -> half the balance
-  let consecutiveMiss = 0;
+  // current streak of completed scheduled days
   for(let d=new Date(start); d<today; d.setDate(d.getDate()+1)){
     const reg = state.regimen[d.getDay()];
     if(!reg || reg.rest || isExempt(todayKey(d))) continue;
     const done = state.log[todayKey(d)] && state.log[todayKey(d)].completed;
-    if(done){ consecutiveMiss=0; streak++; }
-    else { consecutiveMiss++; streak=0; if(consecutiveMiss>=2){ if(c&&c.signed&&balance>0){ const loss=balance/2; forfeited+=loss; balance-=loss; } consecutiveMiss=0; } }
+    if(done) streak++; else streak=0;
   }
-  // penalty 2: >2 missed non-rest days in a monthly cycle anchored to the signing date -> forfeit 1/4
+  // penalty: >2 missed non-rest days in a monthly cycle anchored to the signing date -> forfeit 1/4
   if(c&&c.signed){
     const sign=new Date(c.date); sign.setHours(0,0,0,0);
     let k=0;
@@ -480,7 +478,7 @@ function renderHome(){
   const contractCard = (state.contract && state.contract.signed)
     ? `<div class="card"><div class="card-head"><h2>Active contract</h2><span class="pill binding">Binding</span></div>
         <div class="kv"><span class="k">Signed by</span><span class="v">${escapeHtml(state.contract.name)}</span></div>
-        <div class="kv"><span class="k">Forfeit clause</span><span class="v" style="color:var(--error)">−${money(state.contract.amount/2)} / breach</span></div>
+        <div class="kv"><span class="k">Forfeit clause</span><span class="v" style="color:var(--error)">−${money(state.contract.amount/4)} / month over limit</span></div>
         <div class="kv"><span class="k">Balance at stake</span><span class="v" style="color:var(--primary)">${money(s.balance)}</span></div></div>`
     : `<div class="card dashed"><div class="row" style="align-items:flex-start">
         <div class="icontile"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 10h20"/></svg></div>
@@ -498,7 +496,7 @@ function renderHome(){
 
   document.getElementById('home').innerHTML = `
     <h1 class="page">Your commitment</h1>
-    <p class="lead">Commit. Show up. Or pay up. Miss two in a row and you forfeit half your balance.</p>
+    <p class="lead">Commit. Show up. Or pay up. Miss more than 2 non-rest days in a month and you forfeit a quarter of your stake.</p>
     ${state.health?`<div class="banner">🩺 Health exception active — billing paused. <button class="link" onclick="setHealth(false)">Resume</button></div>`:''}
     <div class="grid2">
       <div class="stat pos"><div class="k">Streak</div><div class="v">${s.streak}<span class="num" style="font-size:14px;color:var(--muted);font-weight:400"> days</span></div></div>
@@ -739,12 +737,11 @@ function contractText(amount, editable){
     <p>I am voluntarily investing ${a} in my own fitness commitment.</p>
     <p>I agree to complete my chosen exercise on every scheduled (non-rest) day, verified by the app.</p>
     <p><b>Locked plan:</b> My schedule is fixed at the moment of signing and cannot be changed afterward.</p>
-    <p><b>Penalty:</b> If I fail two scheduled days in a row, I agree to be billed <b>half of my remaining balance</b>. This applies again for every additional pair of consecutive missed days.</p>
-    <p><b>Monthly penalty:</b> If I miss more than 2 non-rest days in any month (counted from my signing date), I forfeit <b>1/4 of what I invested</b>.</p>
+    <p><b>Penalty:</b> If I miss more than 2 non-rest days in any month (counted from my signing date), I forfeit <b>1/4 of what I invested</b>.</p>
     <p><b>No cancellation:</b> Once signed, this cannot be cancelled. The only exception is a genuine health reason, which pauses billing.</p>
     <p>I understand this app is a prototype and no real money is collected in this version.</p></div>`;
 }
-const WARN = `<div class="warnbox">If you miss two days in a row you will be billed half the sum you agreed on.</div>`;
+const WARN = `<div class="warnbox">If you miss more than 2 non-rest days in a month, you forfeit 1/4 of what you invested.</div>`;
 function renderContract(){
   const el=document.getElementById('contract');
   if(state.contract && state.contract.signed){
@@ -756,7 +753,7 @@ function renderContract(){
         <div class="num" style="color:var(--primary);font-size:13px;margin-top:6px">Balance at stake ${money(s.balance)}</div></div>
       <div class="card"><div class="card-head"><h2>⚖ Active contract</h2><span class="pill binding">Binding</span></div>
         <div class="kv"><span class="k">Commitment</span><span class="v">${scheduledPerWeek()}× weekly sessions</span></div>
-        <div class="kv"><span class="k">Forfeit clause</span><span class="v" style="color:var(--error)">−${money(s.invested/2)} / breach</span></div>
+        <div class="kv"><span class="k">Forfeit clause</span><span class="v" style="color:var(--error)">−${money(s.invested/4)} / month over limit</span></div>
         <div class="kv"><span class="k">Forfeits go to</span><span class="v">${escapeHtml(state.contract.charity||'—')}</span></div>
         <div class="kv"><span class="k">Signed</span><span class="v">${state.contract.date.slice(0,10)}</span></div>
         ${contractText(state.contract.amount)}${WARN}
@@ -799,12 +796,10 @@ function renderContract(){
       <input type="text" id="sigName" class="textinput" placeholder="Full name" ${set?'':'disabled'}/>
       <div class="agree" id="agree"><span class="box"></span>
         <span>I have read and understand this contract. There is <b>no cancellation</b> except for genuine health
-        reasons, <b>my schedule is now locked and cannot be changed</b>, and if I miss two days in a row I will be
-        billed half the sum I agreed on.</span></div>
-      <div class="agree" id="agree2"><span class="box"></span>
-        <span>I am aware that if I miss more than 2 days in one month that are not rest days, I forfeit
-        <b>1/4 of what I invested</b> into this programme.</span></div>
+        reasons, <b>my schedule is now locked and cannot be changed</b>, and if I miss more than 2 non-rest days in a
+        month I forfeit <b>1/4 of what I invested</b>.</span></div>
       <button class="btn" id="signBtn" disabled>✎ Sign &amp; commit</button>
+      <div class="muted num" id="signHint" style="margin-top:8px;color:var(--warn);font-size:12px"></div>
       <p class="disclaimer">Prototype only — no real money is charged, stored, or transferred. This is a demonstration,
       not a legally binding agreement. Consult a lawyer and a payment provider before doing this for real.</p>
     </div>`;
@@ -814,12 +809,21 @@ function renderContract(){
   const chChips=el.querySelectorAll('#charityChips .chip');
   chChips.forEach(c=>c.onclick=()=>{ chChips.forEach(x=>x.classList.remove('sel')); c.classList.add('sel'); selectedCharity=c.dataset.ch; document.getElementById('customCharity').value=''; });
   document.getElementById('customCharity').oninput=(e)=>{ chChips.forEach(x=>x.classList.remove('sel')); selectedCharity=e.target.value.trim()||CHARITIES[0]; };
-  let agreed=false, agreed2=false, cardOk=false;
-  const agree=document.getElementById('agree'), agree2=document.getElementById('agree2'), name=document.getElementById('sigName'), btn=document.getElementById('signBtn');
+  let agreed=false, cardOk=false;
+  const agree=document.getElementById('agree'), name=document.getElementById('sigName'), btn=document.getElementById('signBtn');
   agree.onclick=()=>{ if(!set) return; agreed=!agreed; agree.classList.toggle('on',agreed); agree.querySelector('.box').textContent=agreed?'✓':''; upd(); };
-  agree2.onclick=()=>{ if(!set) return; agreed2=!agreed2; agree2.classList.toggle('on',agreed2); agree2.querySelector('.box').textContent=agreed2?'✓':''; upd(); };
-  function upd(){ btn.disabled=!(set && agreed && agreed2 && name.value.trim().length>1 && selectedAmount>0 && (!be || (user && cardOk))); }
-  name.oninput=upd;
+  function upd(){
+    const need=[];
+    if(!set) need.push('save your schedule (Plan tab)');
+    if(be&&!user) need.push('log in');
+    if(be&&user&&!cardOk) need.push('press “Save card”');
+    if(name.value.trim().length<=1) need.push('type your name');
+    if(!(selectedAmount>0)) need.push('choose a stake');
+    if(!agreed) need.push('tick the agreement box');
+    btn.disabled=need.length>0;
+    const h=document.getElementById('signHint'); if(h) h.textContent=need.length?('Still needed: '+need.join(' · ')):'';
+  }
+  name.oninput=upd; upd();
   if(be && user){
     try{ window.WMB.mountCard('#cardBox'); }catch(e){}
     const scb=document.getElementById('saveCardBtn'), cm=document.getElementById('cardMsg');

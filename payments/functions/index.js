@@ -107,15 +107,7 @@ function computeForfeited(contract, logSet, exemptSet) {
   const start = new Date(contract.signedAt); start.setHours(0, 0, 0, 0);
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const isRest = (d) => contract.schedule[d.getDay()] && contract.schedule[d.getDay()].rest;
-  const covered = (d) => exemptSet.has(dayKey(d)) || logSet.has(dayKey(d));
-  // penalty 1: two scheduled days missed in a row -> half the balance
-  let consec = 0;
-  for (let d = new Date(start); d < today; d.setDate(d.getDate() + 1)) {
-    if (isRest(d) || exemptSet.has(dayKey(d))) continue;
-    if (logSet.has(dayKey(d))) { consec = 0; }
-    else { consec++; if (consec >= 2) { if (balance > 0) { const l = balance / 2; forfeited += l; balance -= l; } consec = 0; } }
-  }
-  // penalty 2: >2 missed non-rest days in a signing-anchored month -> forfeit 1/4
+  // penalty: >2 missed non-rest days in a signing-anchored month -> forfeit 1/4
   let k = 0;
   while (addMonths(start, k + 1) <= today) {
     const cs = addMonths(start, k), ce = addMonths(start, k + 1); let missed = 0;
