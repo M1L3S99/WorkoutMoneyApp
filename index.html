@@ -788,10 +788,12 @@ function renderContract(){
       <div class="warnbox">Once you sign, your schedule is LOCKED and cannot be changed. Set it exactly how you want it before signing.</div>
       ${set?'':`<div class="banner">⚠️ You must set your schedule first. <button class="link" onclick="showScreen('setup')">Go to Schedule</button> and press Save, then you can invest.</div>`}
       ${be&&!user?`<div class="banner">🔐 Create an account to invest. <button class="link" onclick="showScreen('settings')">Go to Profile</button> to sign up, then come back.</div>`:''}
-      ${be&&user?`<div class="eyebrow" style="margin-top:14px">Your card (Stripe test mode)</div>
+      ${be&&user?((window.WMB.hasCard&&window.WMB.hasCard())
+        ? `<div class="banner" style="margin-top:14px">💳 Card saved ✓</div>`
+        : `<div class="eyebrow" style="margin-top:14px">Your card</div>
         <div id="cardBox" style="background:#0b0f14;border:1px solid var(--outline-v);border-radius:10px;padding:14px;margin-top:8px"></div>
         <button class="btn ghost" id="saveCardBtn">Save card</button>
-        <div class="muted num" id="cardMsg" style="margin-top:6px"></div>`:''}
+        <div id="cardMsg" style="margin-top:6px;color:var(--muted);font-size:13px"></div>`):''}
       <p class="muted" style="margin-top:8px">Type your full legal name to sign.</p>
       <input type="text" id="sigName" class="textinput" placeholder="Full name" ${set?'':'disabled'}/>
       <div class="agree" id="agree"><span class="box"></span>
@@ -809,26 +811,31 @@ function renderContract(){
   const chChips=el.querySelectorAll('#charityChips .chip');
   chChips.forEach(c=>c.onclick=()=>{ chChips.forEach(x=>x.classList.remove('sel')); c.classList.add('sel'); selectedCharity=c.dataset.ch; document.getElementById('customCharity').value=''; });
   document.getElementById('customCharity').oninput=(e)=>{ chChips.forEach(x=>x.classList.remove('sel')); selectedCharity=e.target.value.trim()||CHARITIES[0]; };
-  let agreed=false, cardOk=false;
+  let agreed=false;
   const agree=document.getElementById('agree'), name=document.getElementById('sigName'), btn=document.getElementById('signBtn');
+  const cardSaved=()=> !be || (window.WMB && window.WMB.hasCard && window.WMB.hasCard());
   agree.onclick=()=>{ if(!set) return; agreed=!agreed; agree.classList.toggle('on',agreed); agree.querySelector('.box').textContent=agreed?'✓':''; upd(); };
   function upd(){
     const need=[];
-    if(!set) need.push('save your schedule (Plan tab)');
-    if(be&&!user) need.push('log in');
-    if(be&&user&&!cardOk) need.push('press “Save card”');
-    if(name.value.trim().length<=1) need.push('type your name');
-    if(!(selectedAmount>0)) need.push('choose a stake');
-    if(!agreed) need.push('tick the agreement box');
+    if(!set) need.push('Save your schedule on the Plan tab');
+    if(be&&!user) need.push('Log in on the Profile tab');
+    if(be&&user&&!cardSaved()) need.push('Enter your card and press “Save card”');
+    if(name.value.trim().length<=1) need.push('Type your full name');
+    if(!(selectedAmount>0)) need.push('Choose a stake amount');
+    if(!agreed) need.push('Tick the agreement box');
     btn.disabled=need.length>0;
-    const h=document.getElementById('signHint'); if(h) h.textContent=need.length?('Still needed: '+need.join(' · ')):'';
+    const h=document.getElementById('signHint');
+    if(h) h.innerHTML = need.length
+      ? `<div style="font-size:12px;color:var(--muted);margin-bottom:6px">Before you can sign, you still need to:</div><ul style="margin:0;padding-left:18px;color:var(--warn);font-size:13px;line-height:1.75">${need.map(x=>`<li>${x}</li>`).join('')}</ul>`
+      : `<div style="font-size:13px;color:var(--primary)">✓ All set — tap Sign &amp; commit.</div>`;
   }
-  name.oninput=upd; upd();
-  if(be && user){
+  name.oninput=upd;
+  if(be && user && !cardSaved()){
     try{ window.WMB.mountCard('#cardBox'); }catch(e){}
     const scb=document.getElementById('saveCardBtn'), cm=document.getElementById('cardMsg');
-    if(scb) scb.onclick=async()=>{ try{ cm.textContent='Saving card…'; await window.WMB.addCard(); cardOk=true; cm.textContent='Card saved ✓'; scb.disabled=true; upd(); }catch(e){ cm.textContent=e.message||'Card error'; } };
+    if(scb) scb.onclick=async()=>{ try{ scb.disabled=true; cm.textContent='Saving card…'; await window.WMB.addCard(); cm.textContent='✅ Card saved.'; upd(); }catch(e){ cm.textContent='⚠️ '+(e.message||'Could not save card'); scb.disabled=false; upd(); } };
   }
+  upd();
   btn.onclick=async()=>{
     const amount=selectedAmount, charity=selectedCharity||CHARITIES[0], nm=name.value.trim();
     if(be && user){
@@ -1027,9 +1034,10 @@ updateHeaderAvatar();
 applyAuthGate();
 document.addEventListener('wmb',()=>{
   applyAuthGate();
-  const reRender=()=>{ const a=document.querySelector('.screen.active'); if(a) showScreen(a.id); };
+  // don't re-render the contract or workout screens — that would wipe a form the user is filling in
+  const reRender=()=>{ const a=document.querySelector('.screen.active'); if(a && a.id!=='contract' && a.id!=='workout') showScreen(a.id); };
   if(window.WMB&&window.WMB.user){ syncFromServer().then(reRender); }
-  else { const a=document.querySelector('.screen.active'); if(a && ['home','settings','contract'].includes(a.id)) showScreen(a.id); }
+  else { const a=document.querySelector('.screen.active'); if(a && ['home','settings'].includes(a.id)) showScreen(a.id); }
 });
 // if the backend never initializes (e.g. offline), offer demo entry instead of a stuck loading screen
 setTimeout(()=>{ if(!(window.WMB&&window.WMB.enabled)){ const g=document.getElementById('authGate'); if(g&&g.classList.contains('show')) renderDemoForm(); } }, 8000);
