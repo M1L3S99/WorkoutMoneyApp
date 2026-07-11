@@ -90,7 +90,7 @@ exports.saveContract = onCall({ secrets: [STRIPE_SECRET_KEY] }, async (req) => {
 exports.clearContract = onCall({ invoker: 'public' }, async (req) => {
   const uid = requireUid(req);
   await db.doc(`users/${uid}`).set(
-    { contract: admin.firestore.FieldValue.delete(), exempt: [], skipsUsed: 0 },
+    { contract: admin.firestore.FieldValue.delete(), exempt: [], skipsUsed: 0, streakFreezes: 0 },
     { merge: true }
   );
   const logs = await db.collection(`users/${uid}/log`).get();
@@ -123,6 +123,50 @@ exports.useSkipToken = onCall(async (req) => {
   const exempt = new Set(u.exempt || []); exempt.add(dateKey);
   await db.doc(`users/${uid}`).set({ exempt: [...exempt], skipsUsed: used + 1 }, { merge: true });
   return { ok: true };
+});
+
+/* ---- 3b. Buy and activate shop Streak Freezes ---- */
+exports.purchaseStreakFreeze = onCall({ invoker: 'public' }, async (req) => {
+  const uid = requireUid(req);
+  const ref = db.doc(`users/${uid}`);
+  const count = await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref); const current = Number(snap.data()?.streakFreezes || 0);
+    tx.set(ref, { streakFreezes: current + 1 }, { merge: true }); return current + 1;
+  });
+  return { ok: true, streakFreezes: count };
+});
+
+function contractDayHasTasks(contract, d) {
+  if (!contract || !contract.active || !Array.isArray(contract.schedule)) return false;
+  if (![2, 3].includes(contract.scheduleVersion)) {
+    const day = contract.schedule[d.getDay()];
+    return !!day && !day.rest;
+  }
+  const mondayDay = (d.getDay() + 6) % 7;
+  if (contract.cycle !== 'biweekly' || contract.schedule.length !== 14) {
+    const day = contract.schedule[mondayDay]; return !!day && !day.rest;
+  }
+  const anchor = Date.UTC(2025, 0, 6), current = Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+  const weeks = Math.floor((current - anchor) / 604800000), cycleWeek = ((weeks % 2) + 2) % 2;
+  const day = contract.schedule[cycleWeek * 7 + mondayDay]; return !!day && !day.rest;
+}
+
+exports.useStreakFreeze = onCall({ invoker: 'public' }, async (req) => {
+  const uid = requireUid(req), dateKey = req.data?.dateKey;
+  if (!/^\d{4}-\d\d-\d\d$/.test(dateKey || '')) throw new HttpsError('invalid-argument', 'Bad date key.');
+  const date = new Date(`${dateKey}T12:00:00Z`), now = new Date(), today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 12));
+  if (Math.abs(date - today) > 86400000) throw new HttpsError('invalid-argument', 'A Streak Freeze can only be activated for the current day.');
+  const ref = db.doc(`users/${uid}`);
+  const result = await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref), user = snap.data() || {}, count = Number(user.streakFreezes || 0);
+    if (count < 1) throw new HttpsError('failed-precondition', 'No Streak Freezes are available.');
+    if (user.contract?.active && !contractDayHasTasks(user.contract, date)) throw new HttpsError('failed-precondition', 'No contracted tasks are scheduled for this day.');
+    const exempt = new Set(user.exempt || []);
+    if (exempt.has(dateKey)) throw new HttpsError('already-exists', 'This day is already protected.');
+    exempt.add(dateKey); tx.set(ref, { streakFreezes: count - 1, exempt: [...exempt] }, { merge: true });
+    return { streakFreezes: count - 1 };
+  });
+  return { ok: true, dateKey, ...result };
 });
 
 /* ---- forfeit math (mirrors the app's rules) ---- */
