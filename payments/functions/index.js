@@ -64,10 +64,10 @@ exports.createSetupIntent = onCall({ secrets: [STRIPE_SECRET_KEY] }, async (req)
 /* ---- 2. Sign the contract ---- */
 exports.saveContract = onCall({ secrets: [STRIPE_SECRET_KEY] }, async (req) => {
   const uid = requireUid(req);
-  const { amount, charity, name, paymentMethodId, schedule } = req.data || {};
+  const { amount, charity, name, paymentMethodId, schedule, cycle, scheduleVersion } = req.data || {};
   if (!(amount > 0)) throw new HttpsError('invalid-argument', 'A stake amount is required.');
   if (!paymentMethodId) throw new HttpsError('invalid-argument', 'A saved card is required.');
-  if (!Array.isArray(schedule) || schedule.length !== 7) throw new HttpsError('invalid-argument', 'A 7-day schedule is required.');
+  if (!Array.isArray(schedule) || ![7, 14].includes(schedule.length)) throw new HttpsError('invalid-argument', 'A 7-day or 14-day schedule is required.');
   const u = await getUser(uid);
   if (!u.stripeCustomerId) throw new HttpsError('failed-precondition', 'Add a card before signing.');
   const stripe = stripeClient();
@@ -76,7 +76,8 @@ exports.saveContract = onCall({ secrets: [STRIPE_SECRET_KEY] }, async (req) => {
   catch (e) { surface(e, 'Save contract'); }
   const contract = {
     amount: Math.round(amount), charity: charity || '', name: name || '',
-    schedule, signedAt: new Date().toISOString(), forfeitedCharged: 0, active: true,
+    schedule, cycle: cycle === 'biweekly' ? 'biweekly' : 'weekly', scheduleVersion: scheduleVersion === 2 ? 2 : 1,
+    signedAt: new Date().toISOString(), forfeitedCharged: 0, active: true,
   };
   await db.doc(`users/${uid}`).set({ name: name || '', contract, exempt: [], skipsUsed: 0 }, { merge: true });
   return { ok: true };
@@ -127,7 +128,17 @@ function computeForfeited(contract, logSet, exemptSet) {
   let balance = invested, forfeited = 0;
   const start = new Date(contract.signedAt); start.setHours(0, 0, 0, 0);
   const today = new Date(); today.setHours(0, 0, 0, 0);
-  const isRest = (d) => contract.schedule[d.getDay()] && contract.schedule[d.getDay()].rest;
+  const isRest = (d) => {
+    if (contract.scheduleVersion !== 2) return contract.schedule[d.getDay()] && contract.schedule[d.getDay()].rest;
+    const mondayDay = (d.getDay() + 6) % 7;
+    if (contract.cycle !== 'biweekly' || contract.schedule.length !== 14) return !contract.schedule[mondayDay] || contract.schedule[mondayDay].rest;
+    const anchor = Date.UTC(2025, 0, 6);
+    const current = Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+    const weeks = Math.floor((current - anchor) / 604800000);
+    const cycleWeek = ((weeks % 2) + 2) % 2;
+    const item = contract.schedule[cycleWeek * 7 + mondayDay];
+    return !item || item.rest;
+  };
   // penalty: >2 missed non-rest days in a signing-anchored month -> forfeit 1/4
   let k = 0;
   while (addMonths(start, k + 1) <= today) {
