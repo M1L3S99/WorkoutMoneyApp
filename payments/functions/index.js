@@ -19,10 +19,12 @@ const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
 const Stripe = require('stripe');
+const crypto = require('crypto');
 
 admin.initializeApp();
 const db = admin.firestore();
 const STRIPE_SECRET_KEY = defineSecret('STRIPE_SECRET_KEY');
+const ADMIN_REDEEM_CODE = defineSecret('ADMIN_REDEEM_CODE');
 const stripeClient = () => new Stripe((STRIPE_SECRET_KEY.value() || '').trim(), { apiVersion: '2024-06-20' });
 
 const requireUid = (req) => {
@@ -90,7 +92,7 @@ exports.saveContract = onCall({ secrets: [STRIPE_SECRET_KEY] }, async (req) => {
 exports.clearContract = onCall({ invoker: 'public' }, async (req) => {
   const uid = requireUid(req);
   await db.doc(`users/${uid}`).set(
-    { contract: admin.firestore.FieldValue.delete(), exempt: [], skipsUsed: 0, streakFreezes: 0 },
+    { contract: admin.firestore.FieldValue.delete(), exempt: [], skipsUsed: 0, streakFreezes: 0, coinGrantTotal: 0, redeemedCodes: [] },
     { merge: true }
   );
   const logs = await db.collection(`users/${uid}/log`).get();
@@ -167,6 +169,48 @@ exports.useStreakFreeze = onCall({ invoker: 'public' }, async (req) => {
     return { streakFreezes: count - 1 };
   });
   return { ok: true, dateKey, ...result };
+});
+
+/* ---- 3c. Secure code redemption + account-scoped admin tools ---- */
+const PUBLIC_REDEEM_CODES = { WELCOME100: { coins: 100, message: 'Welcome reward redeemed.' } };
+const normalizeCode = (value) => String(value || '').trim().toUpperCase().replace(/\s+/g, '');
+function sameSecret(a, b) {
+  const left = Buffer.from(String(a)), right = Buffer.from(String(b));
+  return left.length === right.length && crypto.timingSafeEqual(left, right);
+}
+
+exports.redeemCode = onCall({ invoker: 'public', secrets: [ADMIN_REDEEM_CODE] }, async (req) => {
+  const uid = requireUid(req), code = normalizeCode(req.data?.code);
+  if (!code || code.length > 80) throw new HttpsError('invalid-argument', 'Enter a valid code.');
+  const adminCode = normalizeCode(ADMIN_REDEEM_CODE.value());
+  if (adminCode && sameSecret(code, adminCode)) {
+    await db.doc(`users/${uid}`).set({ adminMode: true }, { merge: true });
+    return { ok: true, adminMode: true, message: 'Admin mode enabled.' };
+  }
+  const reward = PUBLIC_REDEEM_CODES[code];
+  if (!reward) throw new HttpsError('not-found', 'That code is not valid.');
+  const ref = db.doc(`users/${uid}`);
+  const result = await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref), user = snap.data() || {}, redeemed = new Set(user.redeemedCodes || []);
+    if (redeemed.has(code)) throw new HttpsError('already-exists', 'That code has already been redeemed.');
+    redeemed.add(code); const coinGrantTotal = Number(user.coinGrantTotal || 0) + reward.coins;
+    tx.set(ref, { redeemedCodes: [...redeemed], coinGrantTotal }, { merge: true });
+    return { coinGrantTotal };
+  });
+  return { ok: true, adminMode: false, coins: reward.coins, message: reward.message, ...result };
+});
+
+exports.adminAddCoins = onCall({ invoker: 'public' }, async (req) => {
+  const uid = requireUid(req), amount = Math.floor(Number(req.data?.amount));
+  if (!(amount >= 1 && amount <= 1000000)) throw new HttpsError('invalid-argument', 'Enter between 1 and 1,000,000 coins.');
+  const ref = db.doc(`users/${uid}`);
+  const coinGrantTotal = await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref), user = snap.data() || {};
+    if (user.adminMode !== true) throw new HttpsError('permission-denied', 'Admin mode is not enabled for this account.');
+    const total = Number(user.coinGrantTotal || 0) + amount;
+    tx.set(ref, { coinGrantTotal: total }, { merge: true }); return total;
+  });
+  return { ok: true, amount, coinGrantTotal };
 });
 
 /* ---- forfeit math (mirrors the app's rules) ---- */
