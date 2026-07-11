@@ -48,10 +48,12 @@ if (!ok) {
       const log = {};
       const logSnap = await getDocs(collection(fdb, 'users', uid, 'log'));
       logSnap.forEach((d) => { log[d.id] = d.data(); });
-      return { contract: u.contract || null, exempt: u.exempt || [], skipsUsed: u.skipsUsed || 0, name: u.name || '', log };
+      return { contract: u.contract || null, exempt: u.exempt || [], skipsUsed: u.skipsUsed || 0, streakFreezes: Number(u.streakFreezes || 0), name: u.name || '', log };
     },
     logWorkout: (d) => call('logWorkout', d),
     useSkipToken: (k) => call('useSkipToken', { dateKey: k }),
+    purchaseStreakFreeze: () => call('purchaseStreakFreeze', {}),
+    useStreakFreeze: (k) => call('useStreakFreeze', { dateKey: k }),
     assessMe: () => call('assessMe', {}),
     chargeTest: (amount) => call('chargeTest', { amount }),
     clearContract: () => call('clearContract', {}),
