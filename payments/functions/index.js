@@ -84,7 +84,7 @@ exports.saveContract = onCall({ secrets: [STRIPE_SECRET_KEY] }, async (req) => {
 });
 
 /* ---- 2b. Clear the user's contract + history (used by Reset all data) ---- */
-exports.clearContract = onCall(async (req) => {
+exports.clearContract = onCall({ invoker: 'public' }, async (req) => {
   const uid = requireUid(req);
   await db.doc(`users/${uid}`).set(
     { contract: admin.firestore.FieldValue.delete(), exempt: [], skipsUsed: 0 },
