@@ -89,13 +89,20 @@
       {id:'flower',position:'50% 100%',name:'Sunny Flower'},
       {id:'crown',position:'100% 100%',name:'Tiny Crown'}
     ];
-    const WEARABLE_PLACEMENTS={
-      buddy:{bow:[54,5,45],cap:[15,-4,70],glasses:[15,20,70],flower:[5,8,44],crown:[24,-7,54]},
-      miso:{bow:[56,4,44],cap:[15,-5,70],glasses:[15,21,70],flower:[4,5,43],crown:[24,-8,54]},
-      pip:{bow:[56,8,42],cap:[14,0,72],glasses:[15,25,70],flower:[5,10,40],crown:[27,2,48]},
-      pebble:{bow:[55,11,43],cap:[14,2,72],glasses:[15,25,70],flower:[5,13,42],crown:[24,0,54]},
-      ember:{bow:[56,7,43],cap:[14,0,72],glasses:[15,26,70],flower:[4,10,42],crown:[24,-1,54]},
-      nova:{bow:[57,7,42],cap:[14,0,72],glasses:[15,24,70],flower:[4,9,42],crown:[24,-2,54]}
+    const HEAD_ANCHORS={
+      buddy:{x:76,forehead:27,eyes:59,width:62},
+      miso:{x:62,forehead:36,eyes:60,width:68},
+      pip:{x:47,forehead:43,eyes:62,width:60},
+      pebble:{x:76,forehead:23,eyes:57,width:64},
+      ember:{x:59,forehead:29,eyes:49,width:68},
+      nova:{x:42,forehead:34,eyes:52,width:66}
+    };
+    const ACCESSORY_GEOMETRY={
+      bow:{sourceX:65,sourceY:66,sourceWidth:86,widthRatio:.50,offsetX:.30,offsetY:.10},
+      cap:{sourceX:60,sourceY:107,sourceWidth:91,widthRatio:.75,offsetX:0,offsetY:.28},
+      glasses:{sourceX:73,sourceY:56,sourceWidth:106,widthRatio:.82,offsetX:0,eyeAnchor:true},
+      flower:{sourceX:64,sourceY:52,sourceWidth:79,widthRatio:.42,offsetX:.36,offsetY:.10},
+      crown:{sourceX:58,sourceY:89,sourceWidth:95,widthRatio:.70,offsetX:0,offsetY:.12}
     };
     const STARTER_TASKS=[
       {id:'starter-run',name:'Go for a run',difficulty:'medium',coins:20,color:'#dcecdf'},
@@ -114,7 +121,7 @@
     function levelInfo(){const xp=Math.max(0,Number(state.xp||0)),level=Math.floor(xp/100)+1;return{xp,level,current:xp%100,next:100}}
     function activePet(){return PETS.find(pet=>pet.id===state.equippedPetId)||PETS[0]}
     function activeAccessory(){return ACCESSORIES.find(item=>item.id===state.equippedAccessoryId)||null}
-    function wearableStyle(pet,accessory){const [x,y,size]=(WEARABLE_PLACEMENTS[pet.id]||WEARABLE_PLACEMENTS.buddy)[accessory.id];return`--wear-x:${x}%;--wear-y:${y}%;--wear-size:${size}%;--accessory-pos:${accessory.position}`}
+    function wearableStyle(pet,accessory){const head=HEAD_ANCHORS[pet.id]||HEAD_ANCHORS.buddy,item=ACCESSORY_GEOMETRY[accessory.id],size=head.width*item.widthRatio/item.sourceWidth*128,targetX=head.x+head.width*item.offsetX,targetY=item.eyeAnchor?head.eyes:head.forehead+head.width*item.offsetY,left=targetX-item.sourceX/128*size,top=targetY-item.sourceY/128*size;return`--wear-x:${left/128*100}%;--wear-y:${top/128*100}%;--wear-size:${size/128*100}%;--accessory-pos:${accessory.position}`}
     function accessoryMarkup(item,extraClass=''){return`<span class="accessory-display ${extraClass}" style="--accessory-pos:${item.position}"></span>`}
     function petMarkup(size='full',pet=activePet(),accessory=activeAccessory()){return`<span class="pet-display ${size}"><span class="pet-art" style="--pet-pos:${pet.position}"></span>${accessory?`<span class="pet-wear" style="${wearableStyle(pet,accessory)}"></span>`:''}</span>`}
     function save(){localStorage.setItem(KEY,JSON.stringify(state));renderCoin();}
