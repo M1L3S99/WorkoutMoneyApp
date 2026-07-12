@@ -1,6 +1,6 @@
 /* WorkoutMoney service worker — app-shell cache for offline + home-screen install */
-const CACHE = 'commitment-v5';
-const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
+const CACHE = 'commitment-v6';
+const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon.svg', './assets/pet-sprites.png'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
