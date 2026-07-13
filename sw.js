@@ -1,5 +1,5 @@
 /* WorkoutMoney service worker — app-shell cache for offline + home-screen install */
-const CACHE = 'commitment-v16';
+const CACHE = 'commitment-v17';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon.svg', './assets/pet-sprites.png', './assets/ember-resting-original.png', './assets/ember-animation.mp4', './assets/accessory-sprites-pixel.png'];
 
 self.addEventListener('install', (e) => {
@@ -26,5 +26,16 @@ self.addEventListener('fetch', (e) => {
       }
       return res;
     }).catch(() => caches.match(req).then((cached) => cached || caches.match('./index.html')))
+  );
+});
+
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  e.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((openClients) => {
+      const existing = openClients.find((client) => client.url.includes('/WorkoutMoneyApp/'));
+      if (existing) return existing.focus();
+      return clients.openWindow('./');
+    })
   );
 });
