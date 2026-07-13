@@ -1,5 +1,5 @@
 /* WorkoutMoney service worker — app-shell cache for offline + home-screen install */
-const CACHE = 'commitment-v14';
+const CACHE = 'commitment-v15';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon.svg', './assets/pet-sprites.png', './assets/ember-first-frame.png', './assets/ember-animation.mp4', './assets/accessory-sprites-pixel.png'];
 
 self.addEventListener('install', (e) => {
