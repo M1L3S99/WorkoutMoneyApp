@@ -30,7 +30,7 @@ if (!ok) {
     signOut: () => signOut(auth),
     mountCard(sel) {
       elements = stripe.elements();
-      cardEl = elements.create('card', { style: { base: { color: '#19211b', fontFamily: 'DM Sans, sans-serif', fontSize: '16px', '::placeholder': { color: '#8a9386' } } } });
+      cardEl = elements.create('card', { style: { base: { color: '#211609', fontFamily: 'DM Sans, sans-serif', fontSize: '16px', '::placeholder': { color: '#817767' } } } });
       cardEl.mount(sel); lastPM = null; return cardEl;
     },
     hasCard: () => !!lastPM,

@@ -1,13 +1,13 @@
 {
-  "name": "Commitment",
-  "short_name": "Commitment",
-  "description": "Create commitments, schedule recurring tasks, earn coins, and reward your consistency.",
+  "name": "Ironbound — Push-up RPG",
+  "short_name": "Ironbound",
+  "description": "Turn camera-tracked push-ups into dungeon attacks, strength and RPG progression.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#f5f6f2",
-  "theme_color": "#f7f8f5",
+  "background_color": "#100f0d",
+  "theme_color": "#15130f",
   "icons": [
     { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
   ]
