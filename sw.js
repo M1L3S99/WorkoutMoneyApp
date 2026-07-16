@@ -1,6 +1,6 @@
-/* WorkoutMoney service worker — app-shell cache for offline + home-screen install */
-const CACHE = 'commitment-v17';
-const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon.svg', './assets/pet-sprites.png', './assets/ember-resting-original.png', './assets/ember-animation.mp4', './assets/accessory-sprites-pixel.png'];
+/* Ironbound service worker — app-shell cache for offline + home-screen install */
+const CACHE = 'ironbound-v1';
+const ASSETS = ['./', './index.html', './app-backend.js', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));

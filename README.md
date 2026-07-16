@@ -1,23 +1,26 @@
-# Commitment
+# Ironbound
 
-A clean, local-first commitment planner for building repeatable routines.
+Ironbound is a mobile-first push-up RPG. Camera-based pose tracking turns each complete push-up into an attack, while verified training builds XP, strength and dungeon progress.
 
-## How it works
+## Game loop
 
-- Create reusable tasks in an initially empty task bank and assign each a coin reward.
-- Drag tasks onto a weekly or biweekly schedule. A task stays in the bank so it can be reused across several days.
-- Tick off multiple commitments from the Home screen and earn coins immediately.
-- Spend earned coins on rewards in the Shop.
-- Review completion rate, completed tasks, claimed rewards, and recent activity.
-- Sign in with the existing Firebase account system and optionally activate a Stripe-backed commitment contract.
-- Lock a weekly or biweekly schedule when signing; completing every task for the day records a protected day on the account.
+- Start an AI push-up session from the Great Hall or while fighting a dungeon guardian.
+- MediaPipe Pose Landmarker follows shoulder, elbow, wrist, hip and ankle points in the browser. A rep requires good depth, full extension and a straight body line.
+- Every push-up earns XP. Dungeon reps also deal damage based on the equipped weapon.
+- Defeat enemies for gold, unlock deeper floors, and buy stronger weapons in the Arsenal.
+- Complete the adjustable daily push-up quest for a gold reward.
+- Manual reps remain available on unsupported devices, but are identified as practice reps in combat.
 
-The web interface is a self-contained `index.html` with no build step. Local coins and preferences use `localStorage`; authentication, active contracts, completed contract days, and automatic forfeiture billing use the existing Firebase and Stripe backend.
+## Oaths and Stripe
+
+The existing Firebase authentication and Stripe billing system is preserved. A player can choose required push-up days, save a card with Stripe and activate an optional commitment Oath. Completing the daily target records the day through the existing backend; missed contracted days remain subject to the existing one-quarter forfeit rule.
+
+Card details never pass through this repository. The Stripe secret remains in Firebase Functions.
 
 ## Run locally
 
-Serve the repository with any small static web server, then open the local URL in a modern browser. Opening `index.html` directly also works, except service-worker features require HTTP or HTTPS.
+Serve the repository with a static web server and open it through `localhost` or HTTPS. Camera tracking requires a secure browser context. There is no build step.
 
 ## Deployment
 
-The repository is ready for GitHub Pages from the default branch. The manifest and app icon use the new Commitment branding.
+The repository is configured for GitHub Pages. `manifest.webmanifest` makes the site installable as a portrait mobile web app, and `sw.js` provides a network-first offline app shell.
