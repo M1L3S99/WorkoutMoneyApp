@@ -32,7 +32,7 @@ Card details never pass through this repository. The Stripe secret remains in Fi
 
 The in-app Sprite Lab accepts individual PNG, WebP or JPG frames and large sprite sheets. Sprite sheets are cut into cells from left to right, then top to bottom. Original source dimensions and colours are kept untouched; background removal, colour reduction and speck removal are optional export-time effects.
 
-Each frame has its own anchor point so the same body point can remain centred across an animation. A pixel grid, whole-pixel placement, 1:1 source-pixel mode and a 16–512 output-definition control prevent accidental downscaling. Confirmed frames export as a variable-resolution sprite sheet or a ZIP containing individually named PNG files and an anchor manifest.
+Draw one reference box around a recognisable patch of pixels and Sprite Lab finds the closest lossless match in every frame. Each match receives a confidence score and becomes that frame's centre anchor; uncertain frames stay clearly marked for review. Previous, current and next views plus an adjustable onion-skin overlay make one-pixel drift easy to spot. A pixel grid, whole-pixel placement, 1:1 source-pixel mode and a 16–512 output-definition control prevent accidental downscaling. Confirmed frames export as a variable-resolution sprite sheet or a ZIP containing individually named PNG files and a matching/anchor manifest.
 
 Uploaded artwork is processed locally in the browser and is not sent to Firebase or any other server. ZIP creation also happens locally.
 
