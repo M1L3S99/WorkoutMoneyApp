@@ -1,6 +1,15 @@
 /* Ironbound service worker — app-shell cache for offline + home-screen install */
-const CACHE = 'ironbound-v8';
-const ASSETS = ['./', './index.html', './app-backend.js', './manifest.webmanifest', './icon.svg'];
+const CACHE = 'ironbound-v9';
+const ASSETS = ['./', './index.html', './app-backend.js', './manifest.webmanifest', './icon.svg',
+  './assets/rat-idle-frames/frame-001-ChatGPT-Image-Jul-16-2026-09_44_37-PM-001-160x160.png',
+  './assets/rat-idle-frames/frame-002-ChatGPT-Image-Jul-16-2026-09_44_37-PM-002-160x160.png',
+  './assets/rat-idle-frames/frame-003-ChatGPT-Image-Jul-16-2026-09_44_37-PM-003-160x160.png',
+  './assets/rat-idle-frames/frame-004-ChatGPT-Image-Jul-16-2026-09_44_37-PM-004-160x160.png',
+  './assets/rat-idle-frames/frame-005-ChatGPT-Image-Jul-16-2026-09_44_37-PM-005-160x160.png',
+  './assets/rat-idle-frames/frame-006-ChatGPT-Image-Jul-16-2026-09_44_37-PM-006-160x160.png',
+  './assets/rat-idle-frames/frame-007-ChatGPT-Image-Jul-16-2026-09_44_37-PM-007-160x160.png',
+  './assets/rat-idle-frames/frame-008-ChatGPT-Image-Jul-16-2026-09_44_37-PM-008-160x160.png',
+  './assets/rat-idle-frames/frame-009-ChatGPT-Image-Jul-16-2026-09_44_37-PM-009-160x160.png'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
