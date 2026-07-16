@@ -6,11 +6,19 @@ Ironbound is a mobile-first push-up RPG. Camera-based pose tracking turns each c
 
 - Start an AI push-up session from the Great Hall or while fighting a dungeon guardian.
 - MediaPipe Pose Landmarker follows shoulder, elbow, wrist, hip and ankle points in the browser. A rep requires good depth, full extension and a straight body line.
-- Every push-up earns XP. Dungeon reps also deal damage based on the equipped weapon.
-- Defeat enemies for gold and occasional gems, then unlock harder dungeons.
-- Buy equipment in the Market and equip weapons, armour and charms in Inventory.
+- Every push-up earns XP. Dungeon reps also deal damage based on the equipped weapon and invested damage points.
+- Swipe through F-, C-, A- and S-tier dungeons. Each selection shows its enemies, enemy hit chances, gold, gems and guaranteed crate.
+- Enemy attacks stay dormant until the first push-up or the end of the five-second camera grace period. Combat shows the enemy at the top, the hero at the bottom, and a live attack timer and hit chance.
+- Defeat a dungeon to reach a loot claim screen. Claiming currency immediately starts a slot-machine crate animation that awards a weapon, armour piece or charm.
+- Buy equipment in the Market, win rarer equipment from crates, and equip weapons, armour and charms in Inventory.
 - Choose daily quests in the Great Hall for gold and XP.
 - Manual reps remain available on unsupported devices, but are identified as practice reps in combat.
+
+## Levels, stats and loot
+
+Every level after level 1 awards one spendable point. Damage adds 5% per point, Health adds 10 HP to the 100 HP base pool, Luck improves the weighting of rarer crate items, and Defence lowers each enemy's displayed hit chance. Equipment can add further damage, health, luck or defence.
+
+Weapons and dungeons carry F-to-S ratings. Dungeon rewards use the existing server-verified gold and gem system; item rolls are stored in local RPG progress and duplicates are converted to bonus gold.
 
 ## Gems and Stripe
 
