@@ -4,14 +4,14 @@ Ironbound is a mobile-first push-up RPG. Camera-based pose tracking turns each c
 
 ## Game loop
 
-- Start an AI push-up session from the Great Hall or while fighting a dungeon guardian.
+- Start an AI push-up session from the medieval Home keep or while fighting a dungeon guardian. The central keep menu links directly to every major area of the app.
 - MediaPipe Pose Landmarker follows shoulder, elbow, wrist, hip and ankle points in the browser. A rep requires good depth, full extension and a straight body line.
 - Every push-up earns XP. Dungeon reps also deal damage based on the equipped weapon and invested damage points.
-- Swipe through F-, C-, A- and S-tier dungeons. Each selection shows its enemies, enemy hit chances, gold, gems and guaranteed crate.
+- Swipe through F-, C-, A- and S-tier dungeons. Harder locations unlock in order after the dungeon before them is cleared. Locked dungeons can still be inspected.
 - Enemy attacks stay dormant until the first push-up or the end of the five-second camera grace period. Combat shows the enemy at the top, the hero at the bottom, and a live attack timer and hit chance.
-- Defeat a dungeon to reach a loot claim screen. Claiming currency immediately starts a slot-machine crate animation that awards a weapon, armour piece or charm.
+- Every dungeon crate can be opened in the map to inspect its possible equipment and current luck-adjusted drop odds. Defeating a dungeon reaches a loot claim screen where claiming currency immediately starts the slot-machine crate animation.
 - Buy equipment in the Market, win rarer equipment from crates, and equip weapons, armour and charms in Inventory.
-- Choose daily quests in the Great Hall for gold and XP.
+- Choose daily quests from the Home quest board for gold and XP.
 - Manual reps remain available on unsupported devices, but are identified as practice reps in combat.
 
 ## Levels, stats and loot
