@@ -213,6 +213,103 @@ exports.adminAddCoins = onCall({ invoker: 'public' }, async (req) => {
   return { ok: true, amount, coinGrantTotal };
 });
 
+/* ---- 3d. Premium gem purchases and fixed gem-to-gold exchanges ---- */
+const GEM_PACKS = Object.freeze({
+  pouch: { gems: 500, cents: 499, name: 'Gem Pouch' },
+  cache: { gems: 1100, cents: 999, name: 'Adventurer Cache' },
+  vault: { gems: 3000, cents: 2499, name: 'Royal Vault' },
+});
+const GOLD_EXCHANGES = Object.freeze({
+  handful: { gems: 100, gold: 1000 },
+  coffer: { gems: 250, gold: 2800 },
+  treasury: { gems: 500, gold: 6000 },
+});
+const DUNGEONS = Object.freeze({
+  warrens: { minSeconds: 3, minReps: 3, gold: [80, 120], gems: [1, 3] },
+  crypt: { minSeconds: 4, minReps: 4, gold: [180, 260], gems: [3, 6] },
+  foundry: { minSeconds: 5, minReps: 5, gold: [350, 500], gems: [5, 10] },
+  spire: { minSeconds: 6, minReps: 6, gold: [700, 1000], gems: [12, 20] },
+});
+const validRequestId = (value) => /^[a-zA-Z0-9_-]{12,80}$/.test(String(value || ''));
+const randomBetween = ([min, max]) => min + crypto.randomInt(max - min + 1);
+
+exports.purchaseGems = onCall({ invoker: 'public', secrets: [STRIPE_SECRET_KEY] }, async (req) => {
+  const uid = requireUid(req), packId = String(req.data?.packId || ''), requestId = String(req.data?.requestId || '');
+  const pack = GEM_PACKS[packId];
+  if (!pack) throw new HttpsError('invalid-argument', 'Choose a valid gem pack.');
+  if (!validRequestId(requestId)) throw new HttpsError('invalid-argument', 'Invalid purchase request.');
+  const userRef = db.doc(`users/${uid}`), purchaseRef = db.doc(`users/${uid}/gemPurchases/${requestId}`), existing = await purchaseRef.get();
+  if (existing.exists) { const u = await getUser(uid); return { ok: true, repeated: true, gems: pack.gems, gemBalance: Number(u.gemBalance || 0), stripeId: existing.data().stripeId || '' }; }
+  const u = await getUser(uid);
+  if (!u.stripeCustomerId) throw new HttpsError('failed-precondition', 'Save a payment card before buying gems.');
+  const stripe = stripeClient(), suppliedPaymentMethod = String(req.data?.paymentMethodId || '');
+  try {
+    if (suppliedPaymentMethod) await stripe.customers.update(u.stripeCustomerId, { invoice_settings: { default_payment_method: suppliedPaymentMethod } });
+    const customer = await stripe.customers.retrieve(u.stripeCustomerId), paymentMethod = suppliedPaymentMethod || customer.invoice_settings?.default_payment_method;
+    if (!paymentMethod) throw new Error('No saved payment card is available.');
+    const payment = await stripe.paymentIntents.create({
+      amount: pack.cents, currency: 'usd', customer: u.stripeCustomerId, payment_method: paymentMethod,
+      off_session: true, confirm: true, description: `Ironbound ${pack.name} — ${pack.gems} gems`,
+      metadata: { uid, packId, requestId, gems: String(pack.gems) },
+    }, { idempotencyKey: `ironbound-gems-${uid}-${requestId}` });
+    if (payment.status !== 'succeeded') throw new Error(`Payment status: ${payment.status}`);
+    const gemBalance = await db.runTransaction(async (tx) => {
+      const purchase = await tx.get(purchaseRef), user = await tx.get(userRef);
+      if (purchase.exists) return Number(user.data()?.gemBalance || 0);
+      const balance = Number(user.data()?.gemBalance || 0) + pack.gems;
+      tx.set(userRef, { gemBalance: balance, gemPurchasedTotal: admin.firestore.FieldValue.increment(pack.gems) }, { merge: true });
+      tx.set(purchaseRef, { packId, gems: pack.gems, amount: pack.cents / 100, currency: 'usd', stripeId: payment.id, status: payment.status, at: admin.firestore.FieldValue.serverTimestamp() });
+      return balance;
+    });
+    return { ok: true, gems: pack.gems, gemBalance, stripeId: payment.id };
+  } catch (e) { surface(e, 'Gem purchase'); }
+});
+
+exports.exchangeGems = onCall({ invoker: 'public' }, async (req) => {
+  const uid = requireUid(req), pack = GOLD_EXCHANGES[String(req.data?.packId || '')];
+  if (!pack) throw new HttpsError('invalid-argument', 'Choose a valid gold exchange.');
+  const ref = db.doc(`users/${uid}`);
+  const result = await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref), user = snap.data() || {}, balance = Number(user.gemBalance || 0), goldGrantTotal = Number(user.goldGrantTotal || 0);
+    if (balance < pack.gems) throw new HttpsError('failed-precondition', 'Not enough gems.');
+    const next = { gemBalance: balance - pack.gems, goldGrantTotal: goldGrantTotal + pack.gold };
+    tx.set(ref, next, { merge: true }); return next;
+  });
+  return { ok: true, gemsSpent: pack.gems, gold: pack.gold, ...result };
+});
+
+/* ---- 3e. One-time server-recorded dungeon rewards ---- */
+exports.startDungeon = onCall({ invoker: 'public' }, async (req) => {
+  const uid = requireUid(req), dungeonId = String(req.data?.dungeonId || '');
+  if (!DUNGEONS[dungeonId]) throw new HttpsError('invalid-argument', 'Choose a valid dungeon.');
+  const runId = crypto.randomUUID();
+  await db.doc(`users/${uid}/dungeonRuns/${runId}`).set({ dungeonId, claimed: false, startedAt: admin.firestore.FieldValue.serverTimestamp() });
+  return { ok: true, runId };
+});
+
+exports.completeDungeon = onCall({ invoker: 'public' }, async (req) => {
+  const uid = requireUid(req), runId = String(req.data?.runId || ''), reps = Math.floor(Number(req.data?.reps || 0));
+  if (!/^[0-9a-f-]{36}$/i.test(runId)) throw new HttpsError('invalid-argument', 'Invalid dungeon run.');
+  const runRef = db.doc(`users/${uid}/dungeonRuns/${runId}`), userRef = db.doc(`users/${uid}`);
+  const runSnap = await runRef.get();
+  if (!runSnap.exists) throw new HttpsError('not-found', 'Dungeon run not found.');
+  const run = runSnap.data(), dungeon = DUNGEONS[run.dungeonId];
+  if (!dungeon) throw new HttpsError('failed-precondition', 'Dungeon is no longer available.');
+  if (run.claimed) throw new HttpsError('already-exists', 'This dungeon reward was already claimed.');
+  const startedMs = run.startedAt?.toMillis?.() || 0;
+  if (!startedMs || Date.now() - startedMs < dungeon.minSeconds * 1000 || reps < dungeon.minReps) throw new HttpsError('failed-precondition', 'Finish the dungeon before claiming its reward.');
+  const gold = randomBetween(dungeon.gold), gems = randomBetween(dungeon.gems);
+  const result = await db.runTransaction(async (tx) => {
+    const currentRun = await tx.get(runRef), user = await tx.get(userRef);
+    if (currentRun.data()?.claimed) throw new HttpsError('already-exists', 'This dungeon reward was already claimed.');
+    const gemBalance = Number(user.data()?.gemBalance || 0) + gems, goldGrantTotal = Number(user.data()?.goldGrantTotal || 0) + gold;
+    tx.set(userRef, { gemBalance, goldGrantTotal }, { merge: true });
+    tx.set(runRef, { claimed: true, reps, gold, gems, completedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+    return { gemBalance, goldGrantTotal };
+  });
+  return { ok: true, dungeonId: run.dungeonId, gold, gems, ...result };
+});
+
 /* ---- forfeit math (mirrors the app's rules) ---- */
 function computeForfeited(contract, logSet, exemptSet) {
   const invested = contract.amount;

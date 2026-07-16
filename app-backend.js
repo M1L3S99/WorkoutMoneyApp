@@ -48,7 +48,7 @@ if (!ok) {
       const log = {};
       const logSnap = await getDocs(collection(fdb, 'users', uid, 'log'));
       logSnap.forEach((d) => { log[d.id] = d.data(); });
-      return { contract: u.contract || null, exempt: u.exempt || [], skipsUsed: u.skipsUsed || 0, streakFreezes: Number(u.streakFreezes || 0), adminMode: u.adminMode === true, coinGrantTotal: Number(u.coinGrantTotal || 0), name: u.name || '', log };
+      return { contract: u.contract || null, exempt: u.exempt || [], skipsUsed: u.skipsUsed || 0, streakFreezes: Number(u.streakFreezes || 0), adminMode: u.adminMode === true, coinGrantTotal: Number(u.coinGrantTotal || 0), goldGrantTotal: Number(u.goldGrantTotal || 0), gemBalance: Number(u.gemBalance || 0), name: u.name || '', log };
     },
     logWorkout: (d) => call('logWorkout', d),
     useSkipToken: (k) => call('useSkipToken', { dateKey: k }),
@@ -56,6 +56,10 @@ if (!ok) {
     useStreakFreeze: (k) => call('useStreakFreeze', { dateKey: k }),
     redeemCode: (code) => call('redeemCode', { code }),
     adminAddCoins: (amount) => call('adminAddCoins', { amount }),
+    purchaseGems: (packId, requestId) => call('purchaseGems', { packId, requestId, paymentMethodId: lastPM }),
+    exchangeGems: (packId) => call('exchangeGems', { packId }),
+    startDungeon: (dungeonId) => call('startDungeon', { dungeonId }),
+    completeDungeon: (d) => call('completeDungeon', d),
     assessMe: () => call('assessMe', {}),
     chargeTest: (amount) => call('chargeTest', { amount }),
     clearContract: () => call('clearContract', {}),
