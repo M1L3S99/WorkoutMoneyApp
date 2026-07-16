@@ -17,6 +17,12 @@ The existing Firebase authentication and Stripe billing system is preserved. A p
 
 Card details never pass through this repository. The Stripe secret remains in Firebase Functions.
 
+## Sprite Lab
+
+The in-app Sprite Lab accepts multiple PNG, WebP or JPG animation frames. It can sample and remove a background colour, reduce irregular colour variations, remove isolated specks, adjust scale, centre each frame independently, reorder frames and preview them at 1–24 FPS. Projects export as transparent horizontal sprite sheets with 64 × 64 cells or as individual 64 × 64 PNG frames.
+
+Uploaded artwork is processed locally in the browser and is not sent to Firebase or any other server.
+
 ## Run locally
 
 Serve the repository with a static web server and open it through `localhost` or HTTPS. Camera tracking requires a secure browser context. There is no build step.
