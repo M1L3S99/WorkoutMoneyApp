@@ -105,6 +105,30 @@ html,body{height:100%;min-height:100%;overflow:hidden}
 #stats.active{height:100%;max-height:100%;overflow:hidden}
 .loadout-slot{padding-right:48px}
 }
+/* Fixed phone canvas: the game keeps mobile proportions on every screen. */
+html{height:100%;overflow:hidden;background:#0b0e0b}
+body{height:100%;min-height:0;overflow:hidden;display:grid;place-items:center;background-color:#0b0e0b;background-image:linear-gradient(rgba(8,12,8,.5),rgba(8,10,7,.76)),url('assets/forest-background.png');background-size:auto 100%;background-position:center;background-repeat:no-repeat;background-attachment:fixed}
+.app,.app.sidebar-collapsed{position:relative;display:block;width:min(100vw,430px);height:100dvh;min-height:0;overflow:hidden;background-color:#172018;background-image:linear-gradient(rgba(10,14,10,.48),rgba(9,11,8,.72)),url('assets/forest-background.png');background-size:auto 100%;background-position:center top;background-repeat:no-repeat;box-shadow:0 0 0 1px rgba(216,188,126,.18),0 30px 90px #000}
+.main{height:100%;min-width:0;padding:0 0 calc(80px + env(safe-area-inset-bottom));overflow:hidden}
+.sidebar,.app.sidebar-collapsed .sidebar{position:absolute;inset:auto 0 0;width:100%;height:calc(80px + env(safe-area-inset-bottom));padding:7px 6px max(7px,env(safe-area-inset-bottom));overflow:visible;border:0;border-top:1px solid rgba(216,188,126,.2);border-radius:22px 22px 0 0;background:rgba(16,18,13,.97);backdrop-filter:blur(18px);transform:none!important;z-index:350}
+.sidebar-toggle,.app.sidebar-collapsed .sidebar-toggle,.brand,.sidebar-foot{display:none!important}
+.nav{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;overflow:visible;touch-action:none}
+.nav-btn,.app.sidebar-collapsed .nav-btn{position:relative;min-width:0;min-height:64px;padding:6px 1px;display:grid;justify-items:center;align-content:center;gap:2px;border-radius:16px!important;font-size:8px;line-height:1.3}
+.nav-btn.active{background:rgba(228,173,75,.14);box-shadow:inset 0 0 0 1px rgba(228,173,75,.3)}
+.nav-icon{width:auto;font-size:22px;line-height:1}.nav-label{display:none}.nav-btn.active .nav-label{position:absolute;left:50%;bottom:58px;display:block;min-width:max-content;padding:6px 9px;border:1px solid rgba(228,173,75,.35);border-radius:10px;background:#21170f;color:var(--gold-2);font-size:8px;line-height:1;white-space:nowrap;transform:translateX(-50%);box-shadow:0 5px 14px #000;pointer-events:none}
+.topbar{position:relative;top:auto;height:60px;padding:0 12px;border-radius:0 0 18px 18px}.page-label{display:none}.stats{gap:5px}.stat-pill{min-height:36px;padding:0 8px;font-size:10px;white-space:nowrap}
+.content{width:100%;max-width:none;height:calc(100% - 60px);min-height:0;margin:0;padding:12px 12px 22px;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;scrollbar-width:none;touch-action:pan-y}.content::-webkit-scrollbar{display:none}
+.screen{animation:enter .2s ease}.scene-panel{min-height:calc(100% - 4px);padding:0}
+.card{padding:16px}.card-head,.section-head{gap:10px;flex-wrap:wrap}.card-head h2,.section-head h2{font-size:17px;line-height:1.45}
+.grid,.dungeon-layout,.hall-grid,.inventory-layout,.profile-grid,.market-currency-grid,.payment-card,.oath-layout,.studio-layout{grid-template-columns:1fr!important;gap:12px}
+.quick-links,.dungeon-grid,.weapons,.market-section>.weapons,.market-stall .gem-grid,.market-stall .exchange-grid,.gem-grid,.exchange-grid,.inventory-grid{grid-template-columns:1fr!important}
+.hall-level{grid-template-columns:auto 1fr;gap:13px}.next-reward{grid-column:1/-1;max-width:none;text-align:left}.quest-card{grid-template-columns:46px minmax(0,1fr)}.quest-reward,.quest-actions{grid-column:1/-1;text-align:left}
+.loadout-grid{grid-template-columns:1fr;gap:9px}.loadout-slot{grid-template-columns:42px minmax(0,1fr);gap:10px;min-height:78px;padding:11px 50px 11px 11px}.loadout-slot b{font-size:11px;line-height:1.45}.slot-buff,.item-buff{font-size:10px;line-height:1.55}.inventory-help{font-size:11px;line-height:1.65;text-align:left}.item-card{padding:14px 58px 14px 14px}.item-card p,.weapon-card p,.quest-copy small,.sub{line-height:1.65;word-break:normal;overflow-wrap:break-word}
+.btn,.tiny-btn{line-height:1.35;white-space:normal}.btn{min-height:50px}.tiny-btn{min-height:40px}.tag{font-size:9px;line-height:1.4}
+#stats.active{height:100%;min-height:0;max-height:100%;overflow:hidden}#stats .stat-spend{height:100%;padding:14px;display:flex;flex-direction:column;overflow:hidden}#stats .stat-spend-head{flex:0 0 auto;flex-direction:row;align-items:center;margin-bottom:10px}#stats .stat-spend-head h2{font-size:21px;line-height:1.35}#stats .stat-point-grid{min-height:0;flex:1;grid-template-columns:1fr 1fr!important;grid-template-rows:1fr 1fr;gap:9px}#stats .stat-point{position:relative;min-height:0!important;padding:13px 11px;display:flex;flex-direction:column;justify-content:center}#stats .stat-point-head{margin-bottom:7px}#stats .stat-point-head i{font-size:20px}#stats .stat-point strong{font-size:18px;line-height:1.3}#stats .stat-point>b{font-size:11px;line-height:1.45}#stats .stat-point>small{font-size:9px;line-height:1.55;margin:5px 0 9px;word-break:normal;overflow-wrap:break-word}#stats .stat-spend-btn{min-height:38px;margin-top:auto;padding:6px;font-size:8px;line-height:1.45}#stats .stat-info-toggle{z-index:6;width:34px;height:34px}#stats .stat-detail.show{position:absolute;z-index:4;inset:8px;padding:30px 9px 9px;overflow:auto;border-radius:15px;background:#21170f;font-size:10px;line-height:1.6}
+.dungeon-carousel-shell{grid-template-columns:36px minmax(0,1fr) 36px;gap:7px}.carousel-arrow{width:36px;height:64px}.dungeon-feature-body{padding:0 16px 18px}.dungeon-title-row h2{font-size:18px}.dungeon-feature .dungeon-art:has(.dungeon-cover){width:calc(100% - 20px);margin:10px}.market-balance{width:100%}.shop-filters{max-width:100%;overflow-x:auto}.toast{bottom:calc(90px + env(safe-area-inset-bottom));width:calc(100% - 28px);text-align:center}
+@media(min-width:761px){body{padding:0;background-size:cover;background-position:center}.app,.app.sidebar-collapsed{width:min(430px,46.21vh);height:min(932px,100vh);border-radius:30px}.sidebar,.app.sidebar-collapsed .sidebar{border-radius:22px 22px 30px 30px}.auth-gate,.tracker,.loot-modal,.checkout-modal{position:absolute;border-radius:30px;overflow:hidden}.tracker{width:100%;height:100%}}
+@media(max-width:380px){.stat-pill{font-size:9px;padding-inline:6px}#stats .stat-point{padding-inline:9px}#stats .stat-point>small{font-size:8.5px}}
 </style>
 </head>
 <body>
@@ -113,13 +137,13 @@ html,body{height:100%;min-height:100%;overflow:hidden}
       <button class="sidebar-toggle" id="sidebarToggle" aria-label="Collapse menu" aria-expanded="true"><span aria-hidden="true">☰</span></button>
       <div class="brand"><div class="brandmark">I</div><span>IRONBOUND</span></div>
       <nav class="nav" aria-label="Main navigation">
-        <button class="nav-btn active" data-screen="quests"><span class="nav-icon">☷</span><span class="nav-label">Quests</span></button>
-        <button class="nav-btn" data-screen="stats"><span class="nav-icon">✧</span><span class="nav-label">Stats</span></button>
-        <button class="nav-btn" data-screen="dungeon"><span class="nav-icon">⚔</span><span class="nav-label">Dungeons</span></button>
-        <button class="nav-btn" data-screen="market"><span class="nav-icon">✦</span><span class="nav-label">Market</span></button>
-        <button class="nav-btn" data-screen="inventory"><span class="nav-icon">▣</span><span class="nav-label">Inventory</span></button>
-        <button class="nav-btn" data-screen="studio"><span class="nav-icon">▦</span><span class="nav-label">Sprite Lab</span></button>
-        <button class="nav-btn" data-screen="profile"><span class="nav-icon">☻</span><span class="nav-label">Profile</span></button>
+        <button class="nav-btn active" data-screen="quests" aria-label="Quests"><span class="nav-icon" aria-hidden="true">☷</span><span class="nav-label">Quests</span></button>
+        <button class="nav-btn" data-screen="stats" aria-label="Stats"><span class="nav-icon" aria-hidden="true">✧</span><span class="nav-label">Stats</span></button>
+        <button class="nav-btn" data-screen="dungeon" aria-label="Dungeons"><span class="nav-icon" aria-hidden="true">⚔</span><span class="nav-label">Dungeons</span></button>
+        <button class="nav-btn" data-screen="market" aria-label="Market"><span class="nav-icon" aria-hidden="true">✦</span><span class="nav-label">Market</span></button>
+        <button class="nav-btn" data-screen="inventory" aria-label="Inventory"><span class="nav-icon" aria-hidden="true">▣</span><span class="nav-label">Inventory</span></button>
+        <button class="nav-btn" data-screen="studio" aria-label="Sprite Lab"><span class="nav-icon" aria-hidden="true">▦</span><span class="nav-label">Sprite Lab</span></button>
+        <button class="nav-btn" data-screen="profile" aria-label="Profile"><span class="nav-icon" aria-hidden="true">☻</span><span class="nav-label">Profile</span></button>
       </nav>
     </aside>
     <main class="main">
