@@ -1,15 +1,7 @@
 /* Ironbound service worker — app-shell cache for offline + home-screen install */
-const CACHE = 'ironbound-v31';
+const CACHE = 'ironbound-v32';
 const ASSETS = ['./', './index.html', './app-backend.js', './manifest.webmanifest', './icon.svg', './assets/rat-warrens-cover-v2.png', './assets/forest-background.png',
-  './assets/rat-idle-frames/frame-001-ChatGPT-Image-Jul-16-2026-09_44_37-PM-001-160x160.png',
-  './assets/rat-idle-frames/frame-002-ChatGPT-Image-Jul-16-2026-09_44_37-PM-002-160x160.png',
-  './assets/rat-idle-frames/frame-003-ChatGPT-Image-Jul-16-2026-09_44_37-PM-003-160x160.png',
-  './assets/rat-idle-frames/frame-004-ChatGPT-Image-Jul-16-2026-09_44_37-PM-004-160x160.png',
-  './assets/rat-idle-frames/frame-005-ChatGPT-Image-Jul-16-2026-09_44_37-PM-005-160x160.png',
-  './assets/rat-idle-frames/frame-006-ChatGPT-Image-Jul-16-2026-09_44_37-PM-006-160x160.png',
-  './assets/rat-idle-frames/frame-007-ChatGPT-Image-Jul-16-2026-09_44_37-PM-007-160x160.png',
-  './assets/rat-idle-frames/frame-008-ChatGPT-Image-Jul-16-2026-09_44_37-PM-008-160x160.png',
-  './assets/rat-idle-frames/frame-009-ChatGPT-Image-Jul-16-2026-09_44_37-PM-009-160x160.png'];
+  './assets/rat-enemies/rat-bruiser.png', './assets/rat-enemies/rat-alchemist.png', './assets/rat-enemies/rat-king.png'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
