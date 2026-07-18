@@ -1,5 +1,5 @@
 /* Ironbound service worker — app-shell cache for offline + home-screen install */
-const CACHE = 'ironbound-v26';
+const CACHE = 'ironbound-v27';
 const ASSETS = ['./', './index.html', './app-backend.js', './manifest.webmanifest', './icon.svg', './assets/rat-warrens-cover.png', './assets/forest-background.png',
   './assets/rat-idle-frames/frame-001-ChatGPT-Image-Jul-16-2026-09_44_37-PM-001-160x160.png',
   './assets/rat-idle-frames/frame-002-ChatGPT-Image-Jul-16-2026-09_44_37-PM-002-160x160.png',
