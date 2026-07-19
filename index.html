@@ -218,6 +218,32 @@ html{background:#010611}body{color:var(--ink);background-color:#020817!important
 .battle-enemy-art.has-sprite+.battle-enemy-name{display:block!important}
 @media(max-width:760px){#dungeon .dungeon-carousel{padding-inline:9px}#dungeon .dungeon-carousel-shell{position:relative;display:block!important}#dungeon .carousel-arrow{position:absolute;z-index:12;top:50%;display:grid!important;place-items:center;width:40px;height:70px;padding:0;border-radius:12px!important;background:linear-gradient(#0d3764,#061a35)!important;box-shadow:0 0 0 1px rgba(88,178,255,.24),0 7px 20px rgba(0,0,0,.58)!important;font-size:28px;line-height:1;transform:translateY(-50%);touch-action:manipulation}#dungeon #previousDungeon{left:-5px}#dungeon #nextDungeon{right:-5px}#dungeon .dungeon-feature{width:100%}}
 @media(prefers-reduced-motion:reduce){.screen.slide-next,.screen.slide-prev,.dungeon-feature.dungeon-slide-next,.dungeon-feature.dungeon-slide-previous{animation:none}}
+/* Compact, phone-first dungeon entry */
+#dungeon .dungeon-carousel{max-width:390px}
+#dungeon .dungeon-carousel-shell{align-items:start}
+#dungeon .dungeon-feature{align-self:start;height:auto!important;min-height:0!important;max-height:none!important;overflow:hidden;border-radius:18px!important}
+#dungeon .dungeon-feature .dungeon-art:has(.dungeon-cover){width:calc(100% - 20px);height:auto!important;min-height:0!important;aspect-ratio:16/8.25;margin:10px 10px 7px;border:2px solid #329bf2!important;outline:0;border-radius:14px!important;box-shadow:0 7px 18px rgba(0,0,0,.48)!important;overflow:hidden}
+#dungeon .dungeon-cover{width:100%;height:100%;border-radius:11px;object-fit:cover;object-position:center 50%}
+#dungeon .dungeon-feature-body{flex:none;min-height:0;padding:0 12px 12px!important}
+#dungeon .dungeon-title-row{gap:8px;margin:0 0 5px}
+#dungeon .tier-badge{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;padding:0;font-size:12px!important}
+#dungeon .dungeon-title-row h2{margin:0;font-size:16px!important;line-height:1.2}
+#dungeon .dungeon-tier-copy{font-size:7px;line-height:1.2}
+#dungeon .dungeon-meta{gap:5px;margin:5px 0}
+#dungeon .dungeon-meta div{padding:5px 3px!important;border-radius:9px!important}
+#dungeon .dungeon-meta b{font-size:9px;line-height:1.25}
+#dungeon .dungeon-meta small{font-size:6px;line-height:1.25}
+#dungeon .enemy-chips{display:grid;grid-template-columns:1fr;gap:3px;max-height:none;overflow:visible;margin:3px 0 6px}
+#dungeon .enemy-chip{display:flex;align-items:center;gap:6px;min-width:0;padding:3px 6px!important;border-radius:9px!important;font-size:7px!important;line-height:1.2}
+#dungeon .enemy-chip-image{flex:0 0 20px;width:20px;height:20px}
+#dungeon .crate-inspector{margin:0 0 6px!important}
+#dungeon .crate-preview{gap:7px;margin:0!important;padding:5px 7px!important;border-radius:9px!important}
+#dungeon .crate-preview i{font-size:20px}
+#dungeon .crate-preview b{font-size:8px;line-height:1.25}
+#dungeon .crate-preview small{margin-top:1px;font-size:6px;line-height:1.25}
+#dungeon [data-start-dungeon]{min-height:36px;padding:7px 10px;font-size:8px}
+#dungeon .carousel-dots{margin-top:7px}
+@media(max-width:760px){#dungeon .dungeon-carousel{padding-inline:8px}#dungeon .carousel-arrow{top:96px;width:36px;height:54px;font-size:24px}#dungeon #previousDungeon{left:-4px}#dungeon #nextDungeon{right:-4px}}
 </style>
 </head>
 <body>
