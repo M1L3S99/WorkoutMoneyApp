@@ -7,22 +7,22 @@ Ironbound is a mobile-first push-up RPG. Camera-based pose tracking turns each c
 - Start an AI push-up session from the medieval Home keep or while fighting a dungeon guardian. The central keep menu links directly to every major area of the app.
 - MediaPipe Pose Landmarker follows shoulder, elbow, wrist, hip and ankle points in the browser. A rep requires good depth, full extension and a straight body line.
 - Every push-up earns XP. Dungeon reps also deal damage based on the equipped weapon and invested damage points.
-- Swipe through F-, C-, A- and S-tier dungeons. Harder locations unlock in order after the dungeon before them is cleared. Locked dungeons can still be inspected.
+- Swipe through E-, C-, A- and S-tier dungeons. Harder locations unlock in order after the dungeon before them is cleared. Locked dungeons can still be inspected.
 - Enemy attacks stay dormant until the first push-up or the end of the five-second camera grace period. Combat shows the enemy at the top, the hero at the bottom, and a live attack timer and hit chance.
-- Every dungeon crate can be opened in the map to inspect its possible equipment and current luck-adjusted drop odds. Defeating a dungeon reaches a loot claim screen where claiming currency immediately starts the slot-machine crate animation.
-- Buy equipment in the Market, win rarer equipment from crates, and equip weapons, armour and charms in Inventory.
+- Clearing a dungeon awards a server-verified coin payout and a fixed experience reward.
+- Buy equipment in the Market, then equip weapons, armour and charms in Inventory.
 - Choose daily quests from the Home quest board for gold and XP.
 - Manual reps remain available on unsupported devices, but are identified as practice reps in combat.
 
-## Levels, stats and loot
+## Levels and stats
 
-Every level after level 1 awards one spendable point. Damage adds 5% per point, Health adds 10 HP to the 100 HP base pool, Luck improves the weighting of rarer crate items, and Defence lowers each enemy's displayed hit chance. Equipment can add further damage, health, luck or defence.
+Every level after level 1 awards one spendable point. Damage adds 5% per point, Health adds 10 HP to the 100 HP base pool, Luck increases coin rewards by 2% per point, and Defence lowers each enemy's displayed hit chance. Equipment can add further damage, health, luck or defence.
 
-Weapons and dungeons carry F-to-S ratings. Dungeon rewards use the existing server-verified gold and gem system; item rolls are stored in local RPG progress and duplicates are converted to bonus gold.
+Weapons and dungeons carry E-to-S ratings. Dungeon completions award server-verified coins and experience only.
 
 ## Gems and Stripe
 
-Firebase authentication and Stripe billing are preserved. Signed-in players can save a card with Stripe and purchase fixed gem packs. Pack prices and gem awards are selected and verified by Firebase Functions, while duplicate submissions are protected with Stripe idempotency keys. Gems can also be earned in dungeons and exchanged for gold.
+Firebase authentication and Stripe billing are preserved. Signed-in players can save a card with Stripe and purchase fixed gem packs. Pack prices and gem awards are selected and verified by Firebase Functions, while duplicate submissions are protected with Stripe idempotency keys. Purchased gems can be exchanged for gold.
 
 The Oath tab has been removed. Accounts with an older active Oath can remove it from Profile; no new Oaths are offered in the RPG interface.
 

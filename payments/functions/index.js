@@ -225,10 +225,10 @@ const GOLD_EXCHANGES = Object.freeze({
   treasury: { gems: 500, gold: 6000 },
 });
 const DUNGEONS = Object.freeze({
-  warrens: { minSeconds: 3, minReps: 3, gold: [80, 120], gems: [1, 3] },
-  crypt: { minSeconds: 4, minReps: 4, gold: [180, 260], gems: [3, 6] },
-  foundry: { minSeconds: 5, minReps: 5, gold: [350, 500], gems: [5, 10] },
-  spire: { minSeconds: 6, minReps: 6, gold: [700, 1000], gems: [12, 20] },
+  warrens: { minSeconds: 3, minReps: 3, gold: [80, 120], xp: 80 },
+  crypt: { minSeconds: 4, minReps: 4, gold: [180, 260], xp: 140 },
+  foundry: { minSeconds: 5, minReps: 5, gold: [350, 500], xp: 220 },
+  spire: { minSeconds: 6, minReps: 6, gold: [700, 1000], xp: 350 },
 });
 const validRequestId = (value) => /^[a-zA-Z0-9_-]{12,80}$/.test(String(value || ''));
 const randomBetween = ([min, max]) => min + crypto.randomInt(max - min + 1);
@@ -298,16 +298,16 @@ exports.completeDungeon = onCall({ invoker: 'public' }, async (req) => {
   if (run.claimed) throw new HttpsError('already-exists', 'This dungeon reward was already claimed.');
   const startedMs = run.startedAt?.toMillis?.() || 0;
   if (!startedMs || Date.now() - startedMs < dungeon.minSeconds * 1000 || reps < dungeon.minReps) throw new HttpsError('failed-precondition', 'Finish the dungeon before claiming its reward.');
-  const gold = randomBetween(dungeon.gold), gems = randomBetween(dungeon.gems);
+  const gold = randomBetween(dungeon.gold), xp = dungeon.xp;
   const result = await db.runTransaction(async (tx) => {
     const currentRun = await tx.get(runRef), user = await tx.get(userRef);
     if (currentRun.data()?.claimed) throw new HttpsError('already-exists', 'This dungeon reward was already claimed.');
-    const gemBalance = Number(user.data()?.gemBalance || 0) + gems, goldGrantTotal = Number(user.data()?.goldGrantTotal || 0) + gold;
-    tx.set(userRef, { gemBalance, goldGrantTotal }, { merge: true });
-    tx.set(runRef, { claimed: true, reps, gold, gems, completedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
-    return { gemBalance, goldGrantTotal };
+    const goldGrantTotal = Number(user.data()?.goldGrantTotal || 0) + gold;
+    tx.set(userRef, { goldGrantTotal }, { merge: true });
+    tx.set(runRef, { claimed: true, reps, gold, xp, completedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+    return { goldGrantTotal };
   });
-  return { ok: true, dungeonId: run.dungeonId, gold, gems, ...result };
+  return { ok: true, dungeonId: run.dungeonId, gold, xp, ...result };
 });
 
 /* ---- forfeit math (mirrors the app's rules) ---- */
