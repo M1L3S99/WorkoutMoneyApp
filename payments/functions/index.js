@@ -226,7 +226,9 @@ const GOLD_EXCHANGES = Object.freeze({
 });
 const DUNGEONS = Object.freeze({
   warrens: { minSeconds: 3, minReps: 3, gold: [80, 120], xp: 80 },
+  grotto: { minSeconds: 4, minReps: 3, gold: [130, 190], xp: 110 },
   crypt: { minSeconds: 4, minReps: 4, gold: [180, 260], xp: 140 },
+  keep: { minSeconds: 5, minReps: 4, gold: [260, 380], xp: 180 },
   foundry: { minSeconds: 5, minReps: 5, gold: [350, 500], xp: 220 },
   spire: { minSeconds: 6, minReps: 6, gold: [700, 1000], xp: 350 },
 });
