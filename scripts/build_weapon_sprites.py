@@ -1,4 +1,4 @@
-"""Build compact, transparent 64px weapon sprites from keyed source PNGs."""
+"""Build compact, transparent 96px weapon sprites from keyed source PNGs."""
 
 from __future__ import annotations
 
@@ -8,9 +8,9 @@ from pathlib import Path
 from PIL import Image
 
 
-CANVAS_SIZE = 64
-SUBJECT_SIZE = 54
-PALETTE_COLORS = 16
+CANVAS_SIZE = 96
+SUBJECT_SIZE = 84
+PALETTE_COLORS = 32
 
 
 def build_sprite(source: Path, destination: Path) -> tuple[int, tuple[int, int, int, int]]:
@@ -55,7 +55,8 @@ def build_sprite(source: Path, destination: Path) -> tuple[int, tuple[int, int, 
     check_bounds = check_alpha.getbbox()
     if check.size != (CANVAS_SIZE, CANVAS_SIZE) or not check_bounds:
         raise ValueError(f"Invalid output sprite {destination}")
-    if any(check.getpixel(point)[3] for point in ((0, 0), (63, 0), (0, 63), (63, 63))):
+    edge = CANVAS_SIZE - 1
+    if any(check.getpixel(point)[3] for point in ((0, 0), (edge, 0), (0, edge), (edge, edge))):
         raise ValueError(f"Sprite corners are not transparent in {destination}")
 
     return destination.stat().st_size, check_bounds
