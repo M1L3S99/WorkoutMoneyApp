@@ -515,25 +515,29 @@ html{background:#010611}body{color:var(--ink);background-color:#020817!important
     #quests .quest-section-head i{flex:1;height:2px;background:linear-gradient(90deg,#1788f1,rgba(23,136,241,.06))}
     #quests .quest-section-head .tag{flex:0 0 auto;padding:5px 6px;font-size:5px;white-space:nowrap}
     #quests .quest-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-    #quests .quest-card{min-height:146px;display:grid;grid-template-columns:38px minmax(0,1fr)!important;grid-template-rows:auto auto auto;align-content:start;align-items:center;gap:7px 8px;padding:10px!important;border:1px solid #1788f1!important;border-radius:8px!important;background:radial-gradient(circle at 50% 32%,#123e6c,#071a3d 70%)!important;clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px);box-shadow:none!important}
+    #quests .quest-card{min-height:154px;display:flex!important;flex-direction:column;align-items:stretch;gap:5px;padding:9px 10px 10px!important;border:1px solid #1788f1!important;border-radius:8px!important;background:radial-gradient(circle at 50% 28%,#123e6c,#071a3d 70%)!important;clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px);box-shadow:inset 0 0 18px rgba(31,132,224,.07)!important;transition:transform .16s,border-color .16s,filter .16s}
     #quests .quest-card:nth-child(2n){background:radial-gradient(circle at 50% 32%,#30265b,#071a3d 70%)!important}
-    #quests .quest-card.selected{border-color:#39a8ff!important;box-shadow:inset 0 0 14px rgba(45,151,242,.1)!important}
+    #quests .quest-card:hover{transform:translateY(-1px);filter:brightness(1.06)}
+    #quests .quest-card.selected{border-color:#55b7ff!important;box-shadow:inset 0 0 17px rgba(45,151,242,.14),0 0 7px rgba(30,132,226,.14)!important}
     #quests .quest-card.complete{border-color:#46cf9b!important;background:radial-gradient(circle at 50% 32%,#155047,#071a3d 72%)!important}
     #quests .quest-card.ready{border-color:#75d6ff!important;box-shadow:0 0 8px rgba(68,176,255,.28)!important}
-    #quests .quest-icon{width:38px;height:38px;margin:0;border:1px solid rgba(83,171,248,.28);border-radius:9px!important;background:rgba(3,16,36,.58)!important;font-size:18px}
-    #quests .quest-copy{min-width:0}
-    #quests .quest-copy b{font-size:6.3px;line-height:1.35;white-space:nowrap}
-    #quests .quest-copy small{display:block;margin:3px 0 0;font-size:5px!important;line-height:1.35}
-    #quests .quest-copy .progress{height:5px;margin-top:6px!important}
-    #quests .quest-reward{grid-column:1/-1!important;padding:7px 0 0!important;border-top:1px solid rgba(54,145,235,.17)!important;color:#d8edff!important;font-size:6px!important;text-align:center!important}
-    #quests .quest-actions{grid-column:1/-1!important;display:block}
+    #quests .quest-icon{flex:0 0 43px;width:50px;height:43px;margin:0 auto;border:0;border-radius:50%!important;background:radial-gradient(circle,rgba(58,164,246,.26),rgba(4,17,38,0) 70%)!important;font-size:21px;filter:drop-shadow(0 4px 3px rgba(0,0,0,.55))}
+    #quests .quest-card:nth-child(2n) .quest-icon{background:radial-gradient(circle,rgba(166,108,255,.24),rgba(4,17,38,0) 70%)!important}
+    #quests .quest-copy{min-width:0;text-align:center}
+    #quests .quest-copy b{font-size:6.5px;line-height:1.35;white-space:nowrap}
+    #quests .quest-copy small{display:block;margin:2px 0 0;font-size:5.5px!important;line-height:1.35;color:#8eafd0!important}
+    #quests .quest-copy .progress{display:block;width:88%;height:4px;margin:6px auto 0!important;overflow:hidden}
+    #quests .quest-reward{margin-top:auto;padding:6px 0 0!important;border-top:1px solid rgba(54,145,235,.17)!important;color:#d8edff!important;font-size:6px!important;text-align:center!important}
+    #quests .quest-actions{display:block;width:100%}
     #quests .quest-actions .tiny-btn{width:100%;min-height:30px!important;padding:5px 7px;font-size:5.5px;box-shadow:none!important}
+    #quests .quest-card.selected .quest-actions .tiny-btn{border-color:#45b1ff!important;background:linear-gradient(#147ec3,#0a4c8d)!important;color:#fff!important}
+    #quests .quest-card.ready .quest-actions .tiny-btn{border-color:#55d8af!important;background:linear-gradient(#168a72,#0b5d52)!important;color:#effffb!important}
     #quests .reward-road{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
     #quests .reward-node{min-height:64px;display:grid;grid-template-columns:34px minmax(0,1fr);gap:8px;padding:9px!important;border:1px solid #1788f1!important;border-radius:8px!important;background:radial-gradient(circle at 30% 35%,#153f70,#071a3d 75%)!important;clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px);box-shadow:none!important}
     #quests .reward-level{width:34px;height:34px;border-radius:8px!important;font-size:9px}
     #quests .reward-node b{font-size:6.5px;line-height:1.35}
     #quests .reward-node small{font-size:5px!important}
-    @media(max-width:340px){#quests .quest-card{padding:8px!important;grid-template-columns:34px minmax(0,1fr)!important}.quest-icon{width:34px!important;height:34px!important}#quests .quest-copy b{font-size:6px}#quests .quest-view-tab{font-size:6px}}
+    @media(max-width:340px){#quests .quest-card{min-height:150px;padding:8px!important}#quests .quest-icon{width:44px!important;height:39px!important;flex-basis:39px}#quests .quest-copy b{font-size:6px}#quests .quest-view-tab{font-size:6px}}
     #market .market-view-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0 8px 5px;padding:4px;border:1px solid rgba(48,139,231,.3);border-radius:11px;background:#041127}
     #market .market-view-tab{min-height:34px;padding:7px 10px;border:1px solid transparent;border-radius:8px;background:transparent;color:#7898bd;font:inherit;font-size:7px;text-transform:uppercase;cursor:pointer}
     #market .market-view-tab.active{border-color:#248de8;background:linear-gradient(#0d3a6d,#082448);color:#fff;box-shadow:inset 0 0 12px rgba(79,172,255,.12)}
