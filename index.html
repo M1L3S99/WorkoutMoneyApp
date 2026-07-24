@@ -435,8 +435,11 @@ html{background:#010611}body{color:var(--ink);background-color:#020817!important
     #dungeon .dungeon-title-row .tier-badge{display:none!important}
     #dungeon .dungeon-title-row h2{grid-column:1!important;width:100%;text-align:center}
     #enemyRosterHead.enemy-roster-head{grid-template-columns:minmax(0,1fr);padding-right:42px;padding-left:42px;text-align:center}
+    #dungeon .dungeon-carousel-shell{height:100%}
+    #dungeon .dungeon-feature{height:calc(100% + 18px)!important}
+    #dungeon .dungeon-feature-body{flex:1!important;min-height:0}
     @media(min-height:651px){
-      #dungeon .dungeon-feature-body{padding:16px 15px 20px!important}
+      #dungeon .dungeon-feature-body{justify-content:space-between;padding:16px 15px 20px!important}
       #dungeon .dungeon-title-block{gap:6px;margin-bottom:15px}
       #dungeon .dungeon-title-row h2{font-size:clamp(11px,3.7vw,15px)!important;line-height:1.25}
       #dungeon .dungeon-tier-copy{font-size:6.5px;line-height:1.45}
