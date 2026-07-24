@@ -1,5 +1,5 @@
 /* Ironbound service worker — app-shell cache for offline + home-screen install */
-const CACHE = 'ironbound-v76';
+const CACHE = 'ironbound-v77';
 const ASSETS = ['./', './index.html', './app-backend.js', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', (e) => {
