@@ -638,6 +638,22 @@ html{background:#010611}body{color:var(--ink);background-color:#020817!important
     }
     #quests .quest-actions{grid-column:2;grid-row:2;width:auto!important}
     #quests .quest-actions .tiny-btn{width:auto!important;min-width:92px;min-height:28px!important;padding:5px 7px!important;font-size:5.5px}
+    #quests .quest-group-panel{
+      margin-top:12px;
+      padding:12px 10px 7px;
+      overflow:hidden;
+      border:1px solid rgba(49,145,242,.48);
+      border-radius:18px;
+      background:linear-gradient(155deg,rgba(8,32,66,.96),rgba(3,14,33,.98));
+      box-shadow:inset 0 0 24px rgba(38,137,228,.07),0 8px 22px rgba(0,0,0,.24)
+    }
+    #quests .weekly-quest-panel{margin-top:14px;background:linear-gradient(155deg,rgba(18,34,70,.97),rgba(4,15,35,.98))}
+    #quests .quest-group-panel .quest-section-head{margin:0 2px 7px;padding:0 2px 8px;border-bottom:1px solid rgba(49,145,242,.24)}
+    #quests .quest-group-panel .quest-section-head h2{font-size:11px!important}
+    #quests .quest-group-panel .quest-grid{padding:0;border:0}
+    #quests .quest-group-panel .quest-card{padding-inline:7px!important}
+    #quests .quest-group-panel .quest-card:first-child{border-radius:10px 10px 0 0!important}
+    #quests .quest-group-panel .quest-card:last-child{border-radius:0 0 10px 10px!important}
     #inventory .loadout-icon,#inventory .item-card{cursor:pointer!important;touch-action:manipulation}
     #inventory .loadout-slot.drop-ready{border-style:solid}
     #inventory .inventory-item-icon{pointer-events:none}
@@ -793,7 +809,7 @@ html{background:#010611}body{color:var(--ink);background-color:#020817!important
     <main class="main">
       <header class="topbar"><div class="stats"><div class="stat-pill" aria-label="Gold">◈ <b id="topGold">0</b></div><div class="stat-pill" aria-label="Gems">♦ <b id="topGems">0</b></div><div class="stat-pill">LV <b id="topLevel">1</b></div></div></header>
       <div class="content">
-        <section class="screen active scene-panel" id="quests"><div class="card hall-level quest-summary"><div class="level-copy"><div class="level-xp-line"><span class="level-inline">LV <b id="hallLevel">1</b></span><h2 id="hallXp">0 / 100 XP</h2></div><div class="progress"><i id="hallXpBar"></i></div><p id="hallStats">0 push-ups · 0 dungeon clears</p></div></div><div class="quest-section-head"><h2>Daily Quests</h2><i></i><span class="tag" id="dailyQuestSlots">0 / 2 tracked</span></div><div class="quest-grid" id="dailyQuestGrid"></div><div class="quest-section-head weekly-head"><h2>Weekly Quests</h2><i></i><span class="tag" id="weeklyQuestSlots">0 / 2 tracked</span></div><div class="quest-grid" id="weeklyQuestGrid"></div></section>
+        <section class="screen active scene-panel" id="quests"><div class="card hall-level quest-summary"><div class="level-copy"><div class="level-xp-line"><span class="level-inline">LV <b id="hallLevel">1</b></span><h2 id="hallXp">0 / 100 XP</h2></div><div class="progress"><i id="hallXpBar"></i></div><p id="hallStats">0 push-ups · 0 dungeon clears</p></div></div><div class="quest-group-panel daily-quest-panel"><div class="quest-section-head"><h2>Daily Quests</h2><i></i><span class="tag" id="dailyQuestSlots">0 / 4 tracked</span></div><div class="quest-grid" id="dailyQuestGrid"></div></div><div class="quest-group-panel weekly-quest-panel"><div class="quest-section-head"><h2>Weekly Quests</h2><i></i><span class="tag" id="weeklyQuestSlots">0 / 4 tracked</span></div><div class="quest-grid" id="weeklyQuestGrid"></div></div></section>
 
         <section class="screen scene-panel" id="stats"><div class="card stat-spend"><div class="stat-spend-head"><h2>Stats</h2><span class="tag" id="availablePoints">0 points ready</span></div><div class="stat-point-grid" id="statPointGrid"></div></div></section>
 
@@ -909,14 +925,24 @@ html{background:#010611}body{color:var(--ink);background-color:#020817!important
       {id:'foundry',name:'Orc Foundry',art:'👹',cover:'assets/dungeons/orc-foundry-pixel.png',tier:'A',recommended:25,gold:[350,500],xp:220,enemies:[{name:'Orc Scout',art:'👹',image:'assets/enemies/orc-foundry/orc-scout.png',hp:130,damage:20,interval:7,hitChance:.76},{name:'Forge Hound',art:'🐺',image:'assets/enemies/orc-foundry/forge-hound.png',hp:110,damage:23,interval:6,hitChance:.7},{name:'Orc Brute',art:'👺',image:'assets/enemies/orc-foundry/orc-brute.png',hp:175,damage:27,interval:6,hitChance:.82},{name:'Magma Golem',art:'🗿',image:'assets/enemies/orc-foundry/magma-golem.png',hp:220,damage:30,interval:7,hitChance:.78},{name:'Foundry Chief',art:'👹',image:'assets/enemies/orc-foundry/foundry-chief.png',hp:270,damage:35,interval:5,hitChance:.84}]},
       {id:'spire',name:'Dragon Spire',art:'🐉',cover:'assets/dungeons/dragon-spire-pixel.png',tier:'S',recommended:40,gold:[700,1000],xp:350,enemies:[{name:'Ash Drake',art:'🐲',image:'assets/enemies/dragon-spire/ash-drake.png',hp:260,damage:30,interval:6,hitChance:.8},{name:'Ember Wyrm',art:'🐉',image:'assets/enemies/dragon-spire/ember-wyrm.png',hp:340,damage:38,interval:6,hitChance:.84},{name:'Ancient Dragon',art:'🐉',image:'assets/enemies/dragon-spire/ancient-dragon.png',hp:500,damage:45,interval:5,hitChance:.88}]}
     ];
-    const DAILY_QUESTS=[{id:'daily-buy',frequency:'daily',name:'Market Visit',desc:'Buy 1 item from the shop',target:1,type:'purchases',gold:35,xp:20},{id:'daily-supply',frequency:'daily',name:'Use a Supply',desc:'Consume 1 supply between fights',target:1,type:'supplies',gold:45,xp:25}];
-    const WEEKLY_QUESTS=[{id:'weekly-reps',frequency:'weekly',name:'Weekly Training',desc:'Complete 100 push-ups this week',target:100,type:'weeklyReps',gold:260,xp:120},{id:'weekly-wins',frequency:'weekly',name:'Dungeon Campaign',desc:'Clear 3 dungeons this week',target:3,type:'weeklyWins',gold:320,xp:150}];
+    const DAILY_QUESTS=[
+      {id:'daily-reps',frequency:'daily',name:'Daily Training',desc:'Complete 20 push-ups today',target:20,type:'dailyReps',gold:30,xp:20},
+      {id:'daily-win',frequency:'daily',name:'Dungeon Delve',desc:'Clear 1 dungeon today',target:1,type:'dailyWins',gold:80,xp:40},
+      {id:'daily-buy',frequency:'daily',name:'Market Visit',desc:'Buy 1 item from the shop',target:1,type:'purchases',gold:35,xp:20},
+      {id:'daily-supply',frequency:'daily',name:'Use a Supply',desc:'Consume 1 supply between fights',target:1,type:'supplies',gold:45,xp:25}
+    ];
+    const WEEKLY_QUESTS=[
+      {id:'weekly-reps',frequency:'weekly',name:'Weekly Training',desc:'Complete 100 push-ups this week',target:100,type:'weeklyReps',gold:260,xp:120},
+      {id:'weekly-wins',frequency:'weekly',name:'Dungeon Campaign',desc:'Clear 3 dungeons this week',target:3,type:'weeklyWins',gold:320,xp:150},
+      {id:'weekly-buy',frequency:'weekly',name:'Weekly Shopper',desc:'Buy 3 items from the shop this week',target:3,type:'weeklyPurchases',gold:180,xp:90},
+      {id:'weekly-supply',frequency:'weekly',name:'Field Preparation',desc:'Consume 3 supplies this week',target:3,type:'weeklySupplies',gold:220,xp:100}
+    ];
     const QUESTS=[...DAILY_QUESTS,...WEEKLY_QUESTS];
     const LEVEL_REWARDS=Array.from({length:99},(_,index)=>{const level=index+2,gold=40+level*30,statPoints=level%5===0?2:1;return{level,gold,statPoints,label:`${gold.toLocaleString()} gold · ${statPoints} stat point${statPoints===1?'':'s'}`}});
     const GEM_PACKS=[{id:'pouch',name:'Gem Pouch',gems:500,price:'$4.99',art:'♦'},{id:'cache',name:'Adventurer Cache',gems:1100,price:'$9.99',art:'💎',featured:true},{id:'vault',name:'Royal Vault',gems:3000,price:'$24.99',art:'🔷'}];
     const GOLD_EXCHANGES=[{id:'handful',gems:100,gold:1000},{id:'coffer',gems:250,gold:2800},{id:'treasury',gems:500,gold:6000}];
     const ENEMY_GOLD_BY_TIER={E:[3,7],D:[5,9],C:[7,12],B:[9,15],A:[12,20],S:[18,30]};
-    const fresh=()=>({gold:0,gems:0,xp:0,progressionVersion:2,totalReps:0,dailyGoal:20,daily:{},dailyWins:{},dailyPurchases:{},dailySuppliesUsed:{},activeQuests:QUESTS.map(q=>q.id),questClaims:[],levelClaims:[],levelRewardClaims:[],statPoints:0,stats:{damage:0,health:0,luck:0,defense:0},owned:['wraps'],equipped:'wraps',ownedItems:['wraps','tunic'],equippedItems:{weapon:'wraps',armour:'tunic',helmet:null,cape:null,charm:null},weaponUpgrades:{},consumables:{},wins:0,clearedDungeons:[],run:null,pendingLoot:null,lastRunReward:null,lootHistory:[],crateLuckAllocations:{},selectedDungeonId:'warrens',activity:[],contract:null,serverGrantApplied:0,goldGrantApplied:0,adminMode:false,sidebarCollapsed:false});
+    const fresh=()=>({gold:0,gems:0,xp:0,progressionVersion:3,totalReps:0,dailyGoal:20,daily:{},dailyWins:{},dailyPurchases:{},dailySuppliesUsed:{},activeQuests:QUESTS.map(q=>q.id),questClaims:[],levelClaims:[],levelRewardClaims:[],statPoints:0,stats:{damage:0,health:0,luck:0,defense:0},owned:['wraps'],equipped:'wraps',ownedItems:['wraps','tunic'],equippedItems:{weapon:'wraps',armour:'tunic',helmet:null,cape:null,charm:null},weaponUpgrades:{},consumables:{},wins:0,clearedDungeons:[],run:null,pendingLoot:null,lastRunReward:null,lootHistory:[],crateLuckAllocations:{},selectedDungeonId:'warrens',activity:[],contract:null,serverGrantApplied:0,goldGrantApplied:0,adminMode:false,sidebarCollapsed:false});
     const POSE_VIEW_KEY='ironboundPoseViewV1';
     let state=load(),trackerMode='training',poseView=localStorage.getItem(POSE_VIEW_KEY)==='front'?'front':'side',sessionReps=0,stream=null,landmarker=null,tracking=false,combatCameraReady=false,cameraRequest=0,lastVideoTime=-1,lastDetection=0,posePhase='unknown',poseCandidate='unknown',poseCandidateSince=0,poseDownAt=0,lastRepAt=0,lastGoodPoseAt=0,smoothedElbow=null,smoothedLeftElbow=null,smoothedRightElbow=null,smoothedBodyLine=null,resetArmed=false,toastTimer,combatTimer=null,combatGraceTimer=null,crateAnimationTimer=null,dungeonFinishing=false,marketCardMounted=false,marketCardReady=false,selectedGemPack=null,selectedPurchaseItem=null,selectedInventoryItem=null,marketStockDay=null,marketView='daily',inventorySort='slot',dungeonSelectionIndex=0,dungeonSlideDirection=0,swipeStartX=null,currentPage='quests';
     if(state.pendingLoot&&!Number.isFinite(Number(state.pendingLoot.xp))){state.pendingLoot=null;state.lastRunReward=null;localStorage.setItem(KEY,JSON.stringify(state))}
@@ -942,13 +968,14 @@ html{background:#010611}body{color:var(--ink);background-color:#020817!important
         next.dailyPurchases=old.dailyPurchases||{};
         next.dailySuppliesUsed=old.dailySuppliesUsed||{};
         const validQuestIds=new Set(QUESTS.map(q=>q.id)),savedQuests=Array.isArray(old.activeQuests)?old.activeQuests.filter(id=>validQuestIds.has(id)):[];
-        next.activeQuests=savedQuests.length?savedQuests:QUESTS.map(q=>q.id);
+        next.activeQuests=Number(old.progressionVersion||1)<3?QUESTS.map(q=>q.id):(savedQuests.length?savedQuests:QUESTS.map(q=>q.id));
         next.questClaims=old.questClaims||[];
         next.levelClaims=old.levelClaims||[];
         next.levelRewardClaims=Array.isArray(old.levelRewardClaims)?old.levelRewardClaims:[];
         next.statPoints=Math.max(0,Math.floor(Number(old.statPoints||0)));
         next.stats=Object.assign({damage:0,health:0,luck:0,defense:0},old.stats||{});
-        if(Number(old.progressionVersion||1)<2){const legacyXp=Math.max(0,Number(old.xp||0)),legacyLevel=Math.floor(legacyXp/100)+1,legacyProgress=(legacyXp%100)/100;let migratedXp=0;for(let current=1;current<legacyLevel;current++)migratedXp+=100+(current-1)*40;migratedXp+=Math.round(legacyProgress*(100+(legacyLevel-1)*40));next.xp=migratedXp;next.progressionVersion=2}
+        if(Number(old.progressionVersion||1)<2){const legacyXp=Math.max(0,Number(old.xp||0)),legacyLevel=Math.floor(legacyXp/100)+1,legacyProgress=(legacyXp%100)/100;let migratedXp=0;for(let current=1;current<legacyLevel;current++)migratedXp+=100+(current-1)*40;migratedXp+=Math.round(legacyProgress*(100+(legacyLevel-1)*40));next.xp=migratedXp}
+        next.progressionVersion=3;
         next.lootHistory=old.lootHistory||[];
         next.crateLuckAllocations=old.crateLuckAllocations&&typeof old.crateLuckAllocations==='object'?old.crateLuckAllocations:{};
         next.clearedDungeons=Array.isArray(old.clearedDungeons)?old.clearedDungeons.filter(id=>DUNGEONS.some(d=>d.id===id)):DUNGEONS.slice(0,Math.min(DUNGEONS.length,Math.max(0,Number(old.wins||0)))).map(d=>d.id);
@@ -1049,7 +1076,7 @@ html{background:#010611}body{color:var(--ink);background-color:#020817!important
     $('#sidebarToggle').onclick=()=>{const app=document.querySelector('.app');if(innerWidth<=680)app.classList.toggle('menu-open');else{state.sidebarCollapsed=!state.sidebarCollapsed;save()}syncSidebar()};window.addEventListener('resize',syncSidebar);syncSidebar();
     const questPeriodKey=q=>q.frequency==='weekly'?weekKey():dateKey();
     const questClaimKey=q=>`${questPeriodKey(q)}:${q.id}`;
-    const questProgress=q=>q.type==='purchases'?Number(state.dailyPurchases[dateKey()]||0):q.type==='supplies'?Number(state.dailySuppliesUsed[dateKey()]||0):q.type==='weeklyReps'?weeklyTotal(state.daily):q.type==='weeklyWins'?weeklyTotal(state.dailyWins):0;
+    const questProgress=q=>q.type==='dailyReps'?todayReps():q.type==='dailyWins'?Number(state.dailyWins[dateKey()]||0):q.type==='purchases'?Number(state.dailyPurchases[dateKey()]||0):q.type==='supplies'?Number(state.dailySuppliesUsed[dateKey()]||0):q.type==='weeklyReps'?weeklyTotal(state.daily):q.type==='weeklyWins'?weeklyTotal(state.dailyWins):q.type==='weeklyPurchases'?weeklyTotal(state.dailyPurchases):q.type==='weeklySupplies'?weeklyTotal(state.dailySuppliesUsed):0;
     function grantLevelRewards(){let granted=false;LEVEL_REWARDS.forEach(r=>{if(level()<r.level||state.levelRewardClaims.includes(r.level))return;state.levelRewardClaims.push(r.level);state.gold+=r.gold;state.statPoints+=r.statPoints;addActivity(`Level ${r.level} reward`,r.label);granted=true});return granted}
     function checkQuests(){if($('#quests')?.classList.contains('active'))renderQuests()}
     function claimQuest(id){const q=QUESTS.find(item=>item.id===id),key=q?questClaimKey(q):'';if(!q||!state.activeQuests.includes(id))return toast('Track this quest before claiming it');if(state.questClaims.includes(key))return;if(questProgress(q)<q.target)return toast('Finish the quest before claiming it');state.questClaims.push(key);state.gold+=q.gold;state.xp+=q.xp;addActivity(`Quest claimed · ${q.name}`,`+${q.gold} gold · +${q.xp} XP`);grantLevelRewards();save();renderQuests();renderStatPoints();toast(`${q.name} claimed — ${q.gold} gold`) }
