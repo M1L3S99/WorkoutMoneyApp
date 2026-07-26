@@ -1,18 +1,18 @@
 # Ironbound
 
-Ironbound is a mobile-first push-up RPG. Camera-based pose tracking turns each complete push-up into an attack, while verified training builds XP, strength and dungeon progress.
+Ironbound is a mobile-first step RPG. On-device motion detection turns walking steps into equipment-powered attacks while training builds XP, strength and dungeon progress.
 
 ## Game loop
 
-- Start an AI push-up session from the medieval Home keep or while fighting a dungeon guardian. The central keep menu links directly to every major area of the app.
-- MediaPipe Pose Landmarker follows shoulder, elbow, wrist, hip and ankle points in the browser. A rep requires good depth, full extension and a straight body line.
-- Every push-up earns XP. Dungeon reps also deal damage based on the equipped weapon and invested damage points.
+- Choose an enemy in a dungeon and see the estimated number of steps required with the current loadout.
+- Enable motion access on a phone to count steps while the app is open; a manual-step fallback is available for unsupported browsers.
+- Every step earns XP. Dungeon steps also deal damage based on the equipped weapon, equipped buffs and invested damage points.
 - Swipe through E-, C-, A- and S-tier dungeons. Harder locations unlock in order after the dungeon before them is cleared. Locked dungeons can still be inspected.
-- Enemy attacks stay dormant until the first push-up or the end of the five-second camera grace period. Combat shows the enemy at the top, the hero at the bottom, and a live attack timer and hit chance.
+- Enemy attacks stay dormant until the first step or the end of the five-second grace period. Combat shows the enemy at the top, the hero at the bottom, and a live attack timer and hit chance.
 - Clearing a dungeon awards a server-verified coin payout and a fixed experience reward.
 - Buy equipment in the Market, then equip weapons, armour and charms in Inventory.
 - Choose daily quests from the Home quest board for gold and XP.
-- Manual reps remain available on unsupported devices, but are identified as practice reps in combat.
+- Manual steps remain available on unsupported devices.
 
 ## Levels and stats
 
@@ -38,7 +38,7 @@ Uploaded artwork is processed locally in the browser and is not sent to Firebase
 
 ## Run locally
 
-Serve the repository with a static web server and open it through `localhost` or HTTPS. Camera tracking requires a secure browser context. There is no build step.
+Serve the repository with a static web server and open it through `localhost` or HTTPS. iOS motion permission must be requested from the in-app button. There is no build step.
 
 ## Deployment
 
