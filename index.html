@@ -132,7 +132,7 @@ body{height:100%;min-height:0;overflow:hidden;display:grid;place-items:center;ba
 .app{font-size:12px}.main{padding-bottom:calc(68px + env(safe-area-inset-bottom))}
 .sidebar,.app.sidebar-collapsed .sidebar{height:calc(68px + env(safe-area-inset-bottom));padding:5px 6px max(5px,env(safe-area-inset-bottom));border-radius:18px 18px 0 0}
 .nav-btn,.app.sidebar-collapsed .nav-btn{min-height:56px;padding:4px 1px;gap:1px;border-radius:13px!important}.nav-icon{font-size:20px}.nav-btn.active .nav-label{bottom:50px;padding:5px 8px}
-.topbar{height:48px;padding:0 9px;border-radius:0 0 14px 14px}.stats{width:100%;display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,.8fr) minmax(0,.65fr);gap:4px}.stat-pill{min-width:0;min-height:30px;padding:0 6px;justify-content:center;overflow:hidden;font-size:9px}
+.topbar{height:48px;padding:0 9px;border-radius:0 0 14px 14px}.stats{width:100%;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.65fr) minmax(0,.58fr) minmax(0,.85fr);gap:4px}.stat-pill{min-width:0;min-height:30px;padding:0 6px;justify-content:center;overflow:hidden;font-size:9px}
 .content{height:calc(100% - 48px);padding:10px 10px 18px}
 .screen,.scene-panel,.card,.grid,.dungeon-layout,.hall-grid,.inventory-layout,.profile-grid,.market-currency-grid,.payment-card,.oath-layout,.studio-layout,.market-section,.market-stall{min-width:0;max-width:100%}
 .card{padding:12px}.card-head,.section-head{gap:8px;margin-bottom:12px}.section-head{margin-top:22px}.card-head h2,.section-head h2,.ornate-heading h2{font-size:13px;line-height:1.5;overflow-wrap:anywhere}.screen p,.screen small,.sub{font-size:10px;line-height:1.55}.scene-kicker,.eyebrow{font-size:9px;line-height:1.5}
@@ -890,6 +890,8 @@ html{background:#010611}body{color:var(--ink);background-color:#020817!important
 .pedometer-panel{position:absolute;z-index:18;left:12px;bottom:12px;width:min(240px,calc(100% - 24px));display:grid;grid-template-columns:34px minmax(0,1fr);align-items:center;gap:8px;padding:10px;border:1px solid rgba(58,156,244,.58);border-radius:14px;background:linear-gradient(145deg,rgba(7,35,69,.97),rgba(3,17,36,.98));box-shadow:0 10px 28px rgba(0,0,0,.35)}
 .pedometer-panel .pedometer-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:#0a4f87;color:#8bd5ff;font-size:15px}
 .pedometer-panel span b,.pedometer-panel span small{display:block}.pedometer-panel span b{font-size:8px;line-height:1.35;color:#fff}.pedometer-panel span small{margin-top:4px;font-size:6px;line-height:1.45;color:#8db3d7}.pedometer-panel .btn{grid-column:1/-1;min-height:34px;padding:8px 10px;font-size:7px}
+.pedometer-total{grid-column:1/-1!important;display:flex!important;align-items:center;justify-content:space-between;margin:1px 0 -1px!important;padding-top:4px;border-top:1px solid rgba(74,161,240,.2);color:#8db3d7!important}.pedometer-total b{font-size:8px!important;color:#fff0ad!important}
+.steps-pill{border-color:rgba(70,174,247,.5)!important;background:linear-gradient(155deg,#0b3158,#071a34)!important}.steps-pill b{color:#8ed8ff!important}
 .step-tracker.battle-mode .pedometer-panel{left:8px;bottom:78px;width:124px;padding:7px;grid-template-columns:26px minmax(0,1fr);gap:6px;border-radius:10px}
 .step-tracker.battle-mode .pedometer-panel .pedometer-icon{width:26px;height:26px;border-radius:7px;font-size:11px}
 .step-tracker.battle-mode .pedometer-panel span b{font-size:5.5px}.step-tracker.battle-mode .pedometer-panel span small{font-size:4.5px;line-height:1.35}
@@ -897,7 +899,7 @@ html{background:#010611}body{color:var(--ink);background-color:#020817!important
 .enemy-roster-entry.selectable{transition:border-color .16s ease,transform .16s ease}.enemy-roster-entry.selectable.selected{border-color:#66c5ff;box-shadow:inset 0 0 18px rgba(34,137,226,.18)}.enemy-select-action{width:100%;min-height:31px;margin-top:7px;padding:7px;font-size:6px}
 .step-tracker .privacy-note{max-width:310px}
 @media(max-width:680px){
-  .step-tracker.battle-mode .pedometer-panel{left:8px;bottom:8px;width:132px;padding:7px;grid-template-columns:26px minmax(0,1fr);gap:6px;border-radius:10px}
+  .step-tracker.battle-mode .pedometer-panel{left:8px;bottom:78px;width:124px;padding:7px;grid-template-columns:26px minmax(0,1fr);gap:6px;border-radius:10px}
   .step-tracker.battle-mode .pedometer-panel .pedometer-icon{width:26px;height:26px;border-radius:7px;font-size:11px}
   .step-tracker.battle-mode .pedometer-panel span b{font-size:5.5px}.step-tracker.battle-mode .pedometer-panel span small{font-size:4.5px;line-height:1.35}
   .step-tracker.battle-mode .pedometer-panel .btn{min-height:27px;padding:5px;font-size:5px}
@@ -920,7 +922,7 @@ html{background:#010611}body{color:var(--ink);background-color:#020817!important
       </nav>
     </aside>
     <main class="main">
-      <header class="topbar"><div class="stats"><div class="stat-pill" aria-label="Gold">◈ <b id="topGold">0</b></div><div class="stat-pill" aria-label="Gems">♦ <b id="topGems">0</b></div><div class="stat-pill">LV <b id="topLevel">1</b></div></div></header>
+      <header class="topbar"><div class="stats"><div class="stat-pill" aria-label="Gold">◈ <b id="topGold">0</b></div><div class="stat-pill" aria-label="Gems">♦ <b id="topGems">0</b></div><div class="stat-pill">LV <b id="topLevel">1</b></div><div class="stat-pill steps-pill" aria-label="Steps today">STP <b id="topSteps">0</b></div></div></header>
       <div class="content">
         <section class="screen active scene-panel" id="quests"><div class="card hall-level quest-summary"><div class="level-copy"><div class="level-xp-line"><span class="level-inline">LV <b id="hallLevel">1</b></span><h2 id="hallXp">0 / 100 XP</h2></div><div class="progress"><i id="hallXpBar"></i></div><p id="hallStats">0 steps · 0 enemies defeated</p></div></div><header class="quest-board-head"><div><span>Quest board</span><h1>Choose your challenge</h1></div><strong id="questSelectionCount">0 / 2 selected</strong></header><p class="quest-board-note">Pick any two goals. Harder challenges give better rewards.</p><div class="quest-group-panel daily-quest-panel"><div class="quest-section-head"><h2>Daily</h2><i></i><span>Resets at midnight</span></div><div class="quest-grid" id="dailyQuestGrid"></div></div><div class="quest-group-panel weekly-quest-panel"><div class="quest-section-head"><h2>Weekly</h2><i></i><span>Resets on Monday</span></div><div class="quest-grid" id="weeklyQuestGrid"></div></div></section>
 
@@ -977,6 +979,7 @@ html{background:#010611}body{color:var(--ink);background-color:#020817!important
       <div class="pedometer-panel" id="pedometerPanel">
         <span class="pedometer-icon" aria-hidden="true">◆</span>
         <span><b id="pedometerState">Step tracking off</b><small id="pedometerDetail">Enable motion access, then walk with your phone.</small></span>
+        <small class="pedometer-total"><span>Today</span><b id="pedometerToday">0 steps</b></small>
         <button class="btn" type="button" id="enablePedometer">Enable step tracking</button>
       </div>
       <video id="camera" playsinline muted autoplay data-layout-key="camera" data-layout-drag="camera"></video><canvas id="poseCanvas" data-layout-key="camera"></canvas>
@@ -1015,11 +1018,11 @@ html{background:#010611}body{color:var(--ink);background-color:#020817!important
     const WEAPONS=[
       {id:'wraps',slot:'weapon',name:'Worn Wraps',art:'🥊',image:'assets/items/weapons/worn-wraps.png',damage:5,pushups:1,hits:1,price:0,rarity:'Common',tier:'E',desc:'One quick strike per step.'},
       {id:'sword',slot:'weapon',name:'Iron Shortsword',art:'🗡️',image:'assets/items/weapons/iron-shortsword.png',damage:9,defense:1,pushups:1,hits:1,price:120,rarity:'Common',tier:'E',desc:'A balanced single-hit blade with +1 defence.'},
-      {id:'axe',slot:'weapon',name:'Marauder Axe',art:'🪓',image:'assets/items/weapons/marauder-axe.png',damage:20,hp:10,pushups:2,hits:1,price:340,rarity:'Uncommon',tier:'D',desc:'Charge one heavy attack with two steps. +10 health.'},
-      {id:'hammer',slot:'weapon',name:'Vanguard Hammer',art:'🔨',image:'assets/items/weapons/vanguard-hammer.png',damage:34,hp:20,defense:1,pushups:3,hits:1,price:800,rarity:'Rare',tier:'C',desc:'Three steps charge one crushing blow. +20 health and +1 defence.'},
-      {id:'runeblade',slot:'weapon',name:'Runed Greatsword',art:'⚔️',image:'assets/items/weapons/runed-greatsword.png',damage:24,hp:15,pushups:2,hits:2,price:1200,rarity:'Rare',tier:'B',desc:'Two steps unleash a double strike. +15 health.'},
+      {id:'axe',slot:'weapon',name:'Marauder Axe',art:'🪓',image:'assets/items/weapons/marauder-axe.png',damage:20,hp:10,pushups:2,hits:1,price:340,rarity:'Uncommon',tier:'D',desc:'Heavy damage is applied on every step. +10 health.'},
+      {id:'hammer',slot:'weapon',name:'Vanguard Hammer',art:'🔨',image:'assets/items/weapons/vanguard-hammer.png',damage:34,hp:20,defense:1,pushups:3,hits:1,price:800,rarity:'Rare',tier:'C',desc:'Crushing damage is applied on every step. +20 health and +1 defence.'},
+      {id:'runeblade',slot:'weapon',name:'Runed Greatsword',art:'⚔️',image:'assets/items/weapons/runed-greatsword.png',damage:24,hp:15,pushups:2,hits:2,price:1200,rarity:'Rare',tier:'B',desc:'Double-strike damage is applied on every step. +15 health.'},
       {id:'ember',slot:'weapon',name:'Ember Twinblade',art:'⚔️',image:'assets/items/weapons/ember-twinblade.png',damage:17,luck:2,pushups:1,hits:2,price:1650,rarity:'Epic',tier:'A',desc:'Strikes twice for every step. +2 luck.'},
-      {id:'mythic',slot:'weapon',name:'Titanbreaker',art:'🔱',image:'assets/items/weapons/titanbreaker.png',damage:24,hp:35,defense:2,pushups:2,hits:3,price:3400,rarity:'Mythic',tier:'S',desc:'Two steps unleash three hits. +35 health and +2 defence.'},
+      {id:'mythic',slot:'weapon',name:'Titanbreaker',art:'🔱',image:'assets/items/weapons/titanbreaker.png',damage:24,hp:35,defense:2,pushups:2,hits:3,price:3400,rarity:'Mythic',tier:'S',desc:'Triple-hit damage is applied on every step. +35 health and +2 defence.'},
       {id:'rustdagger',slot:'weapon',name:'Rust Dagger',art:'🔪',image:'assets/items/weapons/rust-dagger.png',damage:7,luck:1,pushups:1,hits:1,price:150,rarity:'Common',tier:'E',desc:'A quick strike with +1 luck.'},
       {id:'guardspear',slot:'weapon',name:'Guard Spear',art:'🔱',image:'assets/items/weapons/guard-spear.png',damage:14,defense:1,paralysis:.04,pushups:2,hits:1,price:390,rarity:'Uncommon',tier:'D',desc:'A guarded thrust with a rare 4% paralysis chance. Its damage is reduced to compensate.'},
       {id:'frostfalchion',slot:'weapon',name:'Frost Falchion',art:'🗡️',image:'assets/items/weapons/frost-falchion.png',damage:13,hp:8,lifesteal:.06,pushups:1,hits:1,price:720,rarity:'Rare',tier:'C',desc:'A lighter blade with a 6% chance to steal health from an attack.'},
@@ -1225,7 +1228,7 @@ html{background:#010611}body{color:var(--ink);background-color:#020817!important
     function escapeHtml(v){const d=document.createElement('div');d.textContent=String(v??'');return d.innerHTML}
     function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),3000)}
     function addActivity(text,reward=''){state.activity.unshift({text,reward,at:new Date().toISOString()});state.activity=state.activity.slice(0,8)}
-    function renderTop(){$('#topGold').textContent=state.gold.toLocaleString();$('#topGems').textContent=state.gems.toLocaleString();$('#topLevel').textContent=level()}
+    function renderTop(){const dailySteps=todaySteps(),compact=dailySteps<10000?dailySteps.toLocaleString():new Intl.NumberFormat('en',{notation:'compact',maximumFractionDigits:1}).format(dailySteps);$('#topGold').textContent=state.gold.toLocaleString();$('#topGems').textContent=state.gems.toLocaleString();$('#topLevel').textContent=level();$('#topSteps').textContent=compact;const combatTotal=$('#pedometerToday');if(combatTotal)combatTotal.textContent=`${dailySteps.toLocaleString()} steps`}
     function nav(id){if(dungeonLayoutEditing&&id!=='dungeon'&&!CHATGPT_DUNGEON_LAYOUT_PREVIEW)finishDungeonLayoutEdit(false);const oldIndex=PAGE_ORDER.indexOf(currentPage),newIndex=PAGE_ORDER.indexOf(id),target=$(`#${id}`);$$('.screen').forEach(x=>{x.classList.remove('slide-next','slide-prev');x.classList.toggle('active',x.id===id)});if(target&&id!==currentPage){void target.offsetWidth;target.classList.add(newIndex>=oldIndex?'slide-next':'slide-prev')}currentPage=id;$$('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.screen===id));if(id==='quests')renderQuests();if(id==='stats')renderStatPoints();if(id==='dungeon')renderDungeon();if(id==='market')renderMarket();if(id==='inventory')renderInventory();if(id==='studio')renderStudio();if(id==='profile')renderProfile();if(innerWidth<=680){document.querySelector('.app').classList.remove('menu-open');syncSidebar()}window.scrollTo({top:0,behavior:innerWidth<=760?'auto':'smooth'})}
     $$('.nav-btn').forEach(b=>b.onclick=()=>nav(b.dataset.screen));$$('[data-nav]').forEach(b=>b.onclick=()=>nav(b.dataset.nav));
     const PAGE_ORDER=['quests','stats','dungeon','market','inventory','profile'];let pageSwipe=null;const swipeSurface=$('.content');swipeSurface.onpointerdown=e=>{if(innerWidth>760||e.target.closest('button,input,select,textarea,a,canvas,.dungeon-carousel,.item-card,[data-dungeon-layout-drag]'))return;pageSwipe={x:e.clientX,y:e.clientY,id:e.pointerId}};swipeSurface.onpointerup=e=>{if(!pageSwipe||pageSwipe.id!==e.pointerId)return;const dx=e.clientX-pageSwipe.x,dy=e.clientY-pageSwipe.y;pageSwipe=null;if(Math.abs(dx)<55||Math.abs(dx)<Math.abs(dy)*1.25)return;const current=$('.screen.active')?.id,index=PAGE_ORDER.indexOf(current),next=clamp(index+(dx<0?1:-1),0,PAGE_ORDER.length-1);if(next!==index)nav(PAGE_ORDER[next])};swipeSurface.onpointercancel=()=>pageSwipe=null;
@@ -1243,7 +1246,7 @@ html{background:#010611}body{color:var(--ink);background-color:#020817!important
       const selectionFull=state.activeQuests.length>=QUEST_SLOT_LIMIT;
       $(gridSelector).innerHTML=quests.map(q=>{const progress=Math.min(q.target,questProgress(q)),selected=state.activeQuests.includes(q.id),claimed=state.questClaims.includes(questClaimKey(q)),ready=selected&&progress>=q.target&&!claimed,locked=selectionFull&&!selected,action=claimed?`<button class="tiny-btn" disabled>Claimed</button>`:ready?`<button class="tiny-btn claim-ready" data-claim-quest="${q.id}">Claim reward</button>`:`<button class="tiny-btn" data-quest-toggle="${q.id}" ${locked?'disabled':''}>${selected?'Selected':locked?'2 selected':'Select'}</button>`;return `<article class="quest-card ${selected?'selected':''} ${claimed?'complete':''} ${ready?'ready':''} ${locked?'limit-reached':''}" data-frequency="${q.frequency}"><span class="quest-target"><b>${q.target.toLocaleString()}</b><small>steps</small></span><span class="quest-copy"><b>${escapeHtml(q.name)}</b><small class="quest-description">${escapeHtml(q.desc)}</small><small class="quest-progress">${progress.toLocaleString()} / ${q.target.toLocaleString()}</small><span class="progress"><i style="width:${progress/q.target*100}%"></i></span></span><span class="quest-reward"><b>◈ ${q.gold}</b><small>+${q.xp} XP</small></span><span class="quest-actions">${action}</span></article>`}).join('')
     }
-    function renderQuests(){const heroLevel=level(),xp=currentLevelXp(),needed=xpToAdvance(heroLevel);$('#hallLevel').textContent=heroLevel;$('#hallXp').textContent=`${xp.toLocaleString()} / ${needed.toLocaleString()} XP`;$('#hallXpBar').style.width=`${clamp(xp/needed*100,0,100)}%`;$('#hallStats').textContent=`${state.totalReps.toLocaleString()} steps · ${state.wins} enemies defeated`;$('#questSelectionCount').textContent=`${state.activeQuests.length} / ${QUEST_SLOT_LIMIT} selected`;renderQuestGroup(DAILY_QUESTS,'#dailyQuestGrid');renderQuestGroup(WEEKLY_QUESTS,'#weeklyQuestGrid');$$('[data-quest-toggle]').forEach(button=>button.onclick=()=>{const id=button.dataset.questToggle;if(state.activeQuests.includes(id))state.activeQuests=state.activeQuests.filter(x=>x!==id);else if(state.activeQuests.length>=QUEST_SLOT_LIMIT)return toast(`Choose up to ${QUEST_SLOT_LIMIT} quests`);else state.activeQuests.push(id);save();renderQuests()});$$('[data-claim-quest]').forEach(button=>button.onclick=()=>claimQuest(button.dataset.claimQuest))}
+    function renderQuests(){const heroLevel=level(),xp=currentLevelXp(),needed=xpToAdvance(heroLevel);$('#hallLevel').textContent=heroLevel;$('#hallXp').textContent=`${xp.toLocaleString()} / ${needed.toLocaleString()} XP`;$('#hallXpBar').style.width=`${clamp(xp/needed*100,0,100)}%`;$('#hallStats').textContent=`${todaySteps().toLocaleString()} steps today · ${state.totalReps.toLocaleString()} lifetime`;$('#questSelectionCount').textContent=`${state.activeQuests.length} / ${QUEST_SLOT_LIMIT} selected`;renderQuestGroup(DAILY_QUESTS,'#dailyQuestGrid');renderQuestGroup(WEEKLY_QUESTS,'#weeklyQuestGrid');$$('[data-quest-toggle]').forEach(button=>button.onclick=()=>{const id=button.dataset.questToggle;if(state.activeQuests.includes(id))state.activeQuests=state.activeQuests.filter(x=>x!==id);else if(state.activeQuests.length>=QUEST_SLOT_LIMIT)return toast(`Choose up to ${QUEST_SLOT_LIMIT} quests`);else state.activeQuests.push(id);save();renderQuests()});$$('[data-claim-quest]').forEach(button=>button.onclick=()=>claimQuest(button.dataset.claimQuest))}
     function selectDungeon(nextIndex){const normalized=(nextIndex+DUNGEONS.length)%DUNGEONS.length;if(normalized===dungeonSelectionIndex)return;const forwardDistance=(normalized-dungeonSelectionIndex+DUNGEONS.length)%DUNGEONS.length;dungeonSlideDirection=forwardDistance<=DUNGEONS.length/2?1:-1;dungeonSelectionIndex=normalized;state.selectedDungeonId=DUNGEONS[dungeonSelectionIndex].id;save();renderDungeon()}
     const dungeonDropTable=tier=>`<div class="dungeon-drop-heading">Rank odds · ${totalLuck()} Luck</div><div class="dungeon-drop-table">${dropTierDistribution(tier).map(drop=>`<span class="tier-colour tier-${drop.tier.toLowerCase()}"><b>${drop.tier}</b><small>${Math.round(drop.chance*100)}%</small></span>`).join('')}</div><div class="dungeon-drop-heading rarity-heading">Item rarity odds</div><div class="dungeon-rarity-table">${dungeonRarityDistribution(tier).map(drop=>`<span class="rarity-${drop.rarity.toLowerCase()}"><b>${drop.rarity}</b><small>${Math.round(drop.chance*100)}%</small></span>`).join('')}</div>`;
     function renderDungeon(){
@@ -1371,12 +1374,10 @@ html{background:#010611}body{color:var(--ink);background-color:#020817!important
     function attack(manual=false){
       if(!state.run?.active||state.run.betweenCombats||currentDungeonRoom().type==='event'||dungeonFinishing||!combatCameraReady)return;
       if(!state.run.combatStarted)startCombatTimer('step');
-      const run=state.run,e=enemy(),activeWeapon=weapon(),needed=stepsPerAttack();
+      const run=state.run,e=enemy(),activeWeapon=weapon();
       run.reps++;
-      run.attackProgress=Number(run.attackProgress||0)+1;
-      if(run.attackProgress<needed){$('#formCue').textContent=`Attack charged ${run.attackProgress} / ${needed}`;$('#formDetail').textContent=`${activeWeapon.name} needs ${needed-run.attackProgress} more step${needed-run.attackProgress===1?'':'s'}.`;saveSoon();renderBattleHud();return}
       run.attackProgress=0;
-      const multiattack=Number(activeWeapon.multiattack||0)>0&&Math.random()<Number(activeWeapon.multiattack),hits=attackHits()+(multiattack?1:0),hit=Math.round(damagePerHit()*hits*STEP_DAMAGE_MULTIPLIER*100)/100,xp=manual?.05:.1;
+      const multiattack=Number(activeWeapon.multiattack||0)>0&&Math.random()<Number(activeWeapon.multiattack),hit=Math.round((damagePerStep()+(multiattack?damagePerHit()*STEP_DAMAGE_MULTIPLIER:0))*100)/100,xp=manual?.05:.1;
       run.enemyHp=Math.max(0,run.enemyHp-hit);
       const lifesteal=Number(activeWeapon.lifesteal||0)>0&&Math.random()<Number(activeWeapon.lifesteal),healed=lifesteal?Math.min(Math.max(0,run.maxHp-run.playerHp),Math.max(1,Math.round(hit*.25))):0;
       if(healed)run.playerHp+=healed;
@@ -1385,7 +1386,7 @@ html{background:#010611}body{color:var(--ink);background-color:#020817!important
       showCombatFloat(hit,xp);
       const sprite=$('#hudEnemyArt');sprite.classList.remove('hit');void sprite.offsetWidth;sprite.classList.add('hit');setTimeout(()=>sprite.classList.remove('hit'),340);
       const effects=[multiattack?'MULTIATTACK':null,healed?`LIFESTEAL +${healed} HP`:null,paralysis?'PARALYSED 5s':null].filter(Boolean);
-      $('#formCue').textContent=`${hits} hit${hits===1?'':'s'} · ${prettyNumber(hit)} damage · +${xp} XP`;
+      $('#formCue').textContent=`Step hit · ${prettyNumber(hit)} damage · +${xp} XP`;
       $('#formDetail').textContent=effects.length?effects.join(' · '):`${e.name}: ${prettyNumber(run.enemyHp)} health.`;
       if(run.enemyHp<=0){
         pauseCombatTimer(false);
@@ -1410,7 +1411,7 @@ html{background:#010611}body{color:var(--ink);background-color:#020817!important
     function itemStatEntries(item,inventory=false){
       if(item.slot==='healing')return[{label:'Fixed recovery',value:`${item.heal} HP`},{label:'Maximum recovery',value:`${Math.round(item.healPercent*100)}% HP`}];
       const stats=[];
-      if(item.slot==='weapon'){stats.push({label:'Damage / step',value:prettyNumber(itemDamagePerStep(item)*STEP_DAMAGE_MULTIPLIER)},{label:'Hits / attack',value:String(item.hits)},{label:'Steps / attack',value:String(item.pushups)});if(inventory)stats.push({label:'Forge level',value:`+${weaponUpgradeLevel(item)}`})}
+      if(item.slot==='weapon'){stats.push({label:'Damage / step',value:prettyNumber(itemDamagePerStep(item)*STEP_DAMAGE_MULTIPLIER)});if(inventory)stats.push({label:'Forge level',value:`+${weaponUpgradeLevel(item)}`})}
       else if(effectiveItemStat(item,'damage'))stats.push({label:'Damage',value:`+${effectiveItemStat(item,'damage')}`});
       if(effectiveItemStat(item,'hp'))stats.push({label:'Maximum HP',value:`+${effectiveItemStat(item,'hp')}`});
       if(effectiveItemStat(item,'defense'))stats.push({label:'Defence',value:`+${effectiveItemStat(item,'defense')}`});
@@ -1480,7 +1481,7 @@ html{background:#010611}body{color:var(--ink);background-color:#020817!important
       const before=todaySteps();sessionReps++;state.totalReps++;state.xp+=manual?.05:.1;state.daily[dateKey()]=before+1;
       if(before<state.dailyGoal&&before+1>=state.dailyGoal&&window.WMB?.user&&window.WMB?.logWorkout)window.WMB.logWorkout({dateKey:dateKey(),reps:before+1,items:['daily-steps']}).catch(()=>{});
       if(trackerMode==='dungeon')attack(manual);
-      grantLevelRewards();saveSoon();$('#sessionReps').textContent=sessionReps;$('#pedometerDetail').textContent=`${sessionReps.toLocaleString()} ${sessionReps===1?'step':'steps'} detected this session`;checkQuests()
+      grantLevelRewards();saveSoon();renderTop();$('#sessionReps').textContent=sessionReps;$('#pedometerDetail').textContent=`${sessionReps.toLocaleString()} ${sessionReps===1?'step':'steps'} detected this session`;checkQuests()
     }
     const addRep=addStep;
     function markStepTrackingReady(label='Step tracking active',sensor=true){
