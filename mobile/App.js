@@ -18,6 +18,7 @@ import { WebView } from 'react-native-webview';
 
 const GAME_URL = 'https://m1l3s99.github.io/WorkoutMoneyApp/';
 const STEP_STORAGE_KEY = 'ironbound-native-daily-steps-v1';
+const PERMISSION_ASKED_KEY = 'ironbound-native-pedometer-permission-asked-v1';
 const colours = {
   bg: '#020b19',
   panel: '#071a34',
@@ -160,7 +161,13 @@ export default function App() {
           await startTracking();
         } else {
           setPermissionStatus(permission.status || 'undetermined');
-          setPermissionCard(true);
+          const alreadyAsked = (await AsyncStorage.getItem(PERMISSION_ASKED_KEY)) === '1';
+          if (!alreadyAsked && permission.canAskAgain !== false) {
+            await AsyncStorage.setItem(PERMISSION_ASKED_KEY, '1');
+            await requestPedometer();
+          } else {
+            setPermissionCard(true);
+          }
         }
       } catch {
         if (mounted) {
@@ -177,7 +184,7 @@ export default function App() {
       appStateSubscription.remove();
       stopTracking();
     };
-  }, [startTracking, stopTracking]);
+  }, [requestPedometer, startTracking, stopTracking]);
 
   const handleGameMessage = useCallback(
     ({ nativeEvent }) => {
