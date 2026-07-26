@@ -1,19 +1,25 @@
 {
-  "name": "workoutmoneyapp-mobile",
-  "version": "1.0.0",
+  "name": "ironbound-mobile",
+  "version": "2.0.0",
+  "private": true,
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios"
+    "android": "expo run:android",
+    "android:release": "expo run:android --variant release",
+    "prebuild": "expo prebuild --platform android",
+    "doctor": "expo-doctor"
   },
   "dependencies": {
-    "expo": "~51.0.0",
-    "expo-camera": "~15.0.0",
-    "expo-status-bar": "~1.12.0",
-    "react": "18.2.0",
-    "react-native": "0.74.5",
-    "@react-native-async-storage/async-storage": "1.23.1"
+    "@react-native-async-storage/async-storage": "~2.2.0",
+    "expo": "~57.0.0",
+    "expo-sensors": "~57.0.2",
+    "react": "19.2.3",
+    "react-native": "0.86.0",
+    "react-native-webview": "13.16.1"
   },
-  "private": true
+  "devDependencies": {
+    "@babel/core": "^7.28.0",
+    "babel-preset-expo": "^57.0.4"
+  }
 }
