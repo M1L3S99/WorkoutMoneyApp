@@ -1073,7 +1073,7 @@ html{background:#010611}body{color:var(--ink);background-color:#020817!important
     const GEM_PACKS=[{id:'pouch',name:'Gem Pouch',gems:500,price:'$4.99',art:'♦'},{id:'cache',name:'Adventurer Cache',gems:1100,price:'$9.99',art:'💎',featured:true},{id:'vault',name:'Royal Vault',gems:3000,price:'$24.99',art:'🔷'}];
     const GOLD_EXCHANGES=[{id:'handful',gems:100,gold:1000},{id:'coffer',gems:250,gold:2800},{id:'treasury',gems:500,gold:6000}];
     const ENEMY_GOLD_BY_TIER={E:[3,7],D:[5,9],C:[7,12],B:[9,15],A:[12,20],S:[18,30]};
-    const fresh=()=>({gold:0,gems:0,xp:0,progressionVersion:6,totalReps:0,dailyGoal:5000,daily:{},dailyWins:{},dailyPurchases:{},dailySuppliesUsed:{},activeQuests:[],questClaims:[],levelClaims:[],levelRewardClaims:[],statPoints:0,stats:{damage:0,health:0,luck:0,defense:0},owned:['wraps'],equipped:'wraps',ownedItems:['wraps','tunic'],equippedItems:{weapon:'wraps',armour:'tunic',helmet:null,cape:null,charm:null},weaponUpgrades:{},armourUpgrades:{},consumables:{},wins:0,clearedDungeons:[],run:null,pendingLoot:null,lastRunReward:null,lootHistory:[],crateLuckAllocations:{},selectedDungeonId:'warrens',selectedEnemies:{},activity:[],contract:null,serverGrantApplied:0,goldGrantApplied:0,adminMode:false,sidebarCollapsed:false});
+    const fresh=()=>({gold:0,gems:0,xp:0,progressionVersion:6,totalReps:0,dailyGoal:5000,daily:{},nativeDaily:{},dailyWins:{},dailyPurchases:{},dailySuppliesUsed:{},activeQuests:[],questClaims:[],levelClaims:[],levelRewardClaims:[],statPoints:0,stats:{damage:0,health:0,luck:0,defense:0},owned:['wraps'],equipped:'wraps',ownedItems:['wraps','tunic'],equippedItems:{weapon:'wraps',armour:'tunic',helmet:null,cape:null,charm:null},weaponUpgrades:{},armourUpgrades:{},consumables:{},wins:0,clearedDungeons:[],run:null,pendingLoot:null,lastRunReward:null,lootHistory:[],crateLuckAllocations:{},selectedDungeonId:'warrens',selectedEnemies:{},activity:[],contract:null,serverGrantApplied:0,goldGrantApplied:0,adminMode:false,sidebarCollapsed:false});
     const POSE_VIEW_KEY='ironboundPoseViewV1',PEDOMETER_PERMISSION_KEY='ironboundPedometerEnabledV1';
     let state=load(),trackerMode='training',poseView=localStorage.getItem(POSE_VIEW_KEY)==='front'?'front':'side',sessionReps=0,stream=null,landmarker=null,tracking=false,combatCameraReady=false,cameraRequest=0,lastVideoTime=-1,lastDetection=0,posePhase='unknown',poseCandidate='unknown',poseCandidateSince=0,poseDownAt=0,lastRepAt=0,lastGoodPoseAt=0,smoothedElbow=null,smoothedLeftElbow=null,smoothedRightElbow=null,smoothedBodyLine=null,resetArmed=false,toastTimer,stateSaveTimer=null,combatTimer=null,combatGraceTimer=null,crateAnimationTimer=null,dungeonFinishing=false,marketCardMounted=false,marketCardReady=false,selectedGemPack=null,selectedPurchaseItem=null,selectedInventoryItem=null,marketStockDay=null,marketView='daily',inventorySort='slot',dungeonSelectionIndex=0,dungeonSlideDirection=0,swipeStartX=null,currentPage='quests',motionTracking=false,motionBaseline=null,motionNoise=.08,motionArmed=true,lastMotionStep=0,motionEventCount=0,motionHealthTimer=null;
     if(state.pendingLoot&&!Number.isFinite(Number(state.pendingLoot.xp))){state.pendingLoot=null;state.lastRunReward=null;localStorage.setItem(KEY,JSON.stringify(state))}
@@ -1097,6 +1097,7 @@ html{background:#010611}body{color:var(--ink);background-color:#020817!important
         next.consumables=Object.fromEntries(Object.entries(old.consumables||{}).filter(([id])=>!REMOVED_POTION_IDS.includes(id)));
         delete next.potionCharges;delete next.storedPotionCharges;
         next.dailyWins=old.dailyWins||{};
+        next.nativeDaily=old.nativeDaily&&typeof old.nativeDaily==='object'?old.nativeDaily:{};
         next.dailyPurchases=old.dailyPurchases||{};
         next.dailySuppliesUsed=old.dailySuppliesUsed||{};
         const validQuestIds=new Set(QUESTS.map(q=>q.id)),savedQuests=Array.isArray(old.activeQuests)?old.activeQuests.filter(id=>validQuestIds.has(id)):[];
@@ -1491,6 +1492,24 @@ html{background:#010611}body{color:var(--ink);background-color:#020817!important
     function resetMotionDetector(){
       motionBaseline=null;motionNoise=.08;motionArmed=true;lastMotionStep=0;motionEventCount=0;clearTimeout(motionHealthTimer);motionHealthTimer=null
     }
+    function hasNativePedometer(){return typeof window.ReactNativeWebView?.postMessage==='function'}
+    function postToNative(message){if(!hasNativePedometer())return false;window.ReactNativeWebView.postMessage(JSON.stringify(message));return true}
+    function applyNativeStepBatch(count){
+      count=Math.max(0,Math.floor(Number(count||0)));if(!count)return;
+      const trackerOpen=$('#tracker').classList.contains('show'),dungeonCombat=trackerOpen&&trackerMode==='dungeon'&&state.run?.active&&!state.run.betweenCombats,before=todaySteps();
+      sessionReps+=count;state.totalReps+=count;state.xp+=count*.1;state.daily[dateKey()]=before+count;
+      if(dungeonCombat&&combatCameraReady){const combatSteps=Math.min(count,100);for(let i=0;i<combatSteps&&state.run?.active&&!state.run.betweenCombats;i++)attack(false)}
+      grantLevelRewards();saveSoon();renderTop();$('#sessionReps').textContent=sessionReps;if(trackerOpen)$('#pedometerDetail').textContent=`${sessionReps.toLocaleString()} ${sessionReps===1?'step':'steps'} detected this session`;checkQuests()
+    }
+    function receiveNativePedometer(payload={}){
+      const button=$('#enablePedometer');
+      if(payload.status==='granted'){motionTracking=true;motionEventCount=Math.max(1,motionEventCount);localStorage.setItem(PEDOMETER_PERMISSION_KEY,'1');markStepTrackingReady('Native pedometer active',true)}
+      if(payload.status==='denied'||payload.status==='unavailable'||payload.status==='error'){motionTracking=false;combatCameraReady=false;button.disabled=false;button.textContent=payload.canAskAgain===false?'Open phone settings':'Try step tracking';$('#pedometerState').textContent=payload.status==='unavailable'?'No pedometer found':'Physical activity access needed';$('#pedometerDetail').textContent=payload.message||'Allow Physical activity permission in your phone settings.'}
+      const day=String(payload.date||dateKey());if(day!==dateKey())return;
+      const nativeToday=Math.max(0,Math.floor(Number(payload.today||0))),previous=Math.max(0,Math.floor(Number(state.nativeDaily?.[day]||0))),reportedDelta=Math.max(0,Math.floor(Number(payload.delta||0))),newSteps=reportedDelta||Math.max(0,nativeToday-previous);
+      state.nativeDaily=state.nativeDaily||{};state.nativeDaily[day]=Math.max(previous,nativeToday);if(newSteps)applyNativeStepBatch(newSteps);else{saveSoon();renderTop()}
+    }
+    window.addEventListener('ironbound-native-pedometer',event=>receiveNativePedometer(event.detail||{}));
     function validMotionSource(source){return source&&[source.x,source.y,source.z].some(value=>value!==null&&value!==undefined&&Number.isFinite(Number(value)))}
     function handleDeviceMotion(event){
       if(!motionTracking||document.hidden)return;
@@ -1510,6 +1529,7 @@ html{background:#010611}body{color:var(--ink);background-color:#020817!important
     async function enablePedometer(resume=false){
       const button=$('#enablePedometer');button.disabled=true;button.textContent='Requesting…';
       try{
+        if(hasNativePedometer()){motionTracking=true;combatCameraReady=false;$('#pedometerState').textContent='Requesting Physical activity';$('#pedometerDetail').textContent='Approve the Android pedometer permission when it appears.';postToNative({type:'requestPedometer'});return}
         if(!window.isSecureContext)throw new Error('Open the HTTPS version of the app');
         if(typeof DeviceMotionEvent!=='undefined'&&typeof DeviceMotionEvent.requestPermission==='function'){const permission=await DeviceMotionEvent.requestPermission();if(permission!=='granted')throw new Error('Motion permission was not granted')}
         resetMotionDetector();window.removeEventListener('devicemotion',handleDeviceMotion);window.addEventListener('devicemotion',handleDeviceMotion,{passive:true});motionTracking=true;localStorage.setItem(PEDOMETER_PERMISSION_KEY,'1');combatCameraReady=false;button.textContent='Listening for movement…';$('#pedometerState').textContent='Checking phone sensor';$('#pedometerDetail').textContent='Walk a few steps while holding or pocketing your phone.';
@@ -1685,7 +1705,7 @@ html{background:#010611}body{color:var(--ink);background-color:#020817!important
     async function syncServer(){if(!window.WMB?.user)return;try{const srv=await window.WMB.loadState();state.adminMode=srv?.adminMode===true;applyServerGrant(srv?.coinGrantTotal);applyGoldGrant(srv?.goldGrantTotal);state.gems=Number(srv?.gemBalance||0);state.contract=srv?.contract?.active?srv.contract:null;Object.entries(srv?.log||{}).forEach(([k,v])=>{if(v.completed)state.daily[k]=Math.max(Number(state.daily[k]||0),Number(v.reps||state.dailyGoal))});save()}catch(e){toast('Account sync unavailable')}}
     document.addEventListener('wmb',async()=>{applyAuth();if(window.WMB?.user){await syncServer();$('#authGate').classList.remove('show');renderAll()}else applyAuth()});
     function renderAll(){if(grantLevelRewards())localStorage.setItem(KEY,JSON.stringify(state));renderTop();renderQuests();renderStatPoints();renderDungeon();renderMarket();renderInventory();renderStudio();renderProfile();syncSidebar();if(state.pendingLoot)showPendingLoot()}
-    renderAll();setInterval(updateMarketCountdown,1000);applyAuth();setTimeout(applyAuth,5500);if(localStorage.getItem(PEDOMETER_PERMISSION_KEY)==='1'&&(typeof DeviceMotionEvent==='undefined'||typeof DeviceMotionEvent.requestPermission!=='function'))enablePedometer(true);if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+    renderAll();setInterval(updateMarketCountdown,1000);applyAuth();setTimeout(applyAuth,5500);if(hasNativePedometer())postToNative({type:'pedometerReady'});else if(localStorage.getItem(PEDOMETER_PERMISSION_KEY)==='1'&&(typeof DeviceMotionEvent==='undefined'||typeof DeviceMotionEvent.requestPermission!=='function'))enablePedometer(true);if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
   })();
   </script>
 </body>

@@ -1,32 +1,34 @@
 {
   "expo": {
-    "name": "WorkoutMoneyApp",
-    "slug": "workoutmoneyapp",
-    "version": "1.0.0",
+    "name": "Ironbound",
+    "slug": "ironbound-step-rpg",
+    "version": "2.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
-    "backgroundColor": "#0d1117",
-    "splash": {
-      "backgroundColor": "#0d1117",
-      "resizeMode": "contain"
-    },
-    "assetBundlePatterns": ["**/*"],
-    "ios": {
-      "supportsTablet": true,
-      "infoPlist": {
-        "NSCameraUsageDescription": "The camera verifies your workout while you count reps."
-      }
-    },
+    "backgroundColor": "#020b19",
+    "scheme": "ironbound",
     "android": {
-      "permissions": ["CAMERA"]
-    },
-    "plugins": [
-      [
-        "expo-camera",
-        {
-          "cameraPermission": "The camera verifies your workout while you count reps."
-        }
+      "package": "com.m1l3s99.ironbound",
+      "versionCode": 2,
+      "permissions": [
+        "android.permission.ACTIVITY_RECOGNITION",
+        "android.permission.CAMERA",
+        "android.permission.INTERNET"
+      ],
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.VIBRATE"
       ]
-    ]
+    },
+    "ios": {
+      "bundleIdentifier": "com.m1l3s99.ironbound",
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSMotionUsageDescription": "Ironbound uses your step count for dungeon combat and daily progress.",
+        "NSCameraUsageDescription": "Ironbound uses the camera for optional exercise tracking."
+      }
+    }
   }
 }

@@ -1,58 +1,38 @@
-# WorkoutMoneyApp — Mobile (Expo)
+# Ironbound Android app
 
-The phone version of WorkoutMoneyApp. Runs on your own phone through the free
-**Expo Go** app — no App Store submission or Xcode/Android Studio needed.
+This is the native phone shell for the current Ironbound step RPG. It loads the
+live game and bridges Android's hardware pedometer into the web game.
 
-## Run it in 5 steps
+## What the native app adds
 
-You need [Node.js](https://nodejs.org) installed on your computer, and the
-**Expo Go** app on your phone (App Store / Google Play).
+- Android **Physical activity** permission
+- hardware pedometer readings through `expo-sensors`
+- native daily-step persistence
+- verified step events sent into dungeon combat
+- an in-app permission and settings recovery screen
 
-```bash
-# 1. Go into this folder
+## Local development
+
+```powershell
 cd mobile
-
-# 2. Install dependencies
 npm install
-
-# 3. Start the dev server
-npx expo start
+npx expo prebuild --platform android
+npx expo run:android
 ```
 
-4. A **QR code** appears in the terminal.
-5. Open **Expo Go** on your phone and scan the QR code (iPhone: use the Camera
-   app; Android: scan from inside Expo Go). The app loads on your phone.
+## Build an installable APK
 
-Your phone and computer must be on the **same Wi-Fi**. If it won't connect, run
-`npx expo start --tunnel` instead.
+After prebuild:
 
-> **SDK note:** Expo Go always runs the *latest* Expo SDK. If the app won't open
-> in Expo Go because of a version mismatch, the most reliable fix is to scaffold
-> a fresh project and drop in `App.js`:
-> ```bash
-> npx create-expo-app@latest wm && cd wm
-> npx expo install expo-camera @react-native-async-storage/async-storage
-> # then copy App.js and app.json from this folder over the new ones
-> npx expo start
-> ```
+```powershell
+cd android
+.\gradlew.bat assembleRelease
+```
 
-## What works
+The APK is written to:
 
-Everything from the web version: regimen setup, contract signing with stake +
-forfeiture engine, history, stats, and camera-verified workouts. Data is saved
-on the device with AsyncStorage.
+`android/app/build/outputs/apk/release/app-release.apk`
 
-## About "AI verification" on phones
-
-Fully-automatic pushup counting is **not available in Expo Go** — real-time
-on-device pose detection needs a custom *dev build* with a native camera frame
-processor (e.g. `react-native-vision-camera` + a pose plugin), which Expo Go
-can't load. This version turns the camera on to keep you honest and you tap once
-per rep (auto-completing at your target). Moving to automatic counting is the
-main "dev build" upgrade for later.
-
-## ⚠️ Prototype limitations
-
-No real money is charged — billing/forfeiture is simulated. The contract is not
-legally enforceable. Real money handling needs a backend + payment processor
-(e.g. Stripe) and legal review.
+The app counts steps while it is open. Android does not deliver Expo pedometer
+updates while the app is fully in the background; background history can be
+added later with Health Connect.
