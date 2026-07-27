@@ -1,9 +1,18 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const { withDangerousMod, withMainApplication } = require('@expo/config-plugins');
+const {
+  withAndroidManifest,
+  withDangerousMod,
+  withMainApplication,
+} = require('@expo/config-plugins');
 
 const PACKAGE_PATH = ['com', 'm1l3s99', 'ironbound'];
-const SOURCE_FILES = ['StepDetectorModule.kt', 'StepDetectorPackage.kt'];
+const SOURCE_FILES = [
+  'StepBootReceiver.kt',
+  'StepDetectorModule.kt',
+  'StepDetectorPackage.kt',
+  'StepTrackingService.kt',
+];
 
 function withStepDetectorSources(config) {
   return withDangerousMod(config, [
@@ -47,5 +56,42 @@ function withStepDetectorPackage(config) {
   });
 }
 
+function withStepTrackingManifest(config) {
+  return withAndroidManifest(config, (androidConfig) => {
+    const application = androidConfig.modResults.manifest.application[0];
+    application.service = application.service || [];
+    if (!application.service.some((entry) =>
+      entry.$?.['android:name'] === '.StepTrackingService'
+    )) {
+      application.service.push({
+        $: {
+          'android:name': '.StepTrackingService',
+          'android:exported': 'false',
+          'android:foregroundServiceType': 'health',
+          'android:stopWithTask': 'false',
+        },
+      });
+    }
+    application.receiver = application.receiver || [];
+    if (!application.receiver.some((entry) =>
+      entry.$?.['android:name'] === '.StepBootReceiver'
+    )) {
+      application.receiver.push({
+        $: {
+          'android:name': '.StepBootReceiver',
+          'android:enabled': 'true',
+          'android:exported': 'true',
+        },
+        'intent-filter': [{
+          action: [{ $: { 'android:name': 'android.intent.action.BOOT_COMPLETED' } }],
+        }],
+      });
+    }
+    return androidConfig;
+  });
+}
+
 module.exports = (config) =>
-  withStepDetectorSources(withStepDetectorPackage(config));
+  withStepDetectorSources(
+    withStepTrackingManifest(withStepDetectorPackage(config))
+  );
