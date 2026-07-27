@@ -4,6 +4,8 @@ import {
   Alert,
   AppState,
   Linking,
+  NativeEventEmitter,
+  NativeModules,
   Platform,
   Pressable,
   SafeAreaView,
@@ -19,6 +21,8 @@ import { WebView } from 'react-native-webview';
 const GAME_URL = 'https://m1l3s99.github.io/WorkoutMoneyApp/';
 const STEP_STORAGE_KEY = 'ironbound-native-daily-steps-v1';
 const PERMISSION_ASKED_KEY = 'ironbound-native-pedometer-permission-asked-v1';
+const immediateStepDetector =
+  Platform.OS === 'android' ? NativeModules.IronboundStepDetector : null;
 const colours = {
   bg: '#020b19',
   panel: '#071a34',
@@ -38,6 +42,11 @@ const localDateKey = (date = new Date()) => {
 export default function App() {
   const webRef = useRef(null);
   const subscriptionRef = useRef(null);
+  const detectorSubscriptionRef = useRef(null);
+  const detectorActiveRef = useRef(false);
+  const detectorStartedAtRef = useRef(0);
+  const pendingDetectorStepsRef = useRef(0);
+  const counterLeadCreditRef = useRef({ count: 0, expiresAt: 0 });
   const sensorCountRef = useRef(0);
   const sensorPrimedRef = useRef(false);
   const dailyRef = useRef({ date: localDateKey(), steps: 0, lastRaw: null });
@@ -69,13 +78,68 @@ export default function App() {
     dailyRef.current = { date: today, steps: 0, lastRaw: dailyRef.current.lastRaw ?? null };
     sensorCountRef.current = 0;
     sensorPrimedRef.current = false;
+    pendingDetectorStepsRef.current = 0;
+    counterLeadCreditRef.current = { count: 0, expiresAt: 0 };
     saveDaily().catch(() => {});
     return true;
   }, [saveDaily]);
 
+  const handleImmediateStep = useCallback(() => {
+    resetForNewDay();
+    const now = Date.now();
+    const counterCredit = counterLeadCreditRef.current;
+    if (counterCredit.count > 0 && now <= counterCredit.expiresAt) {
+      counterCredit.count -= 1;
+      emitToGame({
+        status: 'granted',
+        source: 'step-detector',
+        delta: 0,
+        sampleAt: now,
+      });
+      return;
+    }
+    if (now > counterCredit.expiresAt) {
+      counterLeadCreditRef.current = { count: 0, expiresAt: 0 };
+    }
+    pendingDetectorStepsRef.current += 1;
+    dailyRef.current.steps += 1;
+    saveDaily().catch(() => {});
+    emitToGame({
+      status: 'granted',
+      source: 'step-detector',
+      delta: 1,
+      sampleAt: now,
+    });
+  }, [emitToGame, resetForNewDay, saveDaily]);
+
+  const startImmediateDetector = useCallback(async () => {
+    if (!immediateStepDetector) return false;
+    const available = await immediateStepDetector.isAvailable();
+    if (!available) return false;
+    detectorSubscriptionRef.current?.remove?.();
+    detectorSubscriptionRef.current = new NativeEventEmitter(immediateStepDetector).addListener(
+      'IronboundStepDetected',
+      handleImmediateStep
+    );
+    const started = await immediateStepDetector.start();
+    if (!started) {
+      detectorSubscriptionRef.current?.remove?.();
+      detectorSubscriptionRef.current = null;
+      return false;
+    }
+    detectorActiveRef.current = true;
+    detectorStartedAtRef.current = Date.now();
+    return true;
+  }, [handleImmediateStep]);
+
   const stopTracking = useCallback(() => {
     subscriptionRef.current?.remove?.();
     subscriptionRef.current = null;
+    detectorSubscriptionRef.current?.remove?.();
+    detectorSubscriptionRef.current = null;
+    detectorActiveRef.current = false;
+    detectorStartedAtRef.current = 0;
+    immediateStepDetector?.stop?.().catch?.(() => {});
     sensorCountRef.current = 0;
     sensorPrimedRef.current = false;
   }, []);
@@ -83,18 +147,53 @@ export default function App() {
   const startTracking = useCallback(async () => {
     stopTracking();
     resetForNewDay();
-    const available = await Pedometer.isAvailableAsync();
-    if (!available) {
+    const counterAvailable = await Pedometer.isAvailableAsync();
+    const detectorAvailable = await startImmediateDetector();
+    if (!counterAvailable && !detectorAvailable) {
       setPermissionStatus('unavailable');
       emitToGame({
         status: 'unavailable',
-        message: 'This phone does not report a hardware step counter.',
+        message: 'This phone does not report a hardware step sensor.',
       });
       return;
     }
     setPermissionStatus('granted');
     setPermissionCard(false);
-    emitToGame({ status: 'granted', delta: 0 });
+    emitToGame({
+      status: 'granted',
+      source: detectorAvailable ? 'step-detector' : 'hardware',
+      delta: 0,
+    });
+    if (!counterAvailable) return;
+
+    const applyCounterDelta = (rawDelta) => {
+      const delta = Math.max(0, Math.floor(Number(rawDelta || 0)));
+      let additional = delta;
+      if (detectorActiveRef.current && additional) {
+        const matched = Math.min(pendingDetectorStepsRef.current, additional);
+        pendingDetectorStepsRef.current -= matched;
+        additional -= matched;
+
+        // Sensor callbacks can arrive in either order. If the cumulative counter
+        // narrowly wins the race, suppress the matching detector event.
+        const runningFor = Date.now() - detectorStartedAtRef.current;
+        if (additional > 0 && additional <= 2 && runningFor > 1500) {
+          counterLeadCreditRef.current = {
+            count: additional,
+            expiresAt: Date.now() + 1500,
+          };
+        }
+      }
+      if (additional) dailyRef.current.steps += additional;
+      saveDaily().catch(() => {});
+      emitToGame({
+        status: 'granted',
+        source: detectorActiveRef.current ? 'hybrid-hardware' : 'hardware',
+        delta: additional,
+        sampleAt: Date.now(),
+      });
+    };
+
     subscriptionRef.current = Pedometer.watchStepCount(({ steps, rawSteps }) => {
       resetForNewDay();
       const rawReading = Number(rawSteps);
@@ -108,20 +207,16 @@ export default function App() {
           : sessionReading;
         dailyRef.current.lastRaw = rawReading;
         sensorPrimedRef.current = true;
-        if (delta) dailyRef.current.steps += delta;
-        saveDaily().catch(() => {});
-        emitToGame({ status: 'granted', source: 'hardware', delta, sampleAt: Date.now() });
+        applyCounterDelta(delta);
         return;
       }
       const reading = Math.max(0, Math.floor(Number(steps || 0)));
       const delta = reading >= sensorCountRef.current ? reading - sensorCountRef.current : reading;
       sensorPrimedRef.current = true;
       sensorCountRef.current = reading;
-      if (delta) dailyRef.current.steps += delta;
-      saveDaily().catch(() => {});
-      emitToGame({ status: 'granted', source: 'hardware', delta, sampleAt: Date.now() });
+      applyCounterDelta(delta);
     });
-  }, [emitToGame, resetForNewDay, saveDaily, stopTracking]);
+  }, [emitToGame, resetForNewDay, saveDaily, startImmediateDetector, stopTracking]);
 
   const requestPedometer = useCallback(async () => {
     try {
