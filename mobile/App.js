@@ -280,17 +280,28 @@ export default function App() {
           return;
         }
       }
+      if (Platform.OS === 'android' && immediateStepDetector) {
+        const batteryAllowed =
+          await immediateStepDetector.requestBatteryOptimizationExemption();
+        if (!batteryAllowed) {
+          await startTracking();
+          setPermissionStatus('battery-denied');
+          setPermissionCard(true);
+          emitToGame({
+            status: 'battery-denied',
+            message: 'Allow background operation when Android asks so tracking can continue reliably.',
+          });
+          return;
+        }
+      }
       await startTracking();
       await AsyncStorage.setItem(BACKGROUND_SETUP_KEY, '1');
       setPermissionCard(false);
       if (Platform.OS === 'android') {
         Alert.alert(
           'Background tracking enabled',
-          'Ironbound will keep counting with the app closed. For best reliability, set its battery use to Unrestricted.',
-          [
-            { text: 'Done', style: 'cancel' },
-            { text: 'Open app settings', onPress: () => Linking.openSettings() },
-          ]
+          'Physical Activity, notifications, and background operation are enabled. Ironbound will keep counting with the app closed.',
+          [{ text: 'Done' }]
         );
       }
     } catch (error) {
@@ -429,7 +440,7 @@ export default function App() {
             <View style={styles.icon}><Text style={styles.iconText}>◆</Text></View>
             <Text style={styles.title}>Enable background tracking</Text>
             <Text style={styles.copy}>
-              Allow Physical activity and notifications so Ironbound can keep counting after you close the app. Android will show a quiet ongoing tracking notification.
+              Android will ask for Physical Activity, notifications, and background operation. Approve all three so Ironbound can keep counting after you close it.
             </Text>
             <Pressable
               style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}
@@ -444,13 +455,12 @@ export default function App() {
                   ? 'Requesting…'
                   : permissionStatus === 'notification-denied'
                     ? 'Try notification permission'
+                  : permissionStatus === 'battery-denied'
+                    ? 'Allow background operation'
                   : permissionStatus === 'denied' && permissionRef.current.canAskAgain === false
                     ? 'Open Android settings'
                     : 'Enable background tracking'}
               </Text>
-            </Pressable>
-            <Pressable style={styles.settingsButton} onPress={() => Linking.openSettings()}>
-              <Text style={styles.settingsText}>Battery and app settings</Text>
             </Pressable>
             <Pressable style={styles.laterButton} onPress={() => setPermissionCard(false)}>
               <Text style={styles.laterText}>Not now</Text>
@@ -527,8 +537,6 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: { color: '#fff', fontSize: 14, fontWeight: '900' },
   pressed: { opacity: 0.72 },
-  settingsButton: { marginTop: 8, paddingHorizontal: 20, paddingVertical: 10 },
-  settingsText: { color: colours.accent, fontSize: 13, fontWeight: '800' },
   laterButton: { paddingHorizontal: 20, paddingVertical: 13 },
   laterText: { color: colours.muted, fontSize: 13, fontWeight: '700' },
   privacy: { color: '#6885a5', fontSize: 10, lineHeight: 15, textAlign: 'center' },
