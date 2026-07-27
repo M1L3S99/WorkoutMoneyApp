@@ -22,6 +22,7 @@ import { WebView } from 'react-native-webview';
 const GAME_URL = 'https://m1l3s99.github.io/WorkoutMoneyApp/';
 const STEP_STORAGE_KEY = 'ironbound-native-daily-steps-v1';
 const PERMISSION_ASKED_KEY = 'ironbound-native-pedometer-permission-asked-v1';
+const BACKGROUND_SETUP_KEY = 'ironbound-background-tracking-setup-v1';
 const immediateStepDetector =
   Platform.OS === 'android' ? NativeModules.IronboundStepDetector : null;
 const colours = {
@@ -166,9 +167,6 @@ export default function App() {
   const startTracking = useCallback(async () => {
     stopTracking();
     resetForNewDay();
-    if (Platform.OS === 'android' && Number(Platform.Version) >= 33) {
-      await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
-    }
     const counterAvailable = await Pedometer.isAvailableAsync();
     const detectorAvailable = await startImmediateDetector();
     if (!counterAvailable && !detectorAvailable) {
@@ -180,7 +178,6 @@ export default function App() {
       return;
     }
     setPermissionStatus('granted');
-    setPermissionCard(false);
     emitToGame({
       status: 'granted',
       source: detectorAvailable ? 'step-detector' : 'hardware',
@@ -268,7 +265,34 @@ export default function App() {
         }
         return;
       }
+      if (Platform.OS === 'android' && Number(Platform.Version) >= 33) {
+        const notificationResult = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+        );
+        if (notificationResult !== PermissionsAndroid.RESULTS.GRANTED) {
+          await startTracking();
+          setPermissionStatus('notification-denied');
+          setPermissionCard(true);
+          emitToGame({
+            status: 'notification-denied',
+            message: 'Allow notifications so Android can keep the background step counter visible.',
+          });
+          return;
+        }
+      }
       await startTracking();
+      await AsyncStorage.setItem(BACKGROUND_SETUP_KEY, '1');
+      setPermissionCard(false);
+      if (Platform.OS === 'android') {
+        Alert.alert(
+          'Background tracking enabled',
+          'Ironbound will keep counting with the app closed. For best reliability, set its battery use to Unrestricted.',
+          [
+            { text: 'Done', style: 'cancel' },
+            { text: 'Open app settings', onPress: () => Linking.openSettings() },
+          ]
+        );
+      }
     } catch (error) {
       setPermissionStatus('error');
       setPermissionCard(true);
@@ -311,6 +335,12 @@ export default function App() {
         permissionRef.current = permission;
         if (permission.granted) {
           await startTracking();
+          if (
+            Platform.OS === 'android' &&
+            (await AsyncStorage.getItem(BACKGROUND_SETUP_KEY)) !== '1'
+          ) {
+            setPermissionCard(true);
+          }
         } else {
           setPermissionStatus(permission.status || 'undetermined');
           const alreadyAsked = (await AsyncStorage.getItem(PERMISSION_ASKED_KEY)) === '1';
@@ -397,9 +427,9 @@ export default function App() {
         <View style={styles.scrim}>
           <View style={styles.permissionCard}>
             <View style={styles.icon}><Text style={styles.iconText}>◆</Text></View>
-            <Text style={styles.title}>Enable the pedometer</Text>
+            <Text style={styles.title}>Enable background tracking</Text>
             <Text style={styles.copy}>
-              Ironbound needs Android’s Physical activity permission to count your daily steps accurately and update the goal ring live.
+              Allow Physical activity and notifications so Ironbound can keep counting after you close the app. Android will show a quiet ongoing tracking notification.
             </Text>
             <Pressable
               style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}
@@ -412,10 +442,15 @@ export default function App() {
               <Text style={styles.primaryButtonText}>
                 {permissionStatus === 'requesting'
                   ? 'Requesting…'
+                  : permissionStatus === 'notification-denied'
+                    ? 'Try notification permission'
                   : permissionStatus === 'denied' && permissionRef.current.canAskAgain === false
                     ? 'Open Android settings'
-                    : 'Allow Physical activity'}
+                    : 'Enable background tracking'}
               </Text>
+            </Pressable>
+            <Pressable style={styles.settingsButton} onPress={() => Linking.openSettings()}>
+              <Text style={styles.settingsText}>Battery and app settings</Text>
             </Pressable>
             <Pressable style={styles.laterButton} onPress={() => setPermissionCard(false)}>
               <Text style={styles.laterText}>Not now</Text>
@@ -492,6 +527,8 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: { color: '#fff', fontSize: 14, fontWeight: '900' },
   pressed: { opacity: 0.72 },
+  settingsButton: { marginTop: 8, paddingHorizontal: 20, paddingVertical: 10 },
+  settingsText: { color: colours.accent, fontSize: 13, fontWeight: '800' },
   laterButton: { paddingHorizontal: 20, paddingVertical: 13 },
   laterText: { color: colours.muted, fontSize: 13, fontWeight: '700' },
   privacy: { color: '#6885a5', fontSize: 10, lineHeight: 15, textAlign: 'center' },
