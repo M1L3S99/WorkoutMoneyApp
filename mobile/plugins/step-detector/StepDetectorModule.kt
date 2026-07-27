@@ -1,14 +1,19 @@
 package com.m1l3s99.ironbound
 
+import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.hardware.Sensor
 import android.hardware.SensorManager
+import android.net.Uri
 import android.os.Build
+import android.os.PowerManager
+import android.provider.Settings
 import androidx.core.content.ContextCompat
 import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.BaseActivityEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
@@ -19,6 +24,19 @@ class StepDetectorModule(
   private val reactContext: ReactApplicationContext
 ) : ReactContextBaseJavaModule(reactContext) {
   private var receiverRegistered = false
+  private var batteryRequestPromise: Promise? = null
+  private val activityEventListener = object : BaseActivityEventListener() {
+    override fun onActivityResult(
+      activity: Activity,
+      requestCode: Int,
+      resultCode: Int,
+      data: Intent?
+    ) {
+      if (requestCode != BATTERY_REQUEST_CODE) return
+      batteryRequestPromise?.resolve(isBatteryExempt())
+      batteryRequestPromise = null
+    }
+  }
   private val stepReceiver = object : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
       if (intent?.action != StepTrackingService.ACTION_STEP_UPDATE) return
@@ -32,6 +50,10 @@ class StepDetectorModule(
         .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
         .emit("IronboundStepDetected", payload)
     }
+  }
+
+  init {
+    reactContext.addActivityEventListener(activityEventListener)
   }
 
   override fun getName() = "IronboundStepDetector"
@@ -79,6 +101,33 @@ class StepDetectorModule(
   }
 
   @ReactMethod
+  fun requestBatteryOptimizationExemption(promise: Promise) {
+    if (isBatteryExempt()) {
+      promise.resolve(true)
+      return
+    }
+    val activity = reactContext.getCurrentActivity()
+    if (activity == null) {
+      promise.reject("NO_ACTIVITY", "Open Ironbound before enabling background tracking.")
+      return
+    }
+    batteryRequestPromise?.reject("REPLACED", "A newer battery permission request was started.")
+    batteryRequestPromise = promise
+    try {
+      activity.startActivityForResult(
+        Intent(
+          Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+          Uri.parse("package:${reactContext.packageName}")
+        ),
+        BATTERY_REQUEST_CODE
+      )
+    } catch (error: Exception) {
+      batteryRequestPromise = null
+      promise.reject("BATTERY_REQUEST_FAILED", error.message, error)
+    }
+  }
+
+  @ReactMethod
   fun addListener(eventName: String) = Unit
 
   @ReactMethod
@@ -86,7 +135,15 @@ class StepDetectorModule(
 
   override fun invalidate() {
     unregisterReceiver()
+    reactContext.removeActivityEventListener(activityEventListener)
+    batteryRequestPromise?.reject("MODULE_CLOSED", "Background setup was interrupted.")
+    batteryRequestPromise = null
     super.invalidate()
+  }
+
+  private fun isBatteryExempt(): Boolean {
+    val manager = reactContext.getSystemService(Context.POWER_SERVICE) as PowerManager
+    return manager.isIgnoringBatteryOptimizations(reactContext.packageName)
   }
 
   private fun registerReceiver() {
@@ -105,5 +162,9 @@ class StepDetectorModule(
     if (!receiverRegistered) return
     runCatching { reactContext.unregisterReceiver(stepReceiver) }
     receiverRegistered = false
+  }
+
+  companion object {
+    private const val BATTERY_REQUEST_CODE = 7322
   }
 }
