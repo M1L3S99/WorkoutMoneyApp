@@ -6,6 +6,7 @@ import {
   Linking,
   NativeEventEmitter,
   NativeModules,
+  PermissionsAndroid,
   Platform,
   Pressable,
   SafeAreaView,
@@ -84,9 +85,21 @@ export default function App() {
     return true;
   }, [saveDaily]);
 
-  const handleImmediateStep = useCallback(() => {
+  const handleImmediateStep = useCallback((event = {}) => {
     resetForNewDay();
     const now = Date.now();
+    const nativeToday = Number(event.today);
+    if (Number.isFinite(nativeToday) && nativeToday >= 0) {
+      dailyRef.current.steps = Math.floor(nativeToday);
+      saveDaily().catch(() => {});
+      emitToGame({
+        status: 'granted',
+        source: 'background-step-service',
+        delta: Math.max(0, Math.floor(Number(event.delta || 0))),
+        sampleAt: now,
+      });
+      return;
+    }
     const counterCredit = counterLeadCreditRef.current;
     if (counterCredit.count > 0 && now <= counterCredit.expiresAt) {
       counterCredit.count -= 1;
@@ -121,11 +134,17 @@ export default function App() {
       'IronboundStepDetected',
       handleImmediateStep
     );
-    const started = await immediateStepDetector.start();
+    const result = await immediateStepDetector.start(dailyRef.current.steps);
+    const started = result?.started ?? result === true;
     if (!started) {
       detectorSubscriptionRef.current?.remove?.();
       detectorSubscriptionRef.current = null;
       return false;
+    }
+    const nativeToday = Number(result?.today);
+    if (Number.isFinite(nativeToday) && nativeToday >= 0) {
+      dailyRef.current.steps = Math.floor(nativeToday);
+      saveDaily().catch(() => {});
     }
     detectorActiveRef.current = true;
     detectorStartedAtRef.current = Date.now();
@@ -147,6 +166,9 @@ export default function App() {
   const startTracking = useCallback(async () => {
     stopTracking();
     resetForNewDay();
+    if (Platform.OS === 'android' && Number(Platform.Version) >= 33) {
+      await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+    }
     const counterAvailable = await Pedometer.isAvailableAsync();
     const detectorAvailable = await startImmediateDetector();
     if (!counterAvailable && !detectorAvailable) {
@@ -164,6 +186,7 @@ export default function App() {
       source: detectorAvailable ? 'step-detector' : 'hardware',
       delta: 0,
     });
+    if (Platform.OS === 'android' && detectorAvailable) return;
     if (!counterAvailable) return;
 
     const applyCounterDelta = (rawDelta) => {
