@@ -39,7 +39,8 @@ export default function App() {
   const webRef = useRef(null);
   const subscriptionRef = useRef(null);
   const sensorCountRef = useRef(0);
-  const dailyRef = useRef({ date: localDateKey(), steps: 0 });
+  const sensorPrimedRef = useRef(false);
+  const dailyRef = useRef({ date: localDateKey(), steps: 0, lastRaw: null });
   const permissionRef = useRef({ status: 'undetermined', canAskAgain: true });
   const [webReady, setWebReady] = useState(false);
   const [permissionCard, setPermissionCard] = useState(false);
@@ -64,16 +65,19 @@ export default function App() {
 
   const resetForNewDay = useCallback(() => {
     const today = localDateKey();
-    if (dailyRef.current.date === today) return;
-    dailyRef.current = { date: today, steps: 0 };
+    if (dailyRef.current.date === today) return false;
+    dailyRef.current = { date: today, steps: 0, lastRaw: dailyRef.current.lastRaw ?? null };
     sensorCountRef.current = 0;
+    sensorPrimedRef.current = false;
     saveDaily().catch(() => {});
+    return true;
   }, [saveDaily]);
 
   const stopTracking = useCallback(() => {
     subscriptionRef.current?.remove?.();
     subscriptionRef.current = null;
     sensorCountRef.current = 0;
+    sensorPrimedRef.current = false;
   }, []);
 
   const startTracking = useCallback(async () => {
@@ -91,9 +95,32 @@ export default function App() {
     setPermissionStatus('granted');
     setPermissionCard(false);
     emitToGame({ status: 'granted', delta: 0 });
-    subscriptionRef.current = Pedometer.watchStepCount(({ steps }) => {
+    subscriptionRef.current = Pedometer.watchStepCount(({ steps, rawSteps }) => {
       resetForNewDay();
+      const rawReading = Number(rawSteps);
+      if (Number.isFinite(rawReading) && rawReading >= 0) {
+        const previousRaw = dailyRef.current.lastRaw;
+        const delta =
+          Number.isFinite(previousRaw) && rawReading >= previousRaw
+            ? Math.max(0, Math.floor(rawReading - previousRaw))
+            : 0;
+        dailyRef.current.lastRaw = rawReading;
+        sensorPrimedRef.current = true;
+        if (!delta) {
+          saveDaily().catch(() => {});
+          return;
+        }
+        dailyRef.current.steps += delta;
+        saveDaily().catch(() => {});
+        emitToGame({ status: 'granted', delta });
+        return;
+      }
       const reading = Math.max(0, Math.floor(Number(steps || 0)));
+      if (!sensorPrimedRef.current) {
+        sensorPrimedRef.current = true;
+        sensorCountRef.current = reading;
+        return;
+      }
       const delta = reading >= sensorCountRef.current ? reading - sensorCountRef.current : reading;
       sensorCountRef.current = reading;
       if (!delta) return;
@@ -148,10 +175,24 @@ export default function App() {
         const saved = JSON.parse((await AsyncStorage.getItem(STEP_STORAGE_KEY)) || '{}');
         dailyRef.current =
           saved.date === localDateKey()
-            ? { date: saved.date, steps: Math.max(0, Math.floor(Number(saved.steps || 0))) }
-            : { date: localDateKey(), steps: 0 };
+            ? {
+                date: saved.date,
+                steps: Math.max(0, Math.floor(Number(saved.steps || 0))),
+                lastRaw:
+                  saved.lastRaw !== null && saved.lastRaw !== undefined && Number.isFinite(Number(saved.lastRaw))
+                    ? Number(saved.lastRaw)
+                    : null,
+              }
+            : {
+                date: localDateKey(),
+                steps: 0,
+                lastRaw:
+                  saved.lastRaw !== null && saved.lastRaw !== undefined && Number.isFinite(Number(saved.lastRaw))
+                    ? Number(saved.lastRaw)
+                    : null,
+              };
       } catch {
-        dailyRef.current = { date: localDateKey(), steps: 0 };
+        dailyRef.current = { date: localDateKey(), steps: 0, lastRaw: null };
       }
       try {
         const permission = await Pedometer.getPermissionsAsync();
