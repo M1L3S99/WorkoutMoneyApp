@@ -55,7 +55,7 @@ export default function App() {
     };
     const detail = JSON.stringify(message).replace(/</g, '\\u003c');
     webRef.current?.injectJavaScript(
-      `window.dispatchEvent(new CustomEvent('ironbound-native-pedometer',{detail:${detail}}));true;`
+      `if(window.IronboundSteps&&typeof window.IronboundSteps.receive==='function'){window.IronboundSteps.receive(${detail})}else{window.dispatchEvent(new CustomEvent('ironbound-native-pedometer',{detail:${detail}}))}true;`
     );
   }, []);
 
@@ -100,33 +100,26 @@ export default function App() {
       const rawReading = Number(rawSteps);
       if (Number.isFinite(rawReading) && rawReading >= 0) {
         const previousRaw = dailyRef.current.lastRaw;
-        const delta =
-          Number.isFinite(previousRaw) && rawReading >= previousRaw
+        const sessionReading = Math.max(0, Math.floor(Number(steps || 0)));
+        const delta = Number.isFinite(previousRaw)
+          ? rawReading >= previousRaw
             ? Math.max(0, Math.floor(rawReading - previousRaw))
-            : 0;
+            : sessionReading
+          : sessionReading;
         dailyRef.current.lastRaw = rawReading;
         sensorPrimedRef.current = true;
-        if (!delta) {
-          saveDaily().catch(() => {});
-          return;
-        }
-        dailyRef.current.steps += delta;
+        if (delta) dailyRef.current.steps += delta;
         saveDaily().catch(() => {});
-        emitToGame({ status: 'granted', delta });
+        emitToGame({ status: 'granted', source: 'hardware', delta, sampleAt: Date.now() });
         return;
       }
       const reading = Math.max(0, Math.floor(Number(steps || 0)));
-      if (!sensorPrimedRef.current) {
-        sensorPrimedRef.current = true;
-        sensorCountRef.current = reading;
-        return;
-      }
       const delta = reading >= sensorCountRef.current ? reading - sensorCountRef.current : reading;
+      sensorPrimedRef.current = true;
       sensorCountRef.current = reading;
-      if (!delta) return;
-      dailyRef.current.steps += delta;
+      if (delta) dailyRef.current.steps += delta;
       saveDaily().catch(() => {});
-      emitToGame({ status: 'granted', delta });
+      emitToGame({ status: 'granted', source: 'hardware', delta, sampleAt: Date.now() });
     });
   }, [emitToGame, resetForNewDay, saveDaily, stopTracking]);
 
@@ -288,7 +281,7 @@ export default function App() {
             <View style={styles.icon}><Text style={styles.iconText}>◆</Text></View>
             <Text style={styles.title}>Enable the pedometer</Text>
             <Text style={styles.copy}>
-              Ironbound needs Android’s Physical activity permission to count real steps and use them in combat.
+              Ironbound needs Android’s Physical activity permission to count your daily steps accurately and update the goal ring live.
             </Text>
             <Pressable
               style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}
