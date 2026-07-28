@@ -25,6 +25,12 @@ for (const required of [
   "nativeLifetime",
   "pullAndHarvest",
   "updateFarmTimes",
+  "MILES-FARM",
+  "dailyStock",
+  "upgradeSelectedItem",
+  "adminGrowAll",
+  "doubleStepCap",
+  "doubleGoldSales",
 ]) {
   if (!script[1].includes(required)) throw new Error(`Missing required implementation: ${required}`);
 }
@@ -34,7 +40,7 @@ const hook = '      $$(".nav-btn").forEach(button=>button.onclick';
 if (!script[1].includes(hook)) throw new Error("Could not locate runtime test hook");
 const instrumented = script[1].replace(
   hook,
-  `      globalThis.__farmTest = { CROPS, ITEMS, FERTILISERS, BED_COSTS, MAX_BEDS, qualityOdds, freshState };
+  `      globalThis.__farmTest = { CROPS, ITEMS, FERTILISERS, BED_COSTS, MAX_BEDS, qualityOdds, freshState, dailyStock, upgradeRecipe, ITEM_UPGRADE_MAX };
       return;
 ${hook}`
 );
@@ -56,15 +62,33 @@ const radish = farm.CROPS.find((crop) => crop.id === "radish");
 if (!radish?.stages?.planted || !radish?.stages?.half || !radish?.stages?.grown) {
   throw new Error("Radish must have planted, half-grown, and ready sprites");
 }
-if (farm.FERTILISERS.length !== 2 || !farm.FERTILISERS.some((item) => item.id === "speed-gro") || !farm.FERTILISERS.some((item) => item.id === "fertiliser")) {
-  throw new Error("The store must offer Fertiliser and Speed-Gro");
+if (!radish.stages.grown.includes("radish-ready-pulled")) {
+  throw new Error("The ready radish must use the pulled-from-soil sprite");
+}
+const fertiliserCosts = farm.FERTILISERS.map((item) => item.cost).join(",");
+if (farm.FERTILISERS.length !== 4 || fertiliserCosts !== "1000,2000,5000,10000" || farm.FERTILISERS.at(-1)?.guaranteed !== "iridium") {
+  throw new Error("Bronze, Silver, Gold, and guaranteed-Iridium fertilisers are configured incorrectly");
 }
 const itemTypes = new Set(farm.ITEMS.map((item) => item.type));
 for (const type of ["boots", "gloves", "tools"]) {
   if (!itemTypes.has(type)) throw new Error(`Missing shop item type: ${type}`);
+  if (farm.dailyStock(type).length !== 3) throw new Error(`Daily ${type} stock must contain three items`);
+}
+if (farm.ITEMS.length < 18 || !farm.ITEMS.some((item) => Object.keys(item.effect).length >= 3)) {
+  throw new Error("The gear catalogue must contain varied multi-benefit items");
 }
 if (Math.max(...farm.ITEMS.map((item) => item.cost)) !== 100000) {
   throw new Error("The top Iridium equipment price must be 100,000 steps");
+}
+if (Math.max(...farm.CROPS.map((crop) => crop.steps)) !== 20000) {
+  throw new Error("The longest crop must require exactly 20,000 steps");
+}
+const valueRates = farm.CROPS.map((crop) => crop.sellValue / crop.steps);
+if (valueRates.some((rate, index) => index > 0 && rate + 0.0002 < valueRates[index - 1])) {
+  throw new Error("Higher crops must remain slightly more valuable per step");
+}
+if (farm.ITEM_UPGRADE_MAX !== 3 || !farm.upgradeRecipe(farm.ITEMS[0], 3)?.cropId) {
+  throw new Error("Every gear item must support three crop-backed upgrades");
 }
 const twoHourCrop = farm.CROPS.find((crop) => crop.expiryHours === 2);
 const eightHourCrop = farm.CROPS.find((crop) => crop.expiryHours === 8);

@@ -215,6 +215,10 @@
     }
     .tab.active{background:var(--paper);color:var(--forest);box-shadow:0 3px 9px rgba(75,63,40,.1)}
     .shop-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .shop-grid .shop-section{grid-column:1/-1;display:flex;align-items:center;gap:9px;margin:5px 2px 0;color:var(--forest)}
+    .shop-grid .shop-section:after{content:"";height:1px;flex:1;background:var(--line)}
+    .shop-grid .shop-section h2{margin:0;font-family:"Fraunces",serif;font-size:16px}
+    .gear-view-tabs[hidden]{display:none}
     .shop-item{
       position:relative;min-height:171px;padding:13px;border:1px solid var(--line);border-radius:19px;
       background:linear-gradient(145deg,#fffaf0,#f3ecdc);cursor:pointer;text-align:left;overflow:hidden
@@ -238,6 +242,11 @@
     .loadout-slot b{margin-top:5px;font-size:9px;color:var(--forest)}
     .loadout-slot small{margin-top:3px;color:var(--muted);font-size:7px}
     .inventory-list{display:grid;gap:9px}
+    .owned-gear-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:17px}
+    .owned-gear-card{display:grid;grid-template-columns:42px 1fr;align-items:center;gap:9px;min-height:65px;padding:10px;border:1px solid var(--line);border-radius:16px;background:var(--paper);text-align:left;cursor:pointer}
+    .owned-gear-card i{font-style:normal;font-size:27px;text-align:center}
+    .owned-gear-card b,.owned-gear-card small{display:block}
+    .owned-gear-card b{font-size:10px}.owned-gear-card small{margin-top:3px;color:var(--muted);font-size:7px}
     .inventory-row{
       display:grid;grid-template-columns:43px 1fr auto;align-items:center;gap:10px;
       min-height:68px;padding:10px;border:1px solid var(--line);border-radius:16px;background:var(--paper)
@@ -285,6 +294,23 @@
     .setting-row b{font-size:12px}
     .setting-row small{margin-top:4px;color:var(--muted);font-size:8px;line-height:1.35}
     .setting-row .btn{min-height:36px;padding:7px 10px;font-size:9px;box-shadow:none}
+    .admin-entry{display:grid;grid-template-columns:1fr auto;gap:8px}
+    .admin-entry[hidden]{display:none}
+    .admin-entry input{min-width:0;padding:11px;border:1px solid var(--line);border-radius:12px;background:var(--paper);font-size:11px}
+    .admin-panel{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .admin-panel[hidden]{display:none}
+    .admin-status{grid-column:1/-1;padding:10px;border-radius:12px;background:#e6efdb;color:var(--forest);font-size:9px;font-weight:800;text-align:center}
+    .upgrade-preview{margin:10px 0;padding:11px;border:1px solid var(--line);border-radius:14px;background:var(--paper)}
+    .upgrade-preview[hidden]{display:none}
+    .upgrade-preview b,.upgrade-preview small{display:block}
+    .upgrade-preview b{font-size:11px;color:var(--forest)}
+    .upgrade-preview small{margin-top:5px;color:var(--muted);font-size:8px;line-height:1.45}
+    .catalogue-list{display:grid;gap:9px;max-height:58vh;overflow:auto}
+    .catalogue-row{display:grid;grid-template-columns:38px 1fr auto;align-items:center;gap:9px;padding:10px;border:1px solid var(--line);border-radius:14px;background:var(--paper)}
+    .catalogue-row i{font-style:normal;font-size:24px;text-align:center}
+    .catalogue-row b,.catalogue-row small{display:block}
+    .catalogue-row b{font-size:10px}.catalogue-row small{margin-top:4px;color:var(--muted);font-size:7px;line-height:1.35}
+    .catalogue-row em{font-style:normal;color:var(--gold-dark);font-size:8px;font-weight:900}
     .bottom-nav{
       position:fixed;z-index:80;left:50%;bottom:max(8px,env(safe-area-inset-bottom));transform:translateX(-50%);
       display:grid;grid-template-columns:repeat(4,1fr);gap:3px;width:min(calc(100% - 16px),464px);padding:6px;
@@ -381,18 +407,24 @@
           <button class="tab" data-shop-tab="gear">Gear</button>
           <button class="tab" data-shop-tab="fertiliser">Fertiliser</button>
         </div>
+        <div class="tabs gear-view-tabs" id="gearViewTabs" hidden>
+          <button class="tab active" data-gear-view="daily">Daily stock</button>
+          <button class="tab" data-gear-view="catalogue">Catalogue</button>
+        </div>
         <div class="shop-grid" id="shopGrid"></div>
       </section>
 
       <section class="screen" id="barn">
-        <div class="section-head"><h1>Barn</h1><button class="sell-btn" id="sellAll">Sell all</button></div>
+        <div class="section-head"><h1>Silo</h1><button class="sell-btn" id="sellAll">Sell all</button></div>
         <div class="loadout" id="loadout"></div>
-        <div class="section-head"><h2>Harvest</h2><small id="cropCount">0 crops</small></div>
+        <div class="section-head"><h2>Gear</h2><small id="gearCount">0 items</small></div>
+        <div class="owned-gear-grid" id="ownedGearGrid"></div>
+        <div class="section-head"><h2>Crops</h2><small id="cropCount">0 crops</small></div>
         <div class="inventory-list" id="inventoryList"></div>
       </section>
 
       <section class="screen" id="upgrades">
-        <div class="section-head"><h1>Farmhouse</h1></div>
+        <div class="section-head"><h1>Farmhouse</h1><button class="sell-btn" id="openUpgradeCatalogue">All upgrades</button></div>
         <div id="upgradeList"></div>
         <div class="placement-card card">
           <div class="section-head"><h2>Crop placement</h2></div>
@@ -412,6 +444,15 @@
             <label class="placement-control"><span>Size</span><button type="button" id="scaleDown" aria-label="Make smaller">−</button><input type="range" id="placementScale" min="40" max="220" step="5"><button type="button" id="scaleUp" aria-label="Make larger">＋</button><output id="placementScaleValue">100%</output></label>
           </div>
           <div class="placement-actions"><button class="btn secondary" id="resetPlacement">Reset</button><button class="btn" id="savePlacement">Save placement</button></div>
+        </div>
+        <div class="settings-card card">
+          <div class="section-head"><h2>Admin mode</h2></div>
+          <div class="admin-entry" id="adminEntry"><input id="adminCode" type="password" placeholder="Admin code" autocomplete="off"><button class="btn" id="enableAdmin">Enable</button></div>
+          <div class="admin-panel" id="adminPanel" hidden>
+            <div class="admin-status">∞ steps · ∞ gold · every seed unlocked</div>
+            <button class="btn" id="adminGrowAll">Grow all crops</button>
+            <button class="btn secondary" id="disableAdmin">Disable</button>
+          </div>
         </div>
         <div class="settings-card card">
           <div class="section-head"><h2>Step tracking</h2></div>
@@ -442,7 +483,7 @@
     <nav class="bottom-nav" aria-label="Main navigation">
       <button class="nav-btn active" data-screen="farm"><i>🌿</i><span>Farm</span></button>
       <button class="nav-btn" data-screen="shop"><i>🏡</i><span>Shop</span></button>
-      <button class="nav-btn" data-screen="barn"><i>🧺</i><span>Barn</span></button>
+      <button class="nav-btn" data-screen="barn"><i>🧺</i><span>Silo</span></button>
       <button class="nav-btn" data-screen="upgrades"><i>🛠️</i><span>Upgrade</span></button>
     </nav>
   </div>
@@ -463,6 +504,15 @@
       <div class="detail-art" id="detailArt"></div>
       <div class="detail-effect" id="detailEffect"></div>
       <button class="btn wide" id="detailAction"></button>
+      <div class="upgrade-preview" id="detailUpgradePreview" hidden><b id="detailUpgradeTitle"></b><small id="detailUpgradeRecipe"></small></div>
+      <button class="btn wide clay" id="detailUpgrade" hidden>Upgrade</button>
+    </div>
+  </div>
+
+  <div class="modal" id="upgradeCatalogueModal" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <div class="modal-head"><h2>Gear upgrades</h2><button class="close-btn" data-close-modal>×</button></div>
+      <div class="catalogue-list" id="upgradeCatalogueList"></div>
     </div>
   </div>
 
@@ -489,15 +539,20 @@
       const clamp = (value,min,max) => Math.min(max,Math.max(min,value));
 
       const CROPS = [
-        {id:"radish",name:"Radish",icon:"🌱",stages:{planted:"assets/farm/crops/radish-planted-64.png",half:"assets/farm/crops/radish-half-grown-64.png",grown:"assets/farm/crops/radish-grown-64.png"},level:1,seedCost:8,steps:700,expiryHours:8,baseValue:16,xp:18},
-        {id:"lettuce",name:"Lettuce",icon:"🥬",level:2,seedCost:14,steps:1200,expiryHours:8,baseValue:27,xp:28},
-        {id:"carrot",name:"Carrot",icon:"🥕",level:3,seedCost:22,steps:1900,expiryHours:6,baseValue:42,xp:42},
-        {id:"blueberry",name:"Blueberry",icon:"🫐",level:4,seedCost:32,steps:2700,expiryHours:6,baseValue:61,xp:58},
-        {id:"strawberry",name:"Strawberry",icon:"🍓",level:6,seedCost:46,steps:3800,expiryHours:4,baseValue:84,xp:78},
-        {id:"tomato",name:"Tomato",icon:"🍅",level:8,seedCost:65,steps:5200,expiryHours:4,baseValue:122,xp:105},
-        {id:"corn",name:"Sweetcorn",icon:"🌽",level:10,seedCost:84,steps:6800,expiryHours:3,baseValue:155,xp:135},
-        {id:"pumpkin",name:"Pumpkin",icon:"🎃",level:13,seedCost:112,steps:9000,expiryHours:2,baseValue:205,xp:180},
-        {id:"melon",name:"Moon Melon",icon:"🍈",level:16,seedCost:150,steps:12000,expiryHours:2,baseValue:275,xp:235}
+        {id:"radish",name:"Radish",icon:"🌱",stages:{planted:"assets/farm/crops/radish-planted-64.png",half:"assets/farm/crops/radish-half-grown-64.png",grown:"assets/farm/crops/radish-ready-pulled-64.png"},level:1,seedCost:8,steps:700,expiryHours:8,baseValue:16,xp:18},
+        {id:"lettuce",name:"Lettuce",icon:"🥬",level:2,seedCost:13,steps:1200,expiryHours:8,baseValue:29,xp:29},
+        {id:"carrot",name:"Carrot",icon:"🥕",level:3,seedCost:20,steps:1900,expiryHours:7,baseValue:41,xp:44},
+        {id:"beetroot",name:"Beetroot",icon:"🫜",level:4,seedCost:27,steps:2500,expiryHours:7,baseValue:55,xp:56},
+        {id:"blueberry",name:"Blueberry",icon:"🫐",level:5,seedCost:36,steps:3300,expiryHours:6,baseValue:66,xp:72},
+        {id:"potato",name:"Potato",icon:"🥔",level:7,seedCost:47,steps:4300,expiryHours:6,baseValue:88,xp:92},
+        {id:"strawberry",name:"Strawberry",icon:"🍓",level:9,seedCost:61,steps:5600,expiryHours:5,baseValue:107,xp:118},
+        {id:"tomato",name:"Tomato",icon:"🍅",level:11,seedCost:76,steps:7000,expiryHours:5,baseValue:138,xp:148},
+        {id:"corn",name:"Sweetcorn",icon:"🌽",level:13,seedCost:92,steps:8500,expiryHours:4,baseValue:156,xp:182},
+        {id:"cabbage",name:"Cabbage",icon:"🥬",level:15,seedCost:112,steps:10500,expiryHours:4,baseValue:198,xp:225},
+        {id:"pumpkin",name:"Pumpkin",icon:"🎃",level:18,seedCost:136,steps:13000,expiryHours:3,baseValue:229,xp:280},
+        {id:"melon",name:"Moon Melon",icon:"🍈",level:21,seedCost:160,steps:15500,expiryHours:3,baseValue:284,xp:340},
+        {id:"starfruit",name:"Starfruit",icon:"⭐",level:24,seedCost:190,steps:18000,expiryHours:2,baseValue:315,xp:410},
+        {id:"ancient-root",name:"Ancient Root",icon:"🪷",level:27,seedCost:225,steps:20000,expiryHours:2,baseValue:370,xp:485}
       ].map(crop => ({
         ...crop,
         riskMultiplier: 1 + clamp((8-crop.expiryHours)/6,0,1),
@@ -505,35 +560,53 @@
       }));
 
       const ITEMS = [
-        {id:"mud-boots",type:"boots",name:"Muddy Boots",icon:"🥾",quality:"base",cost:1200,effect:{growth:5},effectText:"+5% crop growth from every step"},
-        {id:"bronze-boots",type:"boots",name:"Bronze Trail Boots",icon:"🥾",quality:"bronze",cost:6000,effect:{growth:10},effectText:"+10% crop growth from every step"},
-        {id:"silver-boots",type:"boots",name:"Silver Field Boots",icon:"🥾",quality:"silver",cost:18000,effect:{growth:18},effectText:"+18% crop growth from every step"},
-        {id:"gold-boots",type:"boots",name:"Golden Harvester Boots",icon:"🥾",quality:"gold",cost:42000,effect:{growth:28},effectText:"+28% crop growth from every step"},
-        {id:"iridium-boots",type:"boots",name:"Iridium Wayfarers",icon:"🥾",quality:"iridium",cost:100000,effect:{growth:45},effectText:"+45% crop growth from every step"},
-        {id:"canvas-gloves",type:"gloves",name:"Canvas Gloves",icon:"🧤",quality:"base",cost:1000,effect:{quality:2},effectText:"+2% chance of a higher-quality crop"},
-        {id:"bronze-gloves",type:"gloves",name:"Bronze Gardener Gloves",icon:"🧤",quality:"bronze",cost:5500,effect:{quality:5},effectText:"+5% chance of a higher-quality crop"},
-        {id:"silver-gloves",type:"gloves",name:"Silverweave Gloves",icon:"🧤",quality:"silver",cost:16500,effect:{quality:9},effectText:"+9% chance of a higher-quality crop"},
-        {id:"gold-gloves",type:"gloves",name:"Golden Touch Gloves",icon:"🧤",quality:"gold",cost:39000,effect:{quality:14},effectText:"+14% chance of a higher-quality crop"},
-        {id:"iridium-gloves",type:"gloves",name:"Iridium Grower Gloves",icon:"🧤",quality:"iridium",cost:95000,effect:{quality:22,iridium:1},effectText:"+22% higher-quality chance · +1% Iridium chance"},
-        {id:"tin-can",type:"tools",name:"Tin Watering Can",icon:"🚿",quality:"base",cost:1600,effect:{expiry:5},effectText:"+5% more time before crops expire"},
-        {id:"bronze-rake",type:"tools",name:"Bronze Rake",icon:"🪏",quality:"bronze",cost:7200,effect:{sale:8},effectText:"+8% gold when crops are sold"},
-        {id:"silver-can",type:"tools",name:"Silver Watering Can",icon:"🚿",quality:"silver",cost:21000,effect:{expiry:20,growth:5},effectText:"+20% expiry time · +5% crop growth"},
-        {id:"gold-rake",type:"tools",name:"Golden Harvest Rake",icon:"🪏",quality:"gold",cost:48000,effect:{sale:20,quality:4},effectText:"+20% sale value · +4% quality chance"},
-        {id:"iridium-can",type:"tools",name:"Iridium Watering Can",icon:"🚿",quality:"iridium",cost:100000,effect:{growth:20,expiry:30,sale:15},effectText:"+20% growth · +30% expiry time · +15% sale value"}
+        {id:"meadow-treads",type:"boots",name:"Meadow Treads",icon:"🥾",quality:"base",cost:1200,effect:{growth:5}},
+        {id:"dewrunner",type:"boots",name:"Dewrunner Boots",icon:"🥾",quality:"base",cost:3200,effect:{growth:7,expiry:5}},
+        {id:"mossbound",type:"boots",name:"Mossbound Striders",icon:"🥾",quality:"bronze",cost:6000,effect:{growth:10,xp:4}},
+        {id:"riverstone",type:"boots",name:"Riverstone Boots",icon:"🥾",quality:"silver",cost:14000,effect:{growth:14,doubleStepCap:500}},
+        {id:"suntrail",type:"boots",name:"Suntrail Greaves",icon:"🥾",quality:"silver",cost:20000,effect:{growth:18,xp:7}},
+        {id:"harvestmoon",type:"boots",name:"Harvestmoon Walkers",icon:"🥾",quality:"gold",cost:42000,effect:{growth:25,doubleStepCap:1000}},
+        {id:"cloudstep",type:"boots",name:"Cloudstep Sabatons",icon:"🥾",quality:"gold",cost:58000,effect:{growth:22,expiry:25,xp:10}},
+        {id:"starroot",type:"boots",name:"Starroot Wayfarers",icon:"🥾",quality:"iridium",cost:100000,effect:{growth:40,doubleStepCap:2000,xp:12}},
+        {id:"seedkeeper",type:"gloves",name:"Seedkeeper Mitts",icon:"🧤",quality:"base",cost:1000,effect:{quality:2,xp:3}},
+        {id:"clayhand",type:"gloves",name:"Clayhand Gloves",icon:"🧤",quality:"base",cost:2600,effect:{quality:4,sale:3}},
+        {id:"bramblegrip",type:"gloves",name:"Bramblegrip",icon:"🧤",quality:"bronze",cost:5500,effect:{quality:6,expiry:6}},
+        {id:"pollinator-touch",type:"gloves",name:"Pollinator's Touch",icon:"🧤",quality:"silver",cost:15000,effect:{quality:9,xp:8}},
+        {id:"moonweave",type:"gloves",name:"Moonweave Gloves",icon:"🧤",quality:"silver",cost:22000,effect:{quality:12,iridium:.3}},
+        {id:"greenfingers",type:"gloves",name:"Gilded Greenfingers",icon:"🧤",quality:"gold",cost:39000,effect:{quality:16,xp:12,sale:8}},
+        {id:"orchard-warden",type:"gloves",name:"Orchard Warden",icon:"🧤",quality:"gold",cost:52000,effect:{quality:14,doubleGoldSales:1}},
+        {id:"starlight-wraps",type:"gloves",name:"Starlight Handwraps",icon:"🧤",quality:"iridium",cost:95000,effect:{quality:22,iridium:1,xp:18,doubleGoldSales:2}},
+        {id:"raincall",type:"tools",name:"Raincall Tin Can",icon:"🚿",quality:"base",cost:1600,effect:{expiry:5,growth:3}},
+        {id:"rootwake",type:"tools",name:"Rootwake Rake",icon:"🪏",quality:"base",cost:3200,effect:{sale:6}},
+        {id:"brookglass",type:"tools",name:"Brookglass Sprinkler",icon:"🚿",quality:"bronze",cost:7200,effect:{growth:8,expiry:12}},
+        {id:"windrow",type:"tools",name:"Windrow Scythe",icon:"🪏",quality:"bronze",cost:10500,effect:{sale:10,xp:5}},
+        {id:"silverleaf",type:"tools",name:"Silverleaf Waterer",icon:"🚿",quality:"silver",cost:21000,effect:{expiry:20,growth:8}},
+        {id:"sunspoke",type:"tools",name:"Sunspoke Rake",icon:"🪏",quality:"silver",cost:29000,effect:{sale:16,quality:4}},
+        {id:"goldenhour",type:"tools",name:"Goldenhour Harvester",icon:"🪏",quality:"gold",cost:48000,effect:{sale:22,doubleGoldSales:1,xp:8}},
+        {id:"rainstaff",type:"tools",name:"Stormroot Rainstaff",icon:"🚿",quality:"iridium",cost:100000,effect:{growth:20,expiry:30,sale:15,doubleGoldSales:2}}
       ];
 
       const FERTILISERS = [
-        {id:"fertiliser",name:"Fertiliser",icon:"🍂",image:"assets/farm/fertiliser-compost-64.png",tier:"bronze",cost:650,quality:10,iridium:.35,growth:0,effectText:"+10% crop quality · +0.35% Iridium",pack:1},
-        {id:"speed-gro",name:"Speed-Gro",icon:"🌱",tier:"silver",cost:1400,quality:0,iridium:0,growth:25,effectText:"+25% growth from every step",pack:1}
+        {id:"rootblend",name:"Rootblend",icon:"🍂",image:"assets/farm/fertiliser-compost-64.png",tier:"bronze",cost:1000,quality:10,iridium:.25,growth:0,effectText:"+10% quality chance",pack:1},
+        {id:"moon-soil",name:"Moon Soil",icon:"🌙",tier:"silver",cost:2000,quality:20,iridium:.75,growth:8,effectText:"+20% quality · +8% growth",pack:1},
+        {id:"sunrich",name:"Sunrich Mix",icon:"☀️",tier:"gold",cost:5000,quality:35,iridium:2.5,growth:15,effectText:"+35% quality · +15% growth",pack:1},
+        {id:"starlight-compost",name:"Starlight Compost",icon:"✨",tier:"iridium",cost:10000,quality:0,iridium:0,growth:20,guaranteed:"iridium",effectText:"Guaranteed Iridium crop · +20% growth",pack:1}
       ];
+      const LEGACY_ITEMS = {
+        "mud-boots":"meadow-treads","bronze-boots":"mossbound","silver-boots":"suntrail","gold-boots":"harvestmoon","iridium-boots":"starroot",
+        "canvas-gloves":"seedkeeper","bronze-gloves":"bramblegrip","silver-gloves":"pollinator-touch","gold-gloves":"greenfingers","iridium-gloves":"starlight-wraps",
+        "tin-can":"raincall","bronze-rake":"brookglass","silver-can":"silverleaf","gold-rake":"goldenhour","iridium-can":"rainstaff"
+      };
+      const LEGACY_FERTILISERS = {"fertiliser":"rootblend","speed-gro":"moon-soil","compost":"rootblend","rich-mix":"sunrich","star-mix":"starlight-compost"};
 
       function freshState(){
         return {
           version:1,gold:120,stepBalance:0,todaySteps:0,dailyGoal:DAILY_GOAL_DEFAULT,
           nativeDate:todayKey(),lastNativeToday:0,nativeLifetime:0,xp:0,unlockedBeds:1,
-          beds:Array.from({length:MAX_BEDS},()=>null),inventory:{},seeds:{radish:4},ownedItems:[],
+          beds:Array.from({length:MAX_BEDS},()=>null),inventory:{},seeds:{radish:4},ownedItems:[],itemUpgrades:{},
           equipment:{boots:null,gloves:null,tools:null},fertilisers:{},
-          cropRateLevel:0,qualityLevel:0,saleLevel:0,cropPlacements:{},trackingStatus:"checking"
+          cropRateLevel:0,qualityLevel:0,saleLevel:0,cropPlacements:{},trackingStatus:"checking",
+          adminMode:false,perkDate:todayKey(),doubleStepUsed:0,doubleGoldSalesUsed:0
         };
       }
       function loadState(){
@@ -542,11 +615,20 @@
           if(!saved||saved.version!==1)return freshState();
           const base=freshState();
           const merged={...base,...saved};
-          merged.beds=Array.from({length:MAX_BEDS},(_,i)=>saved.beds?.[i]||null);
-          merged.equipment={...base.equipment,...saved.equipment};
+          merged.beds=Array.from({length:MAX_BEDS},(_,i)=>{
+            const bed=saved.beds?.[i];
+            return bed?{...bed,fertiliserId:LEGACY_FERTILISERS[bed.fertiliserId]||bed.fertiliserId}:null;
+          });
+          merged.ownedItems=[...new Set((saved.ownedItems||[]).map(id=>LEGACY_ITEMS[id]||id))];
+          merged.equipment=Object.fromEntries(Object.entries({...base.equipment,...saved.equipment}).map(([slot,id])=>[slot,LEGACY_ITEMS[id]||id]));
           merged.inventory=saved.inventory||{};
           merged.seeds={...base.seeds,...(saved.seeds||{})};
-          merged.fertilisers=saved.fertilisers||{};
+          merged.itemUpgrades=Object.fromEntries(Object.entries(saved.itemUpgrades||{}).map(([id,level])=>[LEGACY_ITEMS[id]||id,level]));
+          merged.fertilisers={};
+          Object.entries(saved.fertilisers||{}).forEach(([id,count])=>{
+            const target=LEGACY_FERTILISERS[id]||id;
+            merged.fertilisers[target]=(merged.fertilisers[target]||0)+count;
+          });
           merged.cropPlacements=saved.cropPlacements||{};
           return merged;
         }catch{return freshState()}
@@ -554,10 +636,13 @@
       let state=loadState();
       let activeScreen="farm";
       let activeShopTab="seeds";
+      let activeGearView="daily";
+      let renderedStockDate=todayKey();
       let plantingBed=0;
       let selectedCrop=CROPS[0].id;
       let selectedFertiliser=null;
       let selectedItem=null;
+      let selectedFromCatalogue=false;
       let saveTimer=null;
       let toastTimer=null;
       let resetArmed=false;
@@ -577,6 +662,59 @@
       }
       function cropById(id){return CROPS.find(c=>c.id===id)}
       function itemById(id){return ITEMS.find(i=>i.id===id)}
+      const GEAR_TYPES = [["boots","Boots"],["gloves","Gloves"],["tools","Tools"]];
+      const ITEM_UPGRADE_MAX = 3;
+      const UPGRADE_PATHS = {
+        base:[{cropId:"radish",quality:"base",amount:1},{cropId:"carrot",quality:"bronze",amount:1},{cropId:"strawberry",quality:"silver",amount:1}],
+        bronze:[{cropId:"carrot",quality:"bronze",amount:1},{cropId:"strawberry",quality:"silver",amount:1},{cropId:"pumpkin",quality:"gold",amount:1}],
+        silver:[{cropId:"strawberry",quality:"silver",amount:1},{cropId:"pumpkin",quality:"gold",amount:1},{cropId:"ancient-root",quality:"iridium",amount:1}],
+        gold:[{cropId:"pumpkin",quality:"gold",amount:1},{cropId:"ancient-root",quality:"iridium",amount:1},{cropId:"ancient-root",quality:"iridium",amount:2}],
+        iridium:[{cropId:"ancient-root",quality:"iridium",amount:1},{cropId:"ancient-root",quality:"iridium",amount:2},{cropId:"ancient-root",quality:"iridium",amount:3}]
+      };
+      function resetDailyPerks(){
+        if(state.perkDate===todayKey())return;
+        state.perkDate=todayKey();state.doubleStepUsed=0;state.doubleGoldSalesUsed=0;
+      }
+      function canSpendSteps(cost){return state.adminMode||state.stepBalance>=cost}
+      function canSpendGold(cost){return state.adminMode||state.gold>=cost}
+      function spendSteps(cost){if(!state.adminMode)state.stepBalance-=cost}
+      function spendGold(cost){if(!state.adminMode)state.gold-=cost}
+      function hashText(text){
+        let hash=2166136261;
+        for(let i=0;i<text.length;i++){hash^=text.charCodeAt(i);hash=Math.imul(hash,16777619)}
+        return hash>>>0;
+      }
+      function dailyStock(type){
+        const key=todayKey();
+        return ITEMS.filter(item=>item.type===type).sort((a,b)=>hashText(`${key}:${a.id}`)-hashText(`${key}:${b.id}`)).slice(0,3);
+      }
+      function isDailyItem(id){return GEAR_TYPES.some(([type])=>dailyStock(type).some(item=>item.id===id))}
+      function itemUpgradeLevel(item){return state.itemUpgrades[item?.id]||0}
+      function itemEffectScale(item){return 1+itemUpgradeLevel(item)*.25}
+      function effectDescription(effect,scale=1){
+        const parts=[];
+        const value=key=>Math.round((effect[key]||0)*scale*10)/10;
+        if(effect.growth)parts.push(`+${value("growth")}% crop growth`);
+        if(effect.quality)parts.push(`+${value("quality")}% quality chance`);
+        if(effect.xp)parts.push(`+${value("xp")}% harvest XP`);
+        if(effect.expiry)parts.push(`+${value("expiry")}% crop lifetime`);
+        if(effect.sale)parts.push(`+${value("sale")}% sale gold`);
+        if(effect.iridium)parts.push(`+${value("iridium")}% Iridium chance`);
+        if(effect.doubleStepCap)parts.push(`first ${fmt(value("doubleStepCap"))} daily steps count twice`);
+        if(effect.doubleGoldSales)parts.push(`first ${fmt(value("doubleGoldSales"))} daily crop sales pay double`);
+        return parts.join(" · ");
+      }
+      function upgradeRecipe(item,nextLevel=itemUpgradeLevel(item)+1){
+        if(!item||nextLevel<1||nextLevel>ITEM_UPGRADE_MAX)return null;
+        const crop=UPGRADE_PATHS[item.quality][nextLevel-1];
+        return {...crop,steps:item.cost,level:nextLevel};
+      }
+      function recipeCropKey(recipe){return `${recipe.cropId}:${recipe.quality}`}
+      function recipeUnlocked(recipe){return levelInfo().level>=cropById(recipe.cropId).level}
+      function recipeText(recipe){
+        const crop=cropById(recipe.cropId),quality=QUALITY_LABELS[recipe.quality];
+        return `${fmt(recipe.steps)} steps + ${recipe.amount} ${quality?quality+" ":""}${crop.name}`;
+      }
       function spriteMarkup(entry,className="pixel-sprite"){
         return entry?.image?`<img class="${className} pixel-sprite" src="${entry.image}" alt="" draggable="false">`:entry?.icon||"";
       }
@@ -587,7 +725,7 @@
       function defaultCropPlacement(cropId,stage){
         if(cropId==="radish"&&stage==="planted")return {x:0,y:-20,scale:1};
         if(cropId==="radish"&&stage==="half")return {x:0,y:-13,scale:1};
-        if(cropId==="radish"&&stage==="grown")return {x:0,y:-4,scale:1};
+        if(cropId==="radish"&&stage==="grown")return {x:0,y:-4,scale:1.35};
         return {x:0,y:0,scale:1};
       }
       function cropPlacement(cropId,stage){
@@ -598,11 +736,13 @@
         return `--crop-x:${clamp(Number(placement.x)||0,-70,70)}px;--crop-y:${clamp(Number(placement.y)||0,-55,55)}px;--crop-scale:${clamp(Number(placement.scale)||1,.4,2.2)}`;
       }
       function equippedEffects(){
-        const total={growth:0,quality:0,iridium:0,expiry:0,sale:0};
+        resetDailyPerks();
+        const total={growth:0,quality:0,iridium:0,expiry:0,sale:0,xp:0,doubleStepCap:0,doubleGoldSales:0};
         Object.values(state.equipment).forEach(id=>{
           const item=itemById(id);
           if(!item)return;
-          Object.entries(item.effect).forEach(([key,value])=>total[key]=(total[key]||0)+value);
+          const scale=itemEffectScale(item);
+          Object.entries(item.effect).forEach(([key,value])=>total[key]=(total[key]||0)+value*scale);
         });
         total.growth+=state.cropRateLevel*10;
         total.quality+=state.qualityLevel*2;
@@ -644,6 +784,8 @@
         return odds;
       }
       function rollQuality(fertiliserId){
+        const fertiliser=FERTILISERS.find(entry=>entry.id===fertiliserId);
+        if(fertiliser?.guaranteed)return fertiliser.guaranteed;
         const odds=qualityOdds(fertiliserId);
         let roll=Math.random()*100;
         for(const quality of QUALITY_ORDER){roll-=odds[quality];if(roll<=0)return quality}
@@ -652,14 +794,19 @@
       function addSteps(delta){
         delta=number(delta);
         if(!delta)return;
-        state.stepBalance+=delta;
-        const gearMultiplier=1+equippedEffects().growth/100;
+        const effects=equippedEffects();
+        const bonusCap=Math.floor(effects.doubleStepCap||0);
+        const bonus=Math.min(delta,Math.max(0,bonusCap-number(state.doubleStepUsed)));
+        state.doubleStepUsed=number(state.doubleStepUsed)+bonus;
+        const effectiveDelta=delta+bonus;
+        state.stepBalance+=effectiveDelta;
+        const gearMultiplier=1+effects.growth/100;
         state.beds.forEach((bed,index)=>{
           if(!bed||bedState(bed)!=="growing")return;
           const crop=cropById(bed.cropId);
           const fertiliser=FERTILISERS.find(entry=>entry.id===bed.fertiliserId);
           const multiplier=gearMultiplier*(1+(fertiliser?.growth||0)/100);
-          state.beds[index]={...bed,growth:Math.min(crop.steps,bed.growth+delta*multiplier)};
+          state.beds[index]={...bed,growth:Math.min(crop.steps,bed.growth+effectiveDelta*multiplier)};
         });
         save();
         renderHeader();
@@ -700,9 +847,9 @@
 
       function renderHeader(){
         const level=levelInfo().level;
-        $("#stepsBalance").textContent=fmt(state.stepBalance);
-        $("#goldBalance").textContent=fmt(state.gold);
-        $("#levelLabel").textContent=`Level ${level} · ${level<5?"New grower":level<12?"Field keeper":"Master farmer"}`;
+        $("#stepsBalance").textContent=state.adminMode?"∞":fmt(state.stepBalance);
+        $("#goldBalance").textContent=state.adminMode?"∞":fmt(state.gold);
+        $("#levelLabel").textContent=state.adminMode?"ADMIN MODE":`Level ${level}`;
       }
       function renderFarm(){
         if(pullingBeds.size)return;
@@ -743,13 +890,13 @@
       }
       function unlockBed(index){
         const cost=BED_COSTS[index];
-        if(index!==state.unlockedBeds||state.gold<cost)return toast("Not enough gold");
-        state.gold-=cost;state.unlockedBeds++;save();renderAll();toast(`Bed ${index+1} unlocked`);
+        if(index!==state.unlockedBeds||!canSpendGold(cost))return toast("Not enough gold");
+        spendGold(cost);state.unlockedBeds++;save();renderAll();toast(`Bed ${index+1} unlocked`);
       }
       function openPlantModal(index){
         plantingBed=index;
         const level=levelInfo().level;
-        if(cropById(selectedCrop).level>level)selectedCrop=CROPS.find(c=>c.level<=level)?.id||CROPS[0].id;
+        if(!state.adminMode&&cropById(selectedCrop).level>level)selectedCrop=CROPS.find(c=>c.level<=level)?.id||CROPS[0].id;
         selectedFertiliser=null;
         $("#plantBedNumber").textContent=index+1;
         renderPlantModal();
@@ -757,26 +904,27 @@
       }
       function renderPlantModal(){
         const level=levelInfo().level;
-        $("#plantChoices").innerHTML=CROPS.map(crop=>{
-          const seeds=state.seeds[crop.id]||0,locked=level<crop.level;
-          return `<button class="plant-option ${selectedCrop===crop.id?"selected":""}" data-crop-choice="${crop.id}" ${locked||seeds<1?"disabled":""}><i>${crop.icon}</i><b>${crop.name}</b><small>${locked?`Level ${crop.level}`:`×${seeds}`}</small></button>`;
+        const crops=state.adminMode?CROPS:CROPS.filter(crop=>crop.level<=level);
+        $("#plantChoices").innerHTML=crops.map(crop=>{
+          const seeds=state.seeds[crop.id]||0;
+          return `<button class="plant-option ${selectedCrop===crop.id?"selected":""}" data-crop-choice="${crop.id}" ${!state.adminMode&&seeds<1?"disabled":""}><i>${crop.icon}</i><b>${crop.name}</b><small>${state.adminMode?"∞":`×${seeds}`}</small></button>`;
         }).join("");
         const noFert=`<button class="fert-option ${selectedFertiliser===null?"selected":""}" data-fert-choice=""><span><b>No fertiliser</b><small>Base Iridium chance: 1%</small></span><strong>Free</strong></button>`;
-        $("#fertChoices").innerHTML=noFert+FERTILISERS.map(fert=>`<button class="fert-option ${selectedFertiliser===fert.id?"selected":""}" data-fert-choice="${fert.id}" ${(state.fertilisers[fert.id]||0)<1?"disabled":""}><span><b class="fert-title">${spriteMarkup(fert)}<span>${fert.name}</span></b><small>${fert.effectText}</small></span><strong>×${state.fertilisers[fert.id]||0}</strong></button>`).join("");
+        $("#fertChoices").innerHTML=noFert+FERTILISERS.map(fert=>`<button class="fert-option ${selectedFertiliser===fert.id?"selected":""}" data-fert-choice="${fert.id}" ${!state.adminMode&&(state.fertilisers[fert.id]||0)<1?"disabled":""}><span><b class="fert-title">${spriteMarkup(fert)}<span>${fert.name}</span></b><small>${fert.effectText}</small></span><strong>${state.adminMode?"∞":`×${state.fertilisers[fert.id]||0}`}</strong></button>`).join("");
         $$("[data-crop-choice]").forEach(button=>button.onclick=()=>{selectedCrop=button.dataset.cropChoice;renderPlantModal()});
         $$("[data-fert-choice]").forEach(button=>button.onclick=()=>{selectedFertiliser=button.dataset.fertChoice||null;renderPlantModal()});
-        $("#confirmPlant").disabled=(state.seeds[selectedCrop]||0)<1;
+        $("#confirmPlant").disabled=!state.adminMode&&(state.seeds[selectedCrop]||0)<1;
       }
       function plantCrop(){
         const crop=cropById(selectedCrop);
         if(!crop||state.beds[plantingBed])return;
-        if((state.seeds[crop.id]||0)<1)return toast("Buy seeds from the Store");
+        if(!state.adminMode&&(state.seeds[crop.id]||0)<1)return toast("Buy seeds from the Store");
         if(selectedFertiliser){
           const count=state.fertilisers[selectedFertiliser]||0;
-          if(count<1)return toast("That fertiliser is out of stock");
-          state.fertilisers[selectedFertiliser]=count-1;
+          if(!state.adminMode&&count<1)return toast("That fertiliser is out of stock");
+          if(!state.adminMode)state.fertilisers[selectedFertiliser]=count-1;
         }
-        state.seeds[crop.id]--;
+        if(!state.adminMode)state.seeds[crop.id]--;
         state.beds[plantingBed]={
           cropId:crop.id,growth:0,plantedAt:Date.now(),
           expiresAt:Date.now()+effectiveExpiryMs(crop),fertiliserId:selectedFertiliser
@@ -789,7 +937,7 @@
         const quality=rollQuality(bed.fertiliserId);
         const key=`${crop.id}:${quality}`;
         state.inventory[key]=(state.inventory[key]||0)+1;
-        state.xp+=Math.round(crop.xp*QUALITY_MULTIPLIERS[quality]);
+        state.xp+=Math.round(crop.xp*QUALITY_MULTIPLIERS[quality]*(1+equippedEffects().xp/100));
         state.beds[index]=null;
         save();renderAll();celebrate(crop.icon);
         toast(`${QUALITY_LABELS[quality]?QUALITY_LABELS[quality]+" ":""}${crop.name} harvested`);
@@ -809,69 +957,120 @@
 
       function renderShop(){
         $$("#shopTabs .tab").forEach(tab=>tab.classList.toggle("active",tab.dataset.shopTab===activeShopTab));
+        $("#gearViewTabs").hidden=activeShopTab!=="gear";
+        $$("#gearViewTabs .tab").forEach(tab=>tab.classList.toggle("active",tab.dataset.gearView===activeGearView));
         if(activeShopTab==="seeds"){
           const level=levelInfo().level;
-          $("#shopGrid").innerHTML=CROPS.map(crop=>{
-            const locked=level<crop.level;
-            return `<button class="shop-item quality-base ${locked?"locked":""}" data-seed-buy="${crop.id}" ${locked||state.gold<crop.seedCost?"disabled":""}><div class="item-art">${crop.icon}</div><div class="item-name">${crop.name} seeds</div><div class="item-quality">${locked?`Level ${crop.level}`:`${fmt(crop.steps)} steps to grow`}</div><div class="item-cost">${fmt(crop.seedCost)} gold · owned ${state.seeds[crop.id]||0}</div></button>`;
+          const crops=state.adminMode?CROPS:CROPS.filter(crop=>crop.level<=level);
+          $("#shopGrid").innerHTML=crops.map(crop=>{
+            return `<button class="shop-item quality-base" data-seed-buy="${crop.id}" ${canSpendGold(crop.seedCost)?"":"disabled"}><div class="item-art">${crop.icon}</div><div class="item-name">${crop.name} seeds</div><div class="item-quality">${fmt(crop.steps)} steps to grow</div><div class="item-cost">${fmt(crop.seedCost)} gold · owned ${state.seeds[crop.id]||0}</div></button>`;
           }).join("");
           $$("[data-seed-buy]").forEach(button=>button.onclick=()=>buySeed(button.dataset.seedBuy));
           return;
         }
         if(activeShopTab==="fertiliser"){
-          $("#shopGrid").innerHTML=FERTILISERS.map(fert=>`<button class="shop-item fert-card quality-${fert.tier}" data-fert-buy="${fert.id}"><div class="item-art">${spriteMarkup(fert)}</div><div class="item-name">${fert.name}</div><div class="item-quality"><span class="quality-dot"></span>${QUALITY_LABELS[fert.tier]}</div><div class="item-cost">${fmt(fert.cost)} steps · owned ${state.fertilisers[fert.id]||0}</div></button>`).join("");
+          $("#shopGrid").innerHTML=FERTILISERS.map(fert=>`<button class="shop-item fert-card quality-${fert.tier}" data-fert-buy="${fert.id}" ${canSpendSteps(fert.cost)?"":"disabled"}><div class="item-art">${spriteMarkup(fert)}</div><div class="item-name">${fert.name}</div><div class="item-quality"><span class="quality-dot"></span>${QUALITY_LABELS[fert.tier]}</div><div class="item-cost">${fmt(fert.cost)} steps · owned ${state.fertilisers[fert.id]||0}</div></button>`).join("");
           $$("[data-fert-buy]").forEach(button=>button.onclick=()=>buyFertiliser(button.dataset.fertBuy));
           return;
         }
-        $("#shopGrid").innerHTML=ITEMS.map(item=>`<button class="shop-item quality-${item.quality} ${state.ownedItems.includes(item.id)?"owned":""}" data-shop-item="${item.id}"><div class="item-art">${item.icon}</div><div class="item-name">${item.name}</div><div class="item-quality"><span class="quality-dot"></span>${QUALITY_LABELS[item.quality]||"Standard"}</div><div class="item-cost">${state.ownedItems.includes(item.id)?"Owned":fmt(item.cost)+" steps"}</div></button>`).join("");
-        $$("[data-shop-item]").forEach(button=>button.onclick=()=>openItem(button.dataset.shopItem));
+        $("#shopGrid").innerHTML=GEAR_TYPES.map(([type,label])=>{
+          const items=activeGearView==="daily"?dailyStock(type):ITEMS.filter(item=>item.type===type);
+          return `<div class="shop-section"><h2>${label}</h2></div>${items.map(item=>itemCardMarkup(item,activeGearView==="catalogue")).join("")}`;
+        }).join("");
+        $$("[data-shop-item]").forEach(button=>button.onclick=()=>openItem(button.dataset.shopItem,button.dataset.catalogue==="1"));
+      }
+      function itemCardMarkup(item,catalogue=false){
+        const owned=state.ownedItems.includes(item.id),upgrade=itemUpgradeLevel(item);
+        return `<button class="shop-item quality-${item.quality} ${owned?"owned":""}" data-shop-item="${item.id}" data-catalogue="${catalogue?"1":"0"}"><div class="item-art">${item.icon}</div><div class="item-name">${item.name}</div><div class="item-quality"><span class="quality-dot"></span>${QUALITY_LABELS[item.quality]||"Standard"}${upgrade?` · +${upgrade}`:""}</div><div class="item-cost">${owned?"Owned":catalogue&&!state.adminMode?"View":fmt(item.cost)+" steps"}</div></button>`;
       }
       function buySeed(id){
         const crop=cropById(id);
-        if(!crop||state.gold<crop.seedCost)return toast("Not enough gold");
-        state.gold-=crop.seedCost;
+        if(!crop||!canSpendGold(crop.seedCost))return toast("Not enough gold");
+        spendGold(crop.seedCost);
         state.seeds[id]=(state.seeds[id]||0)+1;
         save();renderAll();toast(`${crop.name} seeds added`);
       }
-      function openItem(id){
+      function openItem(id,fromCatalogue=false){
         selectedItem=itemById(id);if(!selectedItem)return;
+        selectedFromCatalogue=fromCatalogue;
         const owned=state.ownedItems.includes(id);
         const equipped=state.equipment[selectedItem.type]===id;
+        const available=isDailyItem(id)||state.adminMode;
         $("#itemModalCard").className=`modal-card quality-${selectedItem.quality}`;
         $("#detailQuality").innerHTML=`<span class="quality-dot"></span>${QUALITY_LABELS[selectedItem.quality]||"Standard"} ${selectedItem.type==="tools"?"accessory":selectedItem.type}`;
         $("#detailName").textContent=selectedItem.name;
         $("#detailArt").textContent=selectedItem.icon;
-        $("#detailEffect").textContent=selectedItem.effectText;
-        $("#detailAction").textContent=owned?(equipped?"Equipped":"Equip item"):`Buy for ${fmt(selectedItem.cost)} steps`;
-        $("#detailAction").disabled=equipped||(!owned&&state.stepBalance<selectedItem.cost);
+        $("#detailEffect").textContent=effectDescription(selectedItem.effect,itemEffectScale(selectedItem));
+        $("#detailAction").textContent=owned?(equipped?"Equipped":"Equip item"):available?`Buy for ${fmt(selectedItem.cost)} steps`:"Not in today’s stock";
+        $("#detailAction").disabled=equipped||(!owned&&(!available||!canSpendSteps(selectedItem.cost)));
+        renderItemUpgrade();
         $("#itemModal").classList.add("show");
+      }
+      function renderItemUpgrade(){
+        const preview=$("#detailUpgradePreview"),button=$("#detailUpgrade");
+        const owned=selectedItem&&state.ownedItems.includes(selectedItem.id);
+        const current=selectedItem?itemUpgradeLevel(selectedItem):0;
+        const recipe=selectedItem?upgradeRecipe(selectedItem):null;
+        preview.hidden=!owned;button.hidden=true;
+        if(!owned)return;
+        preview.hidden=false;
+        if(!recipe){
+          $("#detailUpgradeTitle").textContent=`Upgrade +${current} · maximum`;
+          $("#detailUpgradeRecipe").textContent=effectDescription(selectedItem.effect,itemEffectScale(selectedItem));
+          return;
+        }
+        const unlocked=state.adminMode||recipeUnlocked(recipe);
+        if(!unlocked){preview.hidden=true;return}
+        $("#detailUpgradeTitle").textContent=`Upgrade to +${recipe.level}`;
+        $("#detailUpgradeRecipe").textContent=`${recipeText(recipe)} · each upgrade adds 25% to every benefit`;
+        button.hidden=!unlocked;
+        const cropEnough=(state.inventory[recipeCropKey(recipe)]||0)>=recipe.amount;
+        button.disabled=!canSpendSteps(recipe.steps)||(!state.adminMode&&!cropEnough);
+        button.textContent=`Upgrade · ${fmt(recipe.steps)} steps`;
       }
       function itemAction(){
         if(!selectedItem)return;
         if(!state.ownedItems.includes(selectedItem.id)){
-          if(state.stepBalance<selectedItem.cost)return toast("Not enough steps");
-          state.stepBalance-=selectedItem.cost;
+          if(!isDailyItem(selectedItem.id)&&!state.adminMode)return toast("This item is not in today’s stock");
+          if(!canSpendSteps(selectedItem.cost))return toast("Not enough steps");
+          spendSteps(selectedItem.cost);
           state.ownedItems.push(selectedItem.id);
           toast(`${selectedItem.name} purchased`);
         }
         state.equipment[selectedItem.type]=selectedItem.id;
         save();closeModals();renderAll();toast(`${selectedItem.name} equipped`);
       }
+      function upgradeSelectedItem(){
+        if(!selectedItem||!state.ownedItems.includes(selectedItem.id))return;
+        const recipe=upgradeRecipe(selectedItem);
+        if(!recipe||(!state.adminMode&&!recipeUnlocked(recipe)))return;
+        const key=recipeCropKey(recipe);
+        if(!state.adminMode&&(state.inventory[key]||0)<recipe.amount)return toast("Required crop missing");
+        if(!canSpendSteps(recipe.steps))return toast("Not enough steps");
+        spendSteps(recipe.steps);
+        if(!state.adminMode)state.inventory[key]-=recipe.amount;
+        state.itemUpgrades[selectedItem.id]=recipe.level;
+        save();renderAll();openItem(selectedItem.id,selectedFromCatalogue);toast(`${selectedItem.name} upgraded to +${recipe.level}`);
+      }
       function buyFertiliser(id){
         const fert=FERTILISERS.find(f=>f.id===id);if(!fert)return;
-        if(state.stepBalance<fert.cost)return toast("Not enough steps");
-        state.stepBalance-=fert.cost;
+        if(!canSpendSteps(fert.cost))return toast("Not enough steps");
+        spendSteps(fert.cost);
         state.fertilisers[id]=(state.fertilisers[id]||0)+fert.pack;
-        save();renderAll();toast(`${fert.name} added to the shed`);
+        save();renderAll();toast(`${fert.name} added`);
       }
 
       function renderBarn(){
         const slots=[["boots","Boots","🥾"],["gloves","Gloves","🧤"],["tools","Tool","🚿"]];
         $("#loadout").innerHTML=slots.map(([type,label,icon])=>{
           const item=itemById(state.equipment[type]);
-          return `<button class="loadout-slot" data-equipped="${item?.id||""}"><i>${item?.icon||icon}</i><b>${item?.name||label}</b><small>${item?QUALITY_LABELS[item.quality]||"Standard":"Empty"}</small></button>`;
+          return `<button class="loadout-slot" data-equipped="${item?.id||""}"><i>${item?.icon||icon}</i><b>${item?.name||label}</b><small>${item?`${QUALITY_LABELS[item.quality]||"Standard"}${itemUpgradeLevel(item)?` · +${itemUpgradeLevel(item)}`:""}`:"Empty"}</small></button>`;
         }).join("");
         $$("[data-equipped]").forEach(button=>{if(button.dataset.equipped)button.onclick=()=>openItem(button.dataset.equipped)});
+        const ownedGear=state.ownedItems.map(itemById).filter(Boolean);
+        $("#gearCount").textContent=`${ownedGear.length} item${ownedGear.length===1?"":"s"}`;
+        $("#ownedGearGrid").innerHTML=ownedGear.length?ownedGear.map(item=>`<button class="owned-gear-card quality-${item.quality}" data-owned-item="${item.id}"><i>${item.icon}</i><span><b>${item.name}</b><small><span class="quality-dot"></span>${QUALITY_LABELS[item.quality]||"Standard"}${itemUpgradeLevel(item)?` · +${itemUpgradeLevel(item)}`:""}</small></span></button>`).join(""):`<div class="empty-state" style="grid-column:1/-1">Buy gear from the Store.</div>`;
+        $$("[data-owned-item]").forEach(button=>button.onclick=()=>openItem(button.dataset.ownedItem));
         const entries=Object.entries(state.inventory).filter(([,count])=>count>0);
         const count=entries.reduce((sum,[,amount])=>sum+amount,0);
         $("#cropCount").textContent=`${fmt(count)} crop${count===1?"":"s"}`;
@@ -889,10 +1088,16 @@
       function saleValue(crop,quality){
         return Math.round(crop.sellValue*QUALITY_MULTIPLIERS[quality]*(1+equippedEffects().sale/100));
       }
+      function salePayout(crop,quality){
+        const effects=equippedEffects();
+        const doubleAvailable=state.doubleGoldSalesUsed<Math.floor(effects.doubleGoldSales||0);
+        if(doubleAvailable)state.doubleGoldSalesUsed++;
+        return saleValue(crop,quality)*(doubleAvailable?2:1);
+      }
       function sellCrop(key){
         if(!state.inventory[key])return;
         const [cropId,quality]=key.split(":"),crop=cropById(cropId);
-        const value=saleValue(crop,quality);
+        const value=salePayout(crop,quality);
         state.inventory[key]--;state.gold+=value;
         save();renderAll();toast(`Sold for ${fmt(value)} gold`);
       }
@@ -901,7 +1106,7 @@
         Object.entries(state.inventory).forEach(([key,amount])=>{
           if(amount<1)return;
           const [cropId,quality]=key.split(":");
-          total+=saleValue(cropById(cropId),quality)*amount;
+          for(let i=0;i<amount;i++)total+=salePayout(cropById(cropId),quality);
           state.inventory[key]=0;
         });
         if(!total)return;
@@ -917,12 +1122,43 @@
       function renderUpgrades(){
         $("#upgradeList").innerHTML=UPGRADES.map(upgrade=>{
           const level=state[upgrade.id]||0,cost=upgradeCost(upgrade,level),maxed=level>=upgrade.max;
-          return `<article class="upgrade-card card"><div class="upgrade-top"><div class="upgrade-icon">${upgrade.icon}</div><div class="upgrade-copy"><h3>${upgrade.name}</h3><p>${upgrade.description(level)}</p></div><span class="upgrade-level">${level} / ${upgrade.max}</span></div><button class="btn wide ${maxed?"secondary":""}" data-upgrade="${upgrade.id}" ${maxed||state.gold<cost?"disabled":""}>${maxed?"Fully upgraded":`Improve · ${fmt(cost)} gold`}</button></article>`;
+          return `<article class="upgrade-card card"><div class="upgrade-top"><div class="upgrade-icon">${upgrade.icon}</div><div class="upgrade-copy"><h3>${upgrade.name}</h3><p>${upgrade.description(level)}</p></div><span class="upgrade-level">${level} / ${upgrade.max}</span></div><button class="btn wide ${maxed?"secondary":""}" data-upgrade="${upgrade.id}" ${maxed||!canSpendGold(cost)?"disabled":""}>${maxed?"Fully upgraded":`Improve · ${fmt(cost)} gold`}</button></article>`;
         }).join("");
         $$("[data-upgrade]").forEach(button=>button.onclick=()=>buyUpgrade(button.dataset.upgrade));
         $("#goalSelect").value=String(state.dailyGoal);
         renderPlacementEditor();
         renderTracking();
+        renderAdminPanel();
+      }
+      function renderAdminPanel(){
+        $("#adminEntry").hidden=state.adminMode;
+        $("#adminPanel").hidden=!state.adminMode;
+      }
+      function enableAdmin(){
+        if($("#adminCode").value.trim().toUpperCase()!=="MILES-FARM")return toast("Incorrect admin code");
+        state.adminMode=true;$("#adminCode").value="";save();renderAll();toast("Admin mode enabled");
+      }
+      function disableAdmin(){state.adminMode=false;save();renderAll();toast("Admin mode disabled")}
+      function adminGrowAll(){
+        if(!state.adminMode)return;
+        let grown=0;
+        state.beds.forEach((bed,index)=>{
+          if(!bed)return;
+          const crop=cropById(bed.cropId);
+          state.beds[index]={...bed,growth:crop.steps,expiresAt:Math.max(bed.expiresAt,Date.now()+3600000)};
+          grown++;
+        });
+        save();renderAll();toast(grown?`${grown} crop${grown===1?"":"s"} ready`:"No planted crops");
+      }
+      function openUpgradeCatalogue(){
+        $("#upgradeCatalogueList").innerHTML=ITEMS.map(item=>{
+          const recipes=[1,2,3].map(level=>{
+            const recipe=upgradeRecipe(item,level),locked=!recipeUnlocked(recipe);
+            return `+${level}: ${recipeText(recipe)}${locked?` (level ${cropById(recipe.cropId).level})`:""}`;
+          }).join("<br>");
+          return `<article class="catalogue-row quality-${item.quality}"><i>${item.icon}</i><span><b>${item.name}</b><small>${recipes}</small></span><em>${QUALITY_LABELS[item.quality]||"Base"}</em></article>`;
+        }).join("");
+        $("#upgradeCatalogueModal").classList.add("show");
       }
       function loadPlacementDraft(){
         placementDraft={...cropPlacement(placementCropId,placementStage)};
@@ -993,8 +1229,8 @@
         const upgrade=UPGRADES.find(entry=>entry.id===id),level=state[id]||0;
         if(!upgrade||level>=upgrade.max)return;
         const cost=upgradeCost(upgrade,level);
-        if(state.gold<cost)return toast("Not enough gold");
-        state.gold-=cost;state[id]=level+1;save();renderAll();toast(`${upgrade.name} improved`);
+        if(!canSpendGold(cost))return toast("Not enough gold");
+        spendGold(cost);state[id]=level+1;save();renderAll();toast(`${upgrade.name} improved`);
       }
       function renderTracking(){
         const status=state.trackingStatus;
@@ -1048,18 +1284,31 @@
 
       $$(".nav-btn").forEach(button=>button.onclick=()=>navigate(button.dataset.screen));
       $$("#shopTabs .tab").forEach(tab=>tab.onclick=()=>{activeShopTab=tab.dataset.shopTab;renderShop()});
+      $$("#gearViewTabs .tab").forEach(tab=>tab.onclick=()=>{activeGearView=tab.dataset.gearView;renderShop()});
       $$("[data-close-modal]").forEach(button=>button.onclick=closeModals);
       $$(".modal").forEach(modal=>modal.onclick=event=>{if(event.target===modal)closeModals()});
       $("#confirmPlant").onclick=plantCrop;
       $("#detailAction").onclick=itemAction;
+      $("#detailUpgrade").onclick=upgradeSelectedItem;
       $("#sellAll").onclick=sellAll;
+      $("#openUpgradeCatalogue").onclick=openUpgradeCatalogue;
+      $("#enableAdmin").onclick=enableAdmin;
+      $("#adminCode").onkeydown=event=>{if(event.key==="Enter")enableAdmin()};
+      $("#adminGrowAll").onclick=adminGrowAll;
+      $("#disableAdmin").onclick=disableAdmin;
       $("#trackingButton").onclick=()=>{
         if(!postNative({type:"requestPedometer"}))toast("Install or open the Android app to enable background steps");
       };
       $("#goalSelect").onchange=event=>{state.dailyGoal=number(event.target.value)||DAILY_GOAL_DEFAULT;save();renderFarm()};
       $("#resetButton").onclick=resetFarm;
       document.addEventListener("visibilitychange",()=>{if(!document.hidden){postNative({type:"pedometerReady"});renderAll()}});
-      setInterval(()=>{if(activeScreen==="farm")updateFarmTimes()},1000);
+      setInterval(()=>{
+        if(activeScreen==="farm")updateFarmTimes();
+        if(renderedStockDate!==todayKey()){
+          renderedStockDate=todayKey();resetDailyPerks();save();
+          if(activeScreen==="shop")renderShop();
+        }
+      },1000);
       if("serviceWorker" in navigator)navigator.serviceWorker.register("./sw.js").catch(()=>{});
       renderAll();
       postNative({type:"pedometerReady"});
