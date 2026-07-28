@@ -32,7 +32,6 @@ for (const required of [
   "doubleStepCap",
   "doubleGoldSales",
   "dailyQuests",
-  "discountedCrop",
   "requestLocalWeatherPermission",
   "replantAll",
   "sellSelectedGear",
@@ -45,7 +44,7 @@ const hook = '      $$(".nav-btn").forEach(button=>button.onclick';
 if (!script[1].includes(hook)) throw new Error("Could not locate runtime test hook");
 const instrumented = script[1].replace(
   hook,
-  `      globalThis.__farmTest = { CROPS, ITEMS, FERTILISERS, BED_COSTS, BED_REQUIREMENTS, MAX_BEDS, FARM_UPGRADES, qualityOdds, freshState, dailyStock, dailyQuests, discountedCrop, weatherFromCurrent, upgradeRecipe, ITEM_UPGRADE_MAX };
+  `      globalThis.__farmTest = { CROPS, ITEMS, FERTILISERS, BED_COSTS, BED_REQUIREMENTS, MAX_BEDS, FARM_UPGRADES, qualityOdds, freshState, dailyStock, dailyQuests, weatherFromCurrent, upgradeRecipe, ITEM_UPGRADE_MAX };
       return;
 ${hook}`
 );
@@ -107,23 +106,26 @@ if (html.includes('${currencyMarkup("steps",crop.steps)} · ${state.adminMode?')
 if (html.includes(".shop-item:before") || !html.includes("background:radial-gradient(circle at 50% 42%")) {
   throw new Error("Shop rarity must use the full card background without a side band");
 }
-if (farm.freshState().seedShopSize !== 38 || !html.includes("--seed-shop-size") || !html.includes("detailLinesMarkup")) {
+if (farm.freshState().seedShopSize !== 46 || !html.includes("--seed-shop-size") || !html.includes("detailLinesMarkup")) {
   throw new Error("Persistent seed sizing and one-line-per-stat shop details are required");
 }
 if (!html.includes(".shop-grid{display:grid;grid-template-columns:repeat(3") || html.includes("large-seeds") || html.includes("data-fert-buy")) {
   throw new Error("The reference-style shop must remain three wide with popup purchasing");
 }
-if (!html.includes("data-fert-view") || !html.includes("shopLayoutVersion:3") || !html.includes("class=\"seed-shop-row")) {
+if (!html.includes("data-fert-view") || !html.includes("shopLayoutVersion:4") || !html.includes("class=\"seed-shop-row")) {
   throw new Error("The seed shop must use the compact reference-list layout and migration");
 }
 if (!html.includes("grid-template-columns:var(--seed-shop-size) minmax(0,1fr) auto") || !html.includes("seed-row-price")) {
   throw new Error("Seed rows must align icon, name, and price in separate columns");
 }
-if (!html.includes("Pixelify+Sans") || !html.includes('font-family:"Pixelify Sans"') || !html.includes("background:transparent;")) {
-  throw new Error("The refined seed ledger requires its pixel font and transparent thin frame");
+if (!html.includes('font-family:"DM Sans"') || !html.includes("font-weight:800") || !html.includes("background:transparent;")) {
+  throw new Error("The refined seed ledger requires thick modern typography and a transparent outer field");
 }
-if (!html.includes('${fmt(crop.seedCost)}<img class="currency-icon"') || !html.includes("border:2px solid #683718")) {
-  throw new Error("Seed prices and the thin outer frame must match the supplied reference");
+if (!html.includes('${fmt(crop.seedCost)}<img class="currency-icon"') || !html.includes("border:3px solid #856a49") || !html.includes("border-radius:20px")) {
+  throw new Error("Seed prices and the substantial rounded outer frame must match the polished design");
+}
+if (html.includes("discountedCrop") || html.includes("data-discount") || html.includes("half price") || html.includes("seed-shop-row discount")) {
+  throw new Error("The daily seed discount must be removed completely");
 }
 if (farm.CROPS.length < 20) {
   throw new Error("The crop catalogue must include at least twenty crops");
@@ -139,7 +141,6 @@ if (farm.FARM_UPGRADES.length < 8 || farm.FARM_UPGRADES.some((item) => !item.lev
 if (farm.dailyQuests().length !== 3 || !farm.dailyQuests().some((quest) => quest.reward.type === "gear")) {
   throw new Error("Three deterministic daily NPC quests including a gear trade are required");
 }
-if (farm.discountedCrop().seedCost < 1) throw new Error("The daily discounted seed must resolve to a crop");
 const rain = farm.weatherFromCurrent({ weather_code: 61, temperature_2m: 16, precipitation: 2 });
 if (rain.growth <= 0 || rain.quality <= 0) throw new Error("Rain should provide a positive crop modifier");
 const itemTypes = new Set(farm.ITEMS.map((item) => item.type));

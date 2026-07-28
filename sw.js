@@ -1,5 +1,5 @@
 /* Ironbound service worker — farming app shell for offline + home-screen install */
-const CACHE = 'ironbound-farm-v13';
+const CACHE = 'ironbound-farm-v14';
 const ASSETS = [
   './',
   './index.html',
