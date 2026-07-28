@@ -54,6 +54,7 @@ export default function App() {
   const sensorCountRef = useRef(0);
   const sensorPrimedRef = useRef(false);
   const dailyRef = useRef({ date: localDateKey(), steps: 0, lastRaw: null });
+  const lifetimeStepsRef = useRef(0);
   const permissionRef = useRef({ status: 'undetermined', canAskAgain: true });
   const [webReady, setWebReady] = useState(false);
   const [permissionCard, setPermissionCard] = useState(false);
@@ -64,6 +65,7 @@ export default function App() {
       source: 'native',
       date: localDateKey(),
       today: dailyRef.current.steps,
+      lifetime: lifetimeStepsRef.current,
       ...payload,
     };
     const detail = JSON.stringify(message).replace(/</g, '\\u003c');
@@ -92,6 +94,10 @@ export default function App() {
     resetForNewDay();
     const now = Date.now();
     const nativeToday = Number(event.today);
+    const nativeLifetime = Number(event.lifetime);
+    if (Number.isFinite(nativeLifetime) && nativeLifetime >= 0) {
+      lifetimeStepsRef.current = Math.floor(nativeLifetime);
+    }
     if (Number.isFinite(nativeToday) && nativeToday >= 0) {
       dailyRef.current.steps = Math.floor(nativeToday);
       saveDaily().catch(() => {});
@@ -145,6 +151,10 @@ export default function App() {
       return false;
     }
     const nativeToday = Number(result?.today);
+    const nativeLifetime = Number(result?.lifetime);
+    if (Number.isFinite(nativeLifetime) && nativeLifetime >= 0) {
+      lifetimeStepsRef.current = Math.floor(nativeLifetime);
+    }
     if (Number.isFinite(nativeToday) && nativeToday >= 0) {
       dailyRef.current.steps = Math.floor(nativeToday);
       saveDaily().catch(() => {});

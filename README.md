@@ -1,45 +1,43 @@
 # Ironbound
 
-Ironbound is a mobile-first step RPG. On-device motion detection turns walking steps into equipment-powered attacks while training builds XP, strength and dungeon progress.
+Ironbound is a mobile-first step farming game. Walking produces spendable steps and grows every planted crop; harvested crops can be sold for gold and experience.
 
-## Game loop
+## Farming loop
 
-- Choose an enemy in a dungeon and see the estimated number of steps required with the current loadout.
-- Enable motion access on a phone to count steps while the app is open; a manual-step fallback is available for unsupported browsers.
-- Every step earns XP. Dungeon steps also deal damage based on the equipped weapon, equipped buffs and invested damage points.
-- Swipe through E-, C-, A- and S-tier dungeons. Harder locations unlock in order after the dungeon before them is cleared. Locked dungeons can still be inspected.
-- Enemy attacks stay dormant until the first step or the end of the five-second grace period. Combat shows the enemy at the top, the hero at the bottom, and a live attack timer and hit chance.
-- Clearing a dungeon awards a server-verified coin payout and a fixed experience reward.
-- Buy equipment in the Market, then equip weapons, armour and charms in Inventory.
-- Choose daily quests from the Home quest board for gold and XP.
-- Manual steps remain available on unsupported devices.
+- Start with one planting bed and unlock up to ten with gold.
+- Plant level-gated crops with different step requirements, experience rewards, sale values and expiry windows.
+- Every walked step advances all active beds. The Android app keeps a native lifetime ledger so steps collected in the background remain available across day changes.
+- Harvest crops in standard, Bronze, Silver, Gold or Iridium quality. Iridium has a 1% base chance.
+- Sell harvested crops for gold. Riskier two-hour crops receive twice the time-value multiplier of equivalent eight-hour crops.
+- Spend gold on permanent irrigation, soil-quality and market-value improvements.
+- Spend steps on Boots, Gloves, Tools and single-use Fertiliser. Equipment improves crop growth, quality, expiry time or sale value.
 
-## Levels and stats
+## Currency and progression
 
-Every level after level 1 awards one spendable point. Damage adds 5% per point, Health adds 10 HP to the 100 HP base pool, Luck increases coin rewards by 2% per point, and Defence lowers each enemy's displayed hit chance. Equipment can add further damage, health, luck or defence.
+- **Steps** come only from walking and are used in the Country Store.
+- **Gold** comes from selling crops and is used for new beds and farm upgrades.
+- Harvesting awards experience. Higher-level crops require more steps but award more experience and gold.
 
-Weapons and dungeons carry E-to-S ratings. Dungeon completions award server-verified coins and experience only.
+## Background Android tracking
 
-## Gems and Stripe
-
-Firebase authentication and Stripe billing are preserved. Signed-in players can save a card with Stripe and purchase fixed gem packs. Pack prices and gem awards are selected and verified by Firebase Functions, while duplicate submissions are protected with Stripe idempotency keys. Purchased gems can be exchanged for gold.
-
-The Oath tab has been removed. Accounts with an older active Oath can remove it from Profile; no new Oaths are offered in the RPG interface.
-
-Card details never pass through this repository. The Stripe secret remains in Firebase Functions.
-
-## Sprite Lab
-
-The in-app Sprite Lab accepts individual PNG, WebP or JPG frames and large sprite sheets. Sprite sheets are cut into cells from left to right, then top to bottom. Original source dimensions and colours are kept untouched; background removal, colour reduction and speck removal are optional export-time effects.
-
-Draw one reference box around a recognisable patch of pixels and Sprite Lab finds the closest lossless match in every frame. Each match receives a confidence score and becomes that frame's centre anchor; uncertain frames stay clearly marked for review. Previous, current and next views plus an adjustable onion-skin overlay make one-pixel drift easy to spot. A pixel grid, whole-pixel placement, 1:1 source-pixel mode and a 16–512 output-definition control prevent accidental downscaling. Confirmed frames export as a variable-resolution sprite sheet or a ZIP containing individually named PNG files and a matching/anchor manifest.
-
-Uploaded artwork is processed locally in the browser and is not sent to Firebase or any other server. ZIP creation also happens locally.
+The Android wrapper uses the hardware step detector and cumulative step counter through a foreground health service. It stores both today’s steps and a lifetime total, displays an ongoing notification, restarts after reboot, and requests Physical Activity, notification and battery-optimization permissions through Android.
 
 ## Run locally
 
-Serve the repository with a static web server and open it through `localhost` or HTTPS. iOS motion permission must be requested from the in-app button. There is no build step.
+Serve the repository with a static web server:
+
+```powershell
+python -m http.server 4173
+```
+
+Open `http://127.0.0.1:4173`. The native Android wrapper is required for hardware and background step tracking.
+
+Run the static farming checks with:
+
+```powershell
+node scripts/validate-farm-ui.cjs
+```
 
 ## Deployment
 
-The repository is configured for GitHub Pages. `manifest.webmanifest` makes the site installable as a portrait mobile web app, and `sw.js` provides a network-first offline app shell.
+The repository is configured for GitHub Pages. `manifest.webmanifest` provides the portrait install metadata, while `sw.js` uses a network-first app-shell cache so deployed updates remain fresh and the last successful version works offline.

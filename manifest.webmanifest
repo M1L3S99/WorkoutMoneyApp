@@ -1,13 +1,13 @@
 {
-  "name": "Ironbound — Step RPG",
+  "name": "Ironbound — Step Farm",
   "short_name": "Ironbound",
-  "description": "Turn daily steps and equipped items into dungeon damage and RPG progression.",
+  "description": "Grow crops with your daily steps, improve your farm and sell each harvest.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#100f0d",
-  "theme_color": "#15130f",
+  "background_color": "#f7f1df",
+  "theme_color": "#304c35",
   "icons": [
     { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
   ]
