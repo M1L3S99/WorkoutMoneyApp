@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <title>Ironbound — Step Farm</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Pixelify+Sans:wght@400..700&display=swap');
 
     :root{
       color-scheme:light;
@@ -233,21 +233,31 @@
     .seed-size-control button{width:30px;height:30px;border:1px solid var(--line);border-radius:9px;background:var(--cream);color:var(--forest);font-size:16px;font-weight:900}
     .seed-size-control output{text-align:right;color:var(--muted);font-size:8px;font-weight:900}
     .shop-grid.seed-grid{
-      --seed-shop-size:38px;display:grid;grid-template-columns:1fr;gap:4px;
-      padding:5px;border:3px solid #87502b;border-radius:5px;background:#b66f37;
-      box-shadow:inset 0 0 0 2px #e9b970,0 7px 18px rgba(87,51,28,.18)
+      --seed-shop-size:38px;display:grid;grid-template-columns:1fr;gap:2px;
+      padding:2px;border:2px solid #683718;border-radius:1px;background:transparent;
+      box-shadow:0 0 0 1px #c87932,inset 0 0 0 1px #ffd18a,0 5px 13px rgba(87,51,28,.12)
     }
     .seed-shop-row{
       display:grid;grid-template-columns:var(--seed-shop-size) minmax(0,1fr) auto;align-items:center;gap:8px;
-      min-height:calc(var(--seed-shop-size) + 10px);padding:4px 7px;border:2px solid #704020;border-radius:2px;
-      background:#e6b768;color:#4b2918;box-shadow:inset 0 0 0 2px #f3d38f;cursor:pointer;text-align:left
+      min-height:calc(var(--seed-shop-size) + 8px);padding:3px 6px;border:1px solid #6b391b;border-radius:0;
+      background:linear-gradient(180deg,#f0cd83,#e3ad61);color:#562a18;
+      box-shadow:inset 0 0 0 1px #f9d995,0 1px 0 #9f5f2d;cursor:pointer;text-align:left
     }
-    .seed-shop-row.discount{background:#efc774;box-shadow:inset 0 0 0 2px #ffe2a2}
-    .seed-row-icon{display:grid;place-items:center;width:var(--seed-shop-size);height:var(--seed-shop-size);border:1px solid #8d592f;background:#f5d996;font-size:24px}
-    .seed-row-icon .pixel-sprite{width:calc(var(--seed-shop-size) - 4px);height:calc(var(--seed-shop-size) - 4px)}
-    .seed-row-name{min-width:0;overflow:hidden;font-family:"Courier New",monospace;font-size:13px;font-weight:900;letter-spacing:.02em;white-space:nowrap;text-overflow:ellipsis}
-    .seed-row-price{display:inline-flex;align-items:center;justify-content:flex-end;min-width:48px;font-family:"Courier New",monospace;font-size:14px;font-weight:900}
-    .seed-row-price .currency-icon{width:15px;height:15px;vertical-align:-3px}
+    .seed-shop-row.discount{background:linear-gradient(180deg,#f6d78f,#e9b76c)}
+    .seed-row-icon{
+      display:grid;place-items:center;width:var(--seed-shop-size);height:var(--seed-shop-size);
+      border:1px solid #89532d;background:transparent;box-shadow:inset 0 0 0 1px rgba(255,226,164,.72);font-size:24px
+    }
+    .seed-row-icon .pixel-sprite{width:calc(var(--seed-shop-size) - 5px);height:calc(var(--seed-shop-size) - 5px)}
+    .seed-row-name{
+      min-width:0;overflow:hidden;font-family:"Pixelify Sans",system-ui,sans-serif;font-size:15px;font-weight:600;
+      letter-spacing:.015em;white-space:nowrap;text-overflow:ellipsis;text-shadow:0 1px 0 #f8d99a
+    }
+    .seed-row-price{
+      display:inline-flex;align-items:center;justify-content:flex-end;gap:2px;min-width:48px;
+      font-family:"Pixelify Sans",system-ui,sans-serif;font-size:16px;font-weight:600;text-shadow:0 1px 0 #f8d99a
+    }
+    .seed-row-price .currency-icon{width:15px;height:15px;margin:0;vertical-align:middle}
     .fert-card .item-art{font-size:40px}
     .gear-grid .shop-item{min-height:0;padding:5px}
     .gear-grid .item-art{height:100%;font-size:40px}
@@ -421,8 +431,8 @@
       .topbar{padding-inline:11px}.brand-mark{width:37px;height:37px;flex-basis:37px}.brand b{font-size:18px}
       .wallet-pill{min-width:61px;padding-inline:6px}.step-card{grid-template-columns:104px 1fr;padding:14px;gap:12px}
       .step-ring{width:104px;height:104px}.step-ring-copy b{font-size:24px}.beds-grid{gap:8px}.bed{min-height:147px;padding:10px}
-      .shop-grid,.shop-grid.gear-grid{gap:7px}.shop-grid.seed-grid{gap:3px}.shop-item,.gear-grid .shop-item{min-height:0;padding:4px}.item-name,.gear-grid .item-name{font-size:8px}
-      .seed-shop-row{gap:6px;padding-inline:5px}.seed-row-name{font-size:11px}.seed-row-price{min-width:42px;font-size:12px}
+      .shop-grid,.shop-grid.gear-grid{gap:7px}.shop-grid.seed-grid{gap:2px}.shop-item,.gear-grid .shop-item{min-height:0;padding:4px}.item-name,.gear-grid .item-name{font-size:8px}
+      .seed-shop-row{gap:6px;padding-inline:4px}.seed-row-name{font-size:13px}.seed-row-price{min-width:42px;font-size:14px}
       .quest-card{grid-template-columns:44px 1fr}.npc-portrait{width:44px;height:44px}.quest-card .btn{grid-column:1/-1;width:100%}
     }
   </style>
@@ -1251,9 +1261,9 @@
           const level=levelInfo().level;
           const crops=state.adminMode?CROPS:CROPS.filter(crop=>crop.level<=level);
           const discount=discountedCrop(),discountCost=Math.max(1,Math.ceil(discount.seedCost/2));
-          const discountRow=`<button class="seed-shop-row discount" data-seed-view="${discount.id}" data-discount="1"><span class="seed-row-icon">${cropIconMarkup(discount,true)}</span><span class="seed-row-name">${discount.name} Seeds</span><span class="seed-row-price">${currencyMarkup("gold",discountCost)}</span></button>`;
+          const discountRow=`<button class="seed-shop-row discount" data-seed-view="${discount.id}" data-discount="1"><span class="seed-row-icon">${cropIconMarkup(discount,true)}</span><span class="seed-row-name">${discount.name} Seeds</span><span class="seed-row-price">${fmt(discountCost)}<img class="currency-icon" src="${CURRENCY_ICONS.gold}" alt="Gold"></span></button>`;
           $("#shopGrid").innerHTML=discountRow+crops.map(crop=>{
-            return `<button class="seed-shop-row" data-seed-view="${crop.id}"><span class="seed-row-icon">${cropIconMarkup(crop,true)}</span><span class="seed-row-name">${crop.name} Seeds</span><span class="seed-row-price">${currencyMarkup("gold",crop.seedCost)}</span></button>`;
+            return `<button class="seed-shop-row" data-seed-view="${crop.id}"><span class="seed-row-icon">${cropIconMarkup(crop,true)}</span><span class="seed-row-name">${crop.name} Seeds</span><span class="seed-row-price">${fmt(crop.seedCost)}<img class="currency-icon" src="${CURRENCY_ICONS.gold}" alt="Gold"></span></button>`;
           }).join("");
           $$("[data-seed-view]").forEach(button=>button.onclick=()=>openSeed(button.dataset.seedView,button.dataset.discount==="1"));
           return;
