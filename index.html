@@ -197,9 +197,11 @@
       position:relative;min-height:150px;padding:11px;border:1px solid var(--line);border-radius:19px;
       background:linear-gradient(145deg,#fffaf0,#f3ecdc);cursor:pointer;text-align:left;overflow:hidden
     }
-    .shop-item:before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--quality)}
-    .shop-item[class*="quality-"]{background:linear-gradient(145deg,color-mix(in srgb,var(--quality) 18%,#fffaf0),#f3ecdc)}
-    .shop-item.owned{background:#eef3e8}
+    .shop-item[class*="quality-"]{
+      border-color:color-mix(in srgb,var(--quality) 56%,var(--line));
+      background:color-mix(in srgb,var(--quality) 25%,#fffaf0)
+    }
+    .shop-item.owned{box-shadow:inset 0 0 0 2px rgba(48,92,55,.2)}
     .item-art{display:grid;place-items:center;height:65px;font-size:42px;filter:drop-shadow(0 5px 5px rgba(52,42,24,.14))}
     .item-art .pixel-sprite{width:60px;height:60px}
     .item-name{min-height:34px;font-family:"Fraunces",serif;font-size:13px;line-height:1.2;color:var(--forest)}
@@ -212,20 +214,30 @@
     }
     .wallet-pill .currency-icon{width:20px;height:20px;flex:0 0 20px;margin:0;vertical-align:middle}
     .seed-card-price{margin-top:8px}
-    .shop-grid.seed-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+    .seed-size-control{
+      display:grid;grid-template-columns:auto 30px minmax(80px,1fr) 30px 40px;align-items:center;gap:7px;
+      margin:10px 0 2px;padding:8px 10px;border:1px solid var(--line);border-radius:14px;background:var(--paper)
+    }
+    .seed-size-control[hidden]{display:none}
+    .seed-size-control label{color:var(--forest);font-size:9px;font-weight:900}
+    .seed-size-control input{width:100%;accent-color:var(--forest)}
+    .seed-size-control button{width:30px;height:30px;border:1px solid var(--line);border-radius:9px;background:var(--cream);color:var(--forest);font-size:16px;font-weight:900}
+    .seed-size-control output{text-align:right;color:var(--muted);font-size:8px;font-weight:900}
+    .shop-grid.seed-grid{--seed-shop-size:64px;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
     .shop-grid.seed-grid .shop-item{
-      display:grid;grid-template-rows:minmax(62px,1fr) auto auto;align-items:center;
+      display:grid;grid-template-rows:minmax(var(--seed-shop-size),1fr) auto auto;align-items:center;
       min-height:0;aspect-ratio:.8;padding:8px 6px;text-align:center
     }
-    .seed-grid .item-art{height:62px}
-    .seed-grid .item-art .pixel-sprite{width:64px;height:64px}
+    .seed-grid .item-art{height:var(--seed-shop-size)}
+    .seed-grid .item-art .pixel-sprite{width:var(--seed-shop-size);height:var(--seed-shop-size)}
+    .shop-grid.seed-grid.large-seeds{grid-template-columns:repeat(2,minmax(0,1fr))}
     .seed-grid .item-name{min-height:26px;font-size:10px}
     .seed-grid .item-cost{margin-top:3px;font-size:9px}
     .fert-card .item-art{font-size:36px}
     .gear-grid .shop-item{min-height:146px;padding:9px}
     .gear-grid .item-art{height:55px;font-size:35px}
     .gear-grid .item-name{min-height:36px;font-size:10px}
-    .discount-card{background:linear-gradient(145deg,#fff3c9,#e8f1d6)}
+    .discount-card{box-shadow:inset 0 0 18px rgba(208,157,47,.16)}
     .quality-base{--quality:#8b887e}.quality-bronze{--quality:#a86d45}.quality-silver{--quality:#8798a4}.quality-gold{--quality:#d09d2f}.quality-iridium{--quality:#8c62aa}
     .quality-dot{display:inline-block;width:7px;height:7px;margin-right:4px;border-radius:50%;background:var(--quality)}
     .loadout{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:17px}
@@ -375,7 +387,13 @@
     .asset-sample.currency-sample{image-rendering:auto}
     .asset-sample.pixel-sample{image-rendering:pixelated}
     .detail-quality{color:var(--quality);font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.1em}
-    .detail-effect{margin:10px 0;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--paper);color:var(--muted);font-size:11px;line-height:1.45}
+    .detail-effect,.detail-list{margin:10px 0;padding:5px 12px;border:1px solid var(--line);border-radius:14px;background:var(--paper);color:var(--muted);font-size:11px;line-height:1.45}
+    .detail-line{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:35px;border-bottom:1px solid var(--line)}
+    .detail-line:last-child{border-bottom:0}
+    .detail-line span{color:var(--muted)}
+    .detail-line b{color:var(--forest);font-size:10px;text-align:right}
+    .detail-line.single{justify-content:flex-start}
+    .detail-line.single b{text-align:left}
     .toast{
       position:fixed;z-index:300;left:50%;bottom:100px;transform:translate(-50%,20px);
       width:min(calc(100% - 34px),420px);padding:12px 14px;border-radius:14px;background:#283d2c;color:#fff;
@@ -447,6 +465,13 @@
           <button class="tab" data-fert-tier="silver">Silver</button>
           <button class="tab" data-fert-tier="gold">Gold</button>
           <button class="tab" data-fert-tier="iridium">Iridium</button>
+        </div>
+        <div class="seed-size-control" id="seedSizeControl">
+          <label for="seedShopSize">Seed size</label>
+          <button type="button" id="seedSizeDown" aria-label="Make shop seeds smaller">−</button>
+          <input type="range" id="seedShopSize" min="36" max="88" step="2" value="64">
+          <button type="button" id="seedSizeUp" aria-label="Make shop seeds larger">＋</button>
+          <output id="seedShopSizeValue">64px</output>
         </div>
         <div class="shop-grid" id="shopGrid"></div>
       </section>
@@ -552,8 +577,7 @@
     <div class="modal-card quality-base" id="seedModalCard">
       <div class="modal-head"><h2 id="seedDetailName">Seeds</h2><button class="close-btn" data-close-modal>×</button></div>
       <div class="detail-art" id="seedDetailArt"></div>
-      <div class="detail-effect" id="seedDetailInfo"></div>
-      <div class="detail-effect" id="seedDetailOwned"></div>
+      <div class="detail-list" id="seedDetailInfo"></div>
       <button class="btn wide" id="seedDetailBuy"></button>
     </div>
   </div>
@@ -700,7 +724,7 @@
           equipment:{boots:null,gloves:null,tools:null},fertilisers:{},
           cropRateLevel:0,qualityLevel:0,saleLevel:0,farmUpgrades:[],cropPlacements:{},trackingStatus:"checking",
           bedPlans:Array.from({length:MAX_BEDS},()=>null),questDate:todayKey(),completedQuests:[],
-          weather:null,weatherLocation:null,adminMode:false,perkDate:todayKey(),doubleStepUsed:0,doubleGoldSalesUsed:0
+          weather:null,weatherLocation:null,adminMode:false,seedShopSize:64,perkDate:todayKey(),doubleStepUsed:0,doubleGoldSalesUsed:0
         };
       }
       function loadState(){
@@ -812,6 +836,9 @@
       function itemUpgradeLevel(item){return state.itemUpgrades[item?.id]||0}
       function itemEffectScale(item){return 1+itemUpgradeLevel(item)*.25}
       function effectDescription(effect,scale=1){
+        return effectDescriptionParts(effect,scale).join(" · ");
+      }
+      function effectDescriptionParts(effect,scale=1){
         const parts=[];
         const value=key=>Math.round((effect[key]||0)*scale*10)/10;
         if(effect.growth)parts.push(`+${value("growth")}% crop growth`);
@@ -822,7 +849,10 @@
         if(effect.iridium)parts.push(`+${value("iridium")}% Iridium chance`);
         if(effect.doubleStepCap)parts.push(`first ${fmt(value("doubleStepCap"))} daily steps count twice`);
         if(effect.doubleGoldSales)parts.push(`first ${fmt(value("doubleGoldSales"))} daily crop sales pay double`);
-        return parts.join(" · ");
+        return parts;
+      }
+      function detailLinesMarkup(lines){
+        return lines.map(line=>`<div class="detail-line ${line.label?"":"single"}">${line.label?`<span>${line.label}</span>`:""}<b>${line.value}</b></div>`).join("");
       }
       function upgradeRecipe(item,nextLevel=itemUpgradeLevel(item)+1){
         if(!item||nextLevel<1||nextLevel>ITEM_UPGRADE_MAX)return null;
@@ -1182,8 +1212,14 @@
         $("#fertTierTabs").hidden=activeShopTab!=="fertiliser";
         $$("#gearViewTabs .tab").forEach(tab=>tab.classList.toggle("active",tab.dataset.gearView===activeGearView));
         $$("#fertTierTabs .tab").forEach(tab=>tab.classList.toggle("active",tab.dataset.fertTier===selectedFertiliserTier));
+        $("#seedSizeControl").hidden=activeShopTab!=="seeds";
+        const seedSize=clamp(Number(state.seedShopSize)||64,36,88);
+        $("#seedShopSize").value=String(seedSize);
+        $("#seedShopSizeValue").textContent=`${seedSize}px`;
+        $("#shopGrid").style.setProperty("--seed-shop-size",`${seedSize}px`);
         $("#shopGrid").classList.toggle("gear-grid",activeShopTab==="gear");
         $("#shopGrid").classList.toggle("seed-grid",activeShopTab==="seeds");
+        $("#shopGrid").classList.toggle("large-seeds",activeShopTab==="seeds"&&seedSize>72);
         if(activeShopTab==="seeds"){
           const level=levelInfo().level;
           const crops=state.adminMode?CROPS:CROPS.filter(crop=>crop.level<=level);
@@ -1218,8 +1254,13 @@
         $("#seedModalCard").className=`modal-card ${discounted?"quality-gold":"quality-base"}`;
         $("#seedDetailName").textContent=`${crop.name} seeds`;
         $("#seedDetailArt").innerHTML=cropIconMarkup(crop,true);
-        $("#seedDetailInfo").innerHTML=`Level ${crop.level} · ${currencyMarkup("steps",crop.steps)} to grow · ${crop.expiryHours}h to harvest<br>Base crop value · ${currencyMarkup("gold",crop.sellValue)}`;
-        $("#seedDetailOwned").textContent=`Owned · ${state.adminMode?"∞":state.seeds[crop.id]||0}`;
+        $("#seedDetailInfo").innerHTML=detailLinesMarkup([
+          {label:"Level",value:crop.level},
+          {label:"Growth",value:currencyMarkup("steps",crop.steps)},
+          {label:"Harvest",value:`${crop.expiryHours}h`},
+          {label:"Value",value:currencyMarkup("gold",crop.sellValue)},
+          {label:"Owned",value:state.adminMode?"∞":state.seeds[crop.id]||0}
+        ]);
         $("#seedDetailBuy").innerHTML=`Buy · ${currencyMarkup("gold",cost)}${discounted?" · half price":""}`;
         $("#seedDetailBuy").disabled=!canSpendGold(cost);
         $("#seedModal").classList.add("show");
@@ -1249,7 +1290,7 @@
         $("#detailQuality").textContent=selectedItem.type==="tools"?"Accessory":selectedItem.type;
         $("#detailName").textContent=selectedItem.name;
         $("#detailArt").textContent=selectedItem.icon;
-        $("#detailEffect").textContent=effectDescription(selectedItem.effect,itemEffectScale(selectedItem));
+        $("#detailEffect").innerHTML=detailLinesMarkup(effectDescriptionParts(selectedItem.effect,itemEffectScale(selectedItem)).map(value=>({value})));
         $("#detailAction").innerHTML=owned?(equipped?"Equipped":"Equip item"):available?`Buy · ${currencyMarkup("steps",selectedItem.cost)}`:"Not in today’s stock";
         $("#detailAction").disabled=equipped||(!owned&&(!available||!canSpendSteps(selectedItem.cost)));
         $("#detailSell").hidden=!owned;
@@ -1583,6 +1624,9 @@
       $$("#shopTabs .tab").forEach(tab=>tab.onclick=()=>{activeShopTab=tab.dataset.shopTab;renderShop()});
       $$("#gearViewTabs .tab").forEach(tab=>tab.onclick=()=>{activeGearView=tab.dataset.gearView;renderShop()});
       $$("#fertTierTabs .tab").forEach(tab=>tab.onclick=()=>{selectedFertiliserTier=tab.dataset.fertTier;renderShop()});
+      $("#seedShopSize").oninput=event=>{state.seedShopSize=clamp(Number(event.target.value)||64,36,88);save();renderShop()};
+      $("#seedSizeDown").onclick=()=>{state.seedShopSize=clamp((Number(state.seedShopSize)||64)-4,36,88);save();renderShop()};
+      $("#seedSizeUp").onclick=()=>{state.seedShopSize=clamp((Number(state.seedShopSize)||64)+4,36,88);save();renderShop()};
       $$("[data-close-modal]").forEach(button=>button.onclick=closeModals);
       $$(".modal").forEach(modal=>modal.onclick=event=>{if(event.target===modal)closeModals()});
       $("#confirmPlant").onclick=plantCrop;
