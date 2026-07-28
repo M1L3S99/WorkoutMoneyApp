@@ -77,12 +77,11 @@
     .brand small{margin-top:4px;color:#d8e7d6;font-size:10px;letter-spacing:.05em}
     .wallet{display:flex;gap:6px}
     .wallet-pill{
-      min-width:68px;padding:7px 9px;border:1px solid rgba(255,255,255,.17);
-      border-radius:13px;background:rgba(15,30,18,.18);text-align:center
+      display:grid;place-items:center;min-width:68px;min-height:42px;padding:6px 9px;
+      border:1px solid rgba(255,255,255,.17);border-radius:13px;background:rgba(15,30,18,.18)
     }
-    .wallet-pill b,.wallet-pill small{display:block}
-    .wallet-pill b{font-size:13px;line-height:1.1}
-    .wallet-pill small{margin-top:3px;color:#d8e7d6;font-size:7px;text-transform:uppercase;letter-spacing:.08em}
+    .wallet-value{display:inline-flex;align-items:center;justify-content:center;gap:3px}
+    .wallet-pill b{display:block;font-size:13px;line-height:1.1}
     main{padding:17px 15px calc(104px + env(safe-area-inset-bottom))}
     .screen{display:none;animation:screen-in .24s ease}
     .screen.active{display:block}
@@ -195,7 +194,7 @@
     .shop-grid .shop-section h2{margin:0;font-family:"Fraunces",serif;font-size:16px}
     .gear-view-tabs[hidden]{display:none}
     .shop-item{
-      position:relative;min-height:171px;padding:13px;border:1px solid var(--line);border-radius:19px;
+      position:relative;min-height:150px;padding:11px;border:1px solid var(--line);border-radius:19px;
       background:linear-gradient(145deg,#fffaf0,#f3ecdc);cursor:pointer;text-align:left;overflow:hidden
     }
     .shop-item:before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--quality)}
@@ -206,11 +205,19 @@
     .item-name{min-height:34px;font-family:"Fraunces",serif;font-size:13px;line-height:1.2;color:var(--forest)}
     .item-quality{margin-top:4px;color:var(--quality);font-size:7px;font-weight:900;text-transform:uppercase;letter-spacing:.08em}
     .item-cost{margin-top:8px;color:var(--soil);font-size:10px;font-weight:800}
-    .currency{display:inline-flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap}
-    .currency-icon{width:14px;height:14px;flex:0 0 14px;object-fit:contain;image-rendering:pixelated;image-rendering:crisp-edges}
-    .wallet-pill .currency-icon{width:16px;height:16px;flex-basis:16px}
-    .wallet-label{display:inline-flex!important;align-items:center;justify-content:center;gap:4px}
+    .currency{display:inline-flex;align-items:center;justify-content:center;gap:2px;white-space:nowrap}
+    .currency-icon{width:17px;height:17px;flex:0 0 17px;object-fit:contain;image-rendering:auto}
+    .wallet-pill .currency-icon{width:20px;height:20px;flex-basis:20px}
     .seed-card-price{margin-top:8px}
+    .shop-grid.seed-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+    .shop-grid.seed-grid .shop-item{
+      display:grid;grid-template-rows:minmax(62px,1fr) auto auto;align-items:center;
+      min-height:0;aspect-ratio:.8;padding:8px 6px;text-align:center
+    }
+    .seed-grid .item-art{height:62px}
+    .seed-grid .item-art .pixel-sprite{width:64px;height:64px}
+    .seed-grid .item-name{min-height:26px;font-size:10px}
+    .seed-grid .item-cost{margin-top:3px;font-size:9px}
     .fert-card .item-art{font-size:36px}
     .gear-grid .shop-item{min-height:146px;padding:9px}
     .gear-grid .item-art{height:55px;font-size:35px}
@@ -353,6 +360,17 @@
     .fert-title{display:flex!important;align-items:center;gap:8px}
     .fert-title .pixel-sprite{width:34px;height:34px;flex:0 0 34px}
     .detail-art{display:grid;place-items:center;height:115px;margin-bottom:13px;border-radius:19px;background:#e8efdf;font-size:72px}
+    .asset-preview-panel{padding:16px;margin-top:18px}
+    .asset-preview-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+    .asset-preview-card{padding:10px 7px;border:1px solid var(--line);border-radius:15px;background:var(--paper);text-align:center}
+    .asset-preview-card b,.asset-preview-card small{display:block}
+    .asset-preview-card b{font-size:9px;color:var(--forest)}
+    .asset-preview-card small{margin-top:7px;color:var(--muted);font-size:7px;line-height:1.35}
+    .asset-size-samples{display:flex;align-items:end;justify-content:center;gap:9px;min-height:74px;margin-top:8px}
+    .asset-size-samples span{display:grid;place-items:center;gap:3px;color:var(--muted);font-size:6px}
+    .asset-sample{object-fit:contain}
+    .asset-sample.currency-sample{image-rendering:auto}
+    .asset-sample.pixel-sample{image-rendering:pixelated}
     .detail-quality{color:var(--quality);font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.1em}
     .detail-effect{margin:10px 0;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--paper);color:var(--muted);font-size:11px;line-height:1.45}
     .toast{
@@ -367,7 +385,7 @@
       .topbar{padding-inline:11px}.brand-mark{width:37px;height:37px;flex-basis:37px}.brand b{font-size:18px}
       .wallet-pill{min-width:61px;padding-inline:6px}.step-card{grid-template-columns:104px 1fr;padding:14px;gap:12px}
       .step-ring{width:104px;height:104px}.step-ring-copy b{font-size:24px}.beds-grid{gap:8px}.bed{min-height:147px;padding:10px}
-      .shop-grid{gap:8px}.shop-item{min-height:154px;padding:10px}.item-name{font-size:11px}
+      .shop-grid{gap:8px}.shop-item{min-height:142px;padding:9px}.item-name{font-size:11px}
       .shop-grid.gear-grid{gap:6px}.gear-grid .shop-item{min-height:136px;padding:7px}.gear-grid .item-name{font-size:9px}
       .quest-card{grid-template-columns:44px 1fr}.npc-portrait{width:44px;height:44px}.quest-card .btn{grid-column:1/-1;width:100%}
     }
@@ -381,8 +399,8 @@
         <div><b>Ironbound</b><small id="levelLabel">Level 1 · New grower</small></div>
       </div>
       <div class="wallet">
-        <div class="wallet-pill"><b id="stepsBalance">0</b><small class="wallet-label"><img class="currency-icon" src="assets/farm/ui/step-token-32.png" alt="">Steps</small></div>
-        <div class="wallet-pill"><b id="goldBalance">120</b><small class="wallet-label"><img class="currency-icon" src="assets/farm/ui/gold-coin-32.png" alt="">Gold</small></div>
+        <div class="wallet-pill"><span class="wallet-value"><img class="currency-icon" src="assets/farm/ui/step-token-64.png" alt="Steps"><b id="stepsBalance">0</b></span></div>
+        <div class="wallet-pill"><span class="wallet-value"><img class="currency-icon" src="assets/farm/ui/gold-coin-64.png" alt="Gold"><b id="goldBalance">120</b></span></div>
       </div>
     </header>
 
@@ -472,10 +490,15 @@
           <div class="section-head"><h2>Admin mode</h2></div>
           <div class="admin-entry" id="adminEntry"><input id="adminCode" type="password" placeholder="Admin code" autocomplete="off"><button class="btn" id="enableAdmin">Enable</button></div>
           <div class="admin-panel" id="adminPanel" hidden>
-            <div class="admin-status"><span class="currency"><img class="currency-icon" src="assets/farm/ui/step-token-32.png" alt="">∞ steps</span> · <span class="currency"><img class="currency-icon" src="assets/farm/ui/gold-coin-32.png" alt="">∞ gold</span> · every seed unlocked</div>
+            <div class="admin-status"><span class="currency"><img class="currency-icon" src="assets/farm/ui/step-token-64.png" alt="Steps">∞</span> · <span class="currency"><img class="currency-icon" src="assets/farm/ui/gold-coin-64.png" alt="Gold">∞</span> · every seed unlocked</div>
             <button class="btn" id="adminGrowAll">Grow all crops</button>
+            <button class="btn secondary" id="toggleAssetPreview">Asset preview</button>
             <button class="btn secondary" id="disableAdmin">Disable</button>
           </div>
+        </div>
+        <div class="asset-preview-panel card" id="assetPreviewPanel" hidden>
+          <div class="section-head"><h2>Asset preview</h2><small>File and display sizes</small></div>
+          <div class="asset-preview-grid" id="assetPreviewGrid"></div>
         </div>
         <div class="settings-card card">
           <div class="section-head"><h2>Step tracking</h2></div>
@@ -721,6 +744,8 @@
       let selectedFromCatalogue=false;
       let selectedSeedCrop=null;
       let selectedSeedDiscount=false;
+      const assetPreviewRequested=new URLSearchParams(globalThis.location?.search||"").get("asset-preview")==="1";
+      let assetPreviewVisible=assetPreviewRequested;
       let saveTimer=null;
       let toastTimer=null;
       let resetArmed=false;
@@ -739,10 +764,11 @@
       }
       function cropById(id){return CROPS.find(c=>c.id===id)}
       function itemById(id){return ITEMS.find(i=>i.id===id)}
-      const CURRENCY_ICONS={gold:"assets/farm/ui/gold-coin-32.png",steps:"assets/farm/ui/step-token-32.png"};
-      function currencyMarkup(type,amount,label=true){
+      const CURRENCY_ICONS={gold:"assets/farm/ui/gold-coin-64.png",steps:"assets/farm/ui/step-token-64.png"};
+      function currencyMarkup(type,amount){
         const value=amount===Infinity?"∞":fmt(amount);
-        return `<span class="currency"><img class="currency-icon" src="${CURRENCY_ICONS[type]}" alt="">${value}${label?` ${type}`:""}</span>`;
+        const label=type==="gold"?"Gold":"Steps";
+        return `<span class="currency"><img class="currency-icon" src="${CURRENCY_ICONS[type]}" alt="${label}">${value}</span>`;
       }
       function cropIconMarkup(crop,seed=false,className="pixel-sprite"){
         const image=seed?crop?.seedImage:crop?.image;
@@ -1154,6 +1180,7 @@
         $$("#gearViewTabs .tab").forEach(tab=>tab.classList.toggle("active",tab.dataset.gearView===activeGearView));
         $$("#fertTierTabs .tab").forEach(tab=>tab.classList.toggle("active",tab.dataset.fertTier===selectedFertiliserTier));
         $("#shopGrid").classList.toggle("gear-grid",activeShopTab==="gear");
+        $("#shopGrid").classList.toggle("seed-grid",activeShopTab==="seeds");
         if(activeShopTab==="seeds"){
           const level=levelInfo().level;
           const crops=state.adminMode?CROPS:CROPS.filter(crop=>crop.level<=level);
@@ -1386,10 +1413,28 @@
         renderPlacementEditor();
         renderTracking();
         renderAdminPanel();
+        renderAssetPreview();
       }
       function renderAdminPanel(){
         $("#adminEntry").hidden=state.adminMode;
         $("#adminPanel").hidden=!state.adminMode;
+        $("#toggleAssetPreview").textContent=assetPreviewVisible?"Hide asset preview":"Asset preview";
+      }
+      function renderAssetPreview(){
+        const panel=$("#assetPreviewPanel"),visible=assetPreviewRequested||(state.adminMode&&assetPreviewVisible);
+        panel.hidden=!visible;
+        if(!visible)return;
+        const assets=[
+          {id:"gold",name:"Gold",src:CURRENCY_ICONS.gold,kind:"currency",sizes:[["Header",20],["Inline",17]]},
+          {id:"steps",name:"Steps",src:CURRENCY_ICONS.steps,kind:"currency",sizes:[["Header",20],["Inline",17]]},
+          {id:"radish-seed",name:"Seed pack",src:"assets/farm/crops/radish-seeds-64.png",kind:"pixel",sizes:[["Shop",64],["Silo",38]]}
+        ];
+        $("#assetPreviewGrid").innerHTML=assets.map(asset=>`<article class="asset-preview-card"><b>${asset.name}</b><div class="asset-size-samples">${asset.sizes.map(([label,size])=>`<span><img class="asset-sample ${asset.kind}-sample" data-preview-asset="${asset.id}" src="${asset.src}" alt="" style="width:${size}px;height:${size}px">${label} ${size}px</span>`).join("")}</div><small id="asset-meta-${asset.id}">Reading file…</small></article>`).join("");
+        assets.forEach(asset=>{
+          const image=$(`[data-preview-asset="${asset.id}"]`),meta=$(`#asset-meta-${asset.id}`);
+          const update=()=>{meta.textContent=`File ${image.naturalWidth}×${image.naturalHeight}px · PNG`};
+          if(image.complete)update();else image.onload=update;
+        });
       }
       function enableAdmin(){
         if($("#adminCode").value.trim().toUpperCase()!=="MILES-FARM")return toast("Incorrect admin code");
@@ -1548,6 +1593,7 @@
       $("#enableAdmin").onclick=enableAdmin;
       $("#adminCode").onkeydown=event=>{if(event.key==="Enter")enableAdmin()};
       $("#adminGrowAll").onclick=adminGrowAll;
+      $("#toggleAssetPreview").onclick=()=>{assetPreviewVisible=!assetPreviewVisible;renderAdminPanel();renderAssetPreview()};
       $("#disableAdmin").onclick=disableAdmin;
       $("#trackingButton").onclick=()=>{
         if(!postNative({type:"requestPedometer"}))toast("Install or open the Android app to enable background steps");
@@ -1565,6 +1611,7 @@
       },1000);
       if("serviceWorker" in navigator)navigator.serviceWorker.register("./sw.js").catch(()=>{});
       renderAll();
+      if(assetPreviewRequested)navigate("upgrades");
       postNative({type:"pedometerReady"});
     })();
   </script>
