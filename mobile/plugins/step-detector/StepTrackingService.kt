@@ -72,9 +72,11 @@ class StepTrackingService : Service(), SensorEventListener {
     val (date, current) = ensureToday(prefs)
     val next = current + 1
     val pending = prefs.getLong(KEY_PENDING_DETECTOR, 0) + 1
+    val lifetime = prefs.getLong(KEY_LIFETIME_STEPS, 0) + 1
     prefs.edit()
       .putLong(KEY_STEPS, next)
       .putLong(KEY_PENDING_DETECTOR, pending)
+      .putLong(KEY_LIFETIME_STEPS, lifetime)
       .apply()
     publish(date, next, 1)
   }
@@ -94,10 +96,12 @@ class StepTrackingService : Service(), SensorEventListener {
     pending -= matched
     val additional = rawDelta - matched
     val next = current + additional
+    val lifetime = prefs.getLong(KEY_LIFETIME_STEPS, 0) + additional
     prefs.edit()
       .putLong(KEY_LAST_RAW, raw)
       .putLong(KEY_PENDING_DETECTOR, pending)
       .putLong(KEY_STEPS, next)
+      .putLong(KEY_LIFETIME_STEPS, lifetime)
       .apply()
 
     if (additional in 1..2 && System.currentTimeMillis() - startedAt > 1500) {
@@ -113,12 +117,14 @@ class StepTrackingService : Service(), SensorEventListener {
   }
 
   private fun broadcast(date: String, today: Long, delta: Long) {
+    val lifetime = lifetimeSteps(this)
     sendBroadcast(
       Intent(ACTION_STEP_UPDATE)
         .setPackage(packageName)
         .putExtra(EXTRA_DATE, date)
         .putExtra(EXTRA_TODAY, today)
         .putExtra(EXTRA_DELTA, delta)
+        .putExtra(EXTRA_LIFETIME, lifetime)
     )
   }
 
@@ -175,6 +181,7 @@ class StepTrackingService : Service(), SensorEventListener {
     const val EXTRA_DATE = "date"
     const val EXTRA_TODAY = "today"
     const val EXTRA_DELTA = "delta"
+    const val EXTRA_LIFETIME = "lifetime"
     const val EXTRA_INITIAL_TODAY = "initialToday"
     const val PREFS = "ironbound_background_steps"
     const val KEY_ENABLED = "enabled"
@@ -182,6 +189,7 @@ class StepTrackingService : Service(), SensorEventListener {
     const val KEY_STEPS = "steps"
     const val KEY_LAST_RAW = "lastRaw"
     const val KEY_PENDING_DETECTOR = "pendingDetector"
+    const val KEY_LIFETIME_STEPS = "lifetimeSteps"
     private const val CHANNEL_ID = "ironbound_step_tracking"
     private const val NOTIFICATION_ID = 7321
 
@@ -203,6 +211,10 @@ class StepTrackingService : Service(), SensorEventListener {
     fun isEnabled(context: Context): Boolean =
       context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         .getBoolean(KEY_ENABLED, false)
+
+    fun lifetimeSteps(context: Context): Long =
+      context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        .getLong(KEY_LIFETIME_STEPS, 0)
 
     private fun ensureToday(
       prefs: android.content.SharedPreferences

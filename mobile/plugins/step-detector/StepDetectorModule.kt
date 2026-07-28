@@ -43,6 +43,10 @@ class StepDetectorModule(
       val payload = Arguments.createMap().apply {
         putDouble("today", intent.getLongExtra(StepTrackingService.EXTRA_TODAY, 0).toDouble())
         putDouble("delta", intent.getLongExtra(StepTrackingService.EXTRA_DELTA, 0).toDouble())
+        putDouble(
+          "lifetime",
+          intent.getLongExtra(StepTrackingService.EXTRA_LIFETIME, 0).toDouble()
+        )
         putString("date", intent.getStringExtra(StepTrackingService.EXTRA_DATE))
         putDouble("timestamp", System.currentTimeMillis().toDouble())
       }
@@ -82,6 +86,7 @@ class StepDetectorModule(
       putBoolean("started", true)
       putString("date", snapshot.first)
       putDouble("today", snapshot.second.toDouble())
+      putDouble("lifetime", StepTrackingService.lifetimeSteps(reactContext).toDouble())
     })
   }
 
