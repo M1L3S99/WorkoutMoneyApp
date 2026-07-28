@@ -82,9 +82,18 @@ for (const id of ["seedModal", "seedDetailName", "seedDetailInfo", "seedDetailBu
 if (!html.includes("data-seed-view") || html.includes("data-seed-buy")) {
   throw new Error("Seed cards must open details instead of buying immediately");
 }
-for (const asset of ["assets/farm/crops/radish-seeds-64.png", "assets/farm/ui/gold-coin-32.png", "assets/farm/ui/step-token-32.png"]) {
+for (const asset of ["assets/farm/crops/radish-seeds-64.png", "assets/farm/ui/gold-coin-64.png", "assets/farm/ui/step-token-64.png"]) {
   const size = fs.statSync(asset).size;
   if (size < 100 || size > 20000) throw new Error(`Generated pixel asset has an unexpected size: ${asset} (${size} bytes)`);
+}
+for (const id of ["toggleAssetPreview", "assetPreviewPanel", "assetPreviewGrid"]) {
+  if (!ids.includes(id)) throw new Error(`Missing asset preview control: ${id}`);
+}
+if (!html.includes("asset-preview") || !html.includes("File ${image.naturalWidth}×${image.naturalHeight}px") || !html.includes("seed-grid")) {
+  throw new Error("The exact-dimension asset preview and compact seed grid are required");
+}
+if (html.includes("gold-coin-32.png") || html.includes("step-token-32.png") || html.includes("${value}${label?")) {
+  throw new Error("Currency UI must use the high-definition symbol-only assets");
 }
 if (farm.CROPS.length < 20) {
   throw new Error("The crop catalogue must include at least twenty crops");
