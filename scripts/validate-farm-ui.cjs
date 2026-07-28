@@ -59,11 +59,14 @@ if ((farm.freshState().seeds?.radish || 0) < 1) {
   throw new Error("A new farm must start with radish seeds");
 }
 const radish = farm.CROPS.find((crop) => crop.id === "radish");
-if (!radish?.stages?.planted || !radish?.stages?.half || !radish?.stages?.grown) {
-  throw new Error("Radish must have planted, half-grown, and ready sprites");
+if (!radish?.stages?.planted || !radish?.stages?.grown || radish?.stages?.half) {
+  throw new Error("Radish must have exactly planted and ready growth sprites");
 }
-if (!radish.stages.grown.includes("radish-ready-pulled")) {
-  throw new Error("The ready radish must use the pulled-from-soil sprite");
+if (!radish.stages.grown.includes("radish-ready-planted")) {
+  throw new Error("The ready radish must remain visibly planted in the soil");
+}
+if (farm.CROPS.length < 20) {
+  throw new Error("The crop catalogue must include at least twenty crops");
 }
 const fertiliserCosts = farm.FERTILISERS.map((item) => item.cost).join(",");
 if (farm.FERTILISERS.length !== 4 || fertiliserCosts !== "1000,2000,5000,10000" || farm.FERTILISERS.at(-1)?.guaranteed !== "iridium") {
