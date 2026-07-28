@@ -232,13 +232,22 @@
     .seed-size-control input{width:100%;accent-color:var(--forest)}
     .seed-size-control button{width:30px;height:30px;border:1px solid var(--line);border-radius:9px;background:var(--cream);color:var(--forest);font-size:16px;font-weight:900}
     .seed-size-control output{text-align:right;color:var(--muted);font-size:8px;font-weight:900}
-    .shop-grid.seed-grid{--seed-shop-size:88px;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-    .shop-grid.seed-grid .shop-item{
-      display:grid;place-items:center;min-height:0;aspect-ratio:1;padding:4px;text-align:center
+    .shop-grid.seed-grid{
+      --seed-shop-size:38px;display:grid;grid-template-columns:1fr;gap:4px;
+      padding:5px;border:3px solid #87502b;border-radius:5px;background:#b66f37;
+      box-shadow:inset 0 0 0 2px #e9b970,0 7px 18px rgba(87,51,28,.18)
     }
-    .seed-grid .item-art{height:100%}
-    .seed-grid .item-art .pixel-sprite{width:min(var(--seed-shop-size),calc(100% - 4px));height:auto;max-height:calc(100% - 2px)}
-    .seed-grid .item-name{font-size:10px}
+    .seed-shop-row{
+      display:grid;grid-template-columns:var(--seed-shop-size) minmax(0,1fr) auto;align-items:center;gap:8px;
+      min-height:calc(var(--seed-shop-size) + 10px);padding:4px 7px;border:2px solid #704020;border-radius:2px;
+      background:#e6b768;color:#4b2918;box-shadow:inset 0 0 0 2px #f3d38f;cursor:pointer;text-align:left
+    }
+    .seed-shop-row.discount{background:#efc774;box-shadow:inset 0 0 0 2px #ffe2a2}
+    .seed-row-icon{display:grid;place-items:center;width:var(--seed-shop-size);height:var(--seed-shop-size);border:1px solid #8d592f;background:#f5d996;font-size:24px}
+    .seed-row-icon .pixel-sprite{width:calc(var(--seed-shop-size) - 4px);height:calc(var(--seed-shop-size) - 4px)}
+    .seed-row-name{min-width:0;overflow:hidden;font-family:"Courier New",monospace;font-size:13px;font-weight:900;letter-spacing:.02em;white-space:nowrap;text-overflow:ellipsis}
+    .seed-row-price{display:inline-flex;align-items:center;justify-content:flex-end;min-width:48px;font-family:"Courier New",monospace;font-size:14px;font-weight:900}
+    .seed-row-price .currency-icon{width:15px;height:15px;vertical-align:-3px}
     .fert-card .item-art{font-size:40px}
     .gear-grid .shop-item{min-height:0;padding:5px}
     .gear-grid .item-art{height:100%;font-size:40px}
@@ -412,7 +421,8 @@
       .topbar{padding-inline:11px}.brand-mark{width:37px;height:37px;flex-basis:37px}.brand b{font-size:18px}
       .wallet-pill{min-width:61px;padding-inline:6px}.step-card{grid-template-columns:104px 1fr;padding:14px;gap:12px}
       .step-ring{width:104px;height:104px}.step-ring-copy b{font-size:24px}.beds-grid{gap:8px}.bed{min-height:147px;padding:10px}
-      .shop-grid,.shop-grid.gear-grid,.shop-grid.seed-grid{gap:7px}.shop-item,.gear-grid .shop-item{min-height:0;padding:4px}.item-name,.gear-grid .item-name{font-size:8px}
+      .shop-grid,.shop-grid.gear-grid{gap:7px}.shop-grid.seed-grid{gap:3px}.shop-item,.gear-grid .shop-item{min-height:0;padding:4px}.item-name,.gear-grid .item-name{font-size:8px}
+      .seed-shop-row{gap:6px;padding-inline:5px}.seed-row-name{font-size:11px}.seed-row-price{min-width:42px;font-size:12px}
       .quest-card{grid-template-columns:44px 1fr}.npc-portrait{width:44px;height:44px}.quest-card .btn{grid-column:1/-1;width:100%}
     }
   </style>
@@ -517,9 +527,9 @@
           <div class="seed-size-control" id="seedSizeControl">
             <label for="seedShopSize">Seed size</label>
             <button type="button" id="seedSizeDown" aria-label="Make shop seeds smaller">−</button>
-            <input type="range" id="seedShopSize" min="36" max="88" step="2" value="88">
+            <input type="range" id="seedShopSize" min="24" max="48" step="2" value="38">
             <button type="button" id="seedSizeUp" aria-label="Make shop seeds larger">＋</button>
-            <output id="seedShopSizeValue">88px</output>
+            <output id="seedShopSizeValue">38px</output>
           </div>
         </div>
         <div class="settings-card card">
@@ -741,7 +751,7 @@
           equipment:{boots:null,gloves:null,tools:null},fertilisers:{},
           cropRateLevel:0,qualityLevel:0,saleLevel:0,farmUpgrades:[],cropPlacements:{},trackingStatus:"checking",
           bedPlans:Array.from({length:MAX_BEDS},()=>null),questDate:todayKey(),completedQuests:[],
-          weather:null,weatherLocation:null,adminMode:false,seedShopSize:88,shopLayoutVersion:2,perkDate:todayKey(),doubleStepUsed:0,doubleGoldSalesUsed:0
+          weather:null,weatherLocation:null,adminMode:false,seedShopSize:38,shopLayoutVersion:3,perkDate:todayKey(),doubleStepUsed:0,doubleGoldSalesUsed:0
         };
       }
       function loadState(){
@@ -772,7 +782,7 @@
           merged.farmUpgrades=[...new Set(saved.farmUpgrades||[])];
           merged.completedQuests=saved.questDate===todayKey()?[...new Set(saved.completedQuests||[])]:[];
           merged.questDate=todayKey();
-          if(saved.shopLayoutVersion!==2){merged.seedShopSize=88;merged.shopLayoutVersion=2}
+          if(saved.shopLayoutVersion!==3){merged.seedShopSize=38;merged.shopLayoutVersion=3}
           return merged;
         }catch{return freshState()}
       }
@@ -1231,7 +1241,7 @@
         $("#fertTierTabs").hidden=activeShopTab!=="fertiliser";
         $$("#gearViewTabs .tab").forEach(tab=>tab.classList.toggle("active",tab.dataset.gearView===activeGearView));
         $$("#fertTierTabs .tab").forEach(tab=>tab.classList.toggle("active",tab.dataset.fertTier===selectedFertiliserTier));
-        const seedSize=clamp(Number(state.seedShopSize)||88,36,88);
+        const seedSize=clamp(Number(state.seedShopSize)||38,24,48);
         $("#seedShopSize").value=String(seedSize);
         $("#seedShopSizeValue").textContent=`${seedSize}px`;
         $("#shopGrid").style.setProperty("--seed-shop-size",`${seedSize}px`);
@@ -1241,9 +1251,9 @@
           const level=levelInfo().level;
           const crops=state.adminMode?CROPS:CROPS.filter(crop=>crop.level<=level);
           const discount=discountedCrop(),discountCost=Math.max(1,Math.ceil(discount.seedCost/2));
-          const discountCard=`<div class="shop-section"><h2>Daily discount</h2></div><button class="shop-item discount-card quality-gold" data-seed-view="${discount.id}" data-discount="1"><div class="item-art">${cropIconMarkup(discount,true)}</div><div class="item-name">${discount.name} seeds</div></button><div class="shop-section"><h2>Seeds</h2></div>`;
-          $("#shopGrid").innerHTML=discountCard+crops.map(crop=>{
-            return `<button class="shop-item quality-base" data-seed-view="${crop.id}"><div class="item-art">${cropIconMarkup(crop,true)}</div><div class="item-name">${crop.name} seeds</div></button>`;
+          const discountRow=`<button class="seed-shop-row discount" data-seed-view="${discount.id}" data-discount="1"><span class="seed-row-icon">${cropIconMarkup(discount,true)}</span><span class="seed-row-name">${discount.name} Seeds</span><span class="seed-row-price">${currencyMarkup("gold",discountCost)}</span></button>`;
+          $("#shopGrid").innerHTML=discountRow+crops.map(crop=>{
+            return `<button class="seed-shop-row" data-seed-view="${crop.id}"><span class="seed-row-icon">${cropIconMarkup(crop,true)}</span><span class="seed-row-name">${crop.name} Seeds</span><span class="seed-row-price">${currencyMarkup("gold",crop.seedCost)}</span></button>`;
           }).join("");
           $$("[data-seed-view]").forEach(button=>button.onclick=()=>openSeed(button.dataset.seedView,button.dataset.discount==="1"));
           return;
@@ -1663,9 +1673,9 @@
       $$("#shopTabs .tab").forEach(tab=>tab.onclick=()=>{activeShopTab=tab.dataset.shopTab;renderShop()});
       $$("#gearViewTabs .tab").forEach(tab=>tab.onclick=()=>{activeGearView=tab.dataset.gearView;renderShop()});
       $$("#fertTierTabs .tab").forEach(tab=>tab.onclick=()=>{selectedFertiliserTier=tab.dataset.fertTier;renderShop()});
-      $("#seedShopSize").oninput=event=>{state.seedShopSize=clamp(Number(event.target.value)||88,36,88);save();renderShop()};
-      $("#seedSizeDown").onclick=()=>{state.seedShopSize=clamp((Number(state.seedShopSize)||88)-4,36,88);save();renderShop()};
-      $("#seedSizeUp").onclick=()=>{state.seedShopSize=clamp((Number(state.seedShopSize)||88)+4,36,88);save();renderShop()};
+      $("#seedShopSize").oninput=event=>{state.seedShopSize=clamp(Number(event.target.value)||38,24,48);save();renderShop()};
+      $("#seedSizeDown").onclick=()=>{state.seedShopSize=clamp((Number(state.seedShopSize)||38)-2,24,48);save();renderShop()};
+      $("#seedSizeUp").onclick=()=>{state.seedShopSize=clamp((Number(state.seedShopSize)||38)+2,24,48);save();renderShop()};
       $$("[data-close-modal]").forEach(button=>button.onclick=closeModals);
       $$(".modal").forEach(modal=>modal.onclick=event=>{if(event.target===modal)closeModals()});
       $("#confirmPlant").onclick=plantCrop;
