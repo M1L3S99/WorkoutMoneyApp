@@ -70,7 +70,7 @@ if (!radish?.stages?.planted || !radish?.stages?.grown || radish?.stages?.half) 
 if (!radish.stages.grown.includes("radish-ready-planted")) {
   throw new Error("The ready radish must remain visibly planted in the soil");
 }
-if (!radish.image?.includes("radish-crop-64") || !radish.seedImage?.includes("radish-seeds-64")) {
+if (!radish.image?.includes("radish-crop-64") || !radish.seedImage?.includes("radish-seeds-96")) {
   throw new Error("The radish crop and seed packet sprites must be configured");
 }
 if (html.includes("TAP TO HARVEST") || html.includes("harvest-ready 1.5s") || html.includes("pullAndHarvest") || html.includes("pull-radish") || html.includes("pull-dirt")) {
@@ -82,7 +82,7 @@ for (const id of ["seedModal", "seedDetailName", "seedDetailInfo", "seedDetailBu
 if (!html.includes("data-seed-view") || html.includes("data-seed-buy")) {
   throw new Error("Seed cards must open details instead of buying immediately");
 }
-for (const asset of ["assets/farm/crops/radish-seeds-64.png", "assets/farm/ui/gold-coin-64.png", "assets/farm/ui/step-token-64.png"]) {
+for (const asset of ["assets/farm/crops/radish-seeds-96.png", "assets/farm/ui/gold-coin-64.png", "assets/farm/ui/step-token-64.png"]) {
   const size = fs.statSync(asset).size;
   if (size < 100 || size > 20000) throw new Error(`Generated pixel asset has an unexpected size: ${asset} (${size} bytes)`);
 }
@@ -94,6 +94,12 @@ if (!html.includes("asset-preview") || !html.includes("File ${image.naturalWidth
 }
 if (html.includes("gold-coin-32.png") || html.includes("step-token-32.png") || html.includes("${value}${label?")) {
   throw new Error("Currency UI must use the high-definition symbol-only assets");
+}
+if (!html.includes(".currency{display:inline;") || !html.includes("vertical-align:-2px") || !html.includes('width:13px;height:13px')) {
+  throw new Error("Inline currency symbols must preserve a uniform text line");
+}
+if (html.includes('${currencyMarkup("steps",crop.steps)} · ${state.adminMode?') || html.includes('Plant · ${currencyMarkup("steps",crop.steps)} to grow')) {
+  throw new Error("The crop picker must list seeds without growth-step pricing");
 }
 if (farm.CROPS.length < 20) {
   throw new Error("The crop catalogue must include at least twenty crops");
