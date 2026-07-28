@@ -137,31 +137,6 @@
     .crop-stage-sprite{width:64px;height:64px}
     .harvest-target{cursor:pointer;touch-action:manipulation}
     .harvest-target .crop-visual{animation:none}
-    .harvest-target.pulling{pointer-events:none}
-    .harvest-target.pulling .crop-visual{animation:pull-radish .76s cubic-bezier(.22,.8,.3,1) forwards}
-    .harvest-target.pulling .bed-art{animation:soil-bump .3s ease-out}
-    .pull-dirt{position:absolute;z-index:3;left:50%;top:51px;width:5px;height:5px;border-radius:2px;background:#694329;opacity:0;pointer-events:none}
-    .pull-dirt.dirt-1{--dirt-x:-25px;--dirt-y:-17px}
-    .pull-dirt.dirt-2{--dirt-x:-12px;--dirt-y:-25px;animation-delay:.04s!important}
-    .pull-dirt.dirt-3{--dirt-x:17px;--dirt-y:-23px;animation-delay:.08s!important}
-    .pull-dirt.dirt-4{--dirt-x:28px;--dirt-y:-13px;animation-delay:.12s!important}
-    .harvest-target.pulling .pull-dirt{animation:dirt-pop .5s ease-out forwards}
-    @keyframes harvest-ready{
-      0%,100%{filter:drop-shadow(0 3px 3px rgba(34,21,12,.3));transform:translateX(-50%) translate(var(--crop-x,0px),calc(var(--crop-y,0px) + 12px)) scale(var(--crop-scale,1))}
-      50%{filter:drop-shadow(0 0 8px rgba(239,195,72,.9));transform:translateX(-50%) translate(var(--crop-x,0px),calc(var(--crop-y,0px) + 9px)) scale(var(--crop-scale,1))}
-    }
-    @keyframes pull-radish{
-      0%{filter:drop-shadow(0 3px 3px rgba(34,21,12,.3));transform:translateX(-50%) translate(var(--crop-x,0px),calc(var(--crop-y,0px) + 12px)) rotate(0) scale(var(--crop-scale,1))}
-      24%{transform:translateX(-50%) translate(var(--crop-x,0px),calc(var(--crop-y,0px) + 16px)) rotate(-4deg) scale(var(--crop-scale,1))}
-      48%{transform:translateX(-50%) translate(var(--crop-x,0px),calc(var(--crop-y,0px) - 5px)) rotate(5deg) scale(var(--crop-scale,1))}
-      100%{filter:drop-shadow(0 8px 4px rgba(34,21,12,.18));transform:translateX(-50%) translate(var(--crop-x,0px),calc(var(--crop-y,0px) - 48px)) rotate(-8deg) scale(var(--crop-scale,1)) scale(1.06)}
-    }
-    @keyframes dirt-pop{
-      0%{opacity:0;transform:translate(-50%,0) scale(.5)}
-      20%{opacity:1}
-      100%{opacity:0;transform:translate(calc(-50% + var(--dirt-x)),var(--dirt-y)) rotate(80deg) scale(1)}
-    }
-    @keyframes soil-bump{50%{transform:translateY(2px) scaleX(1.015)}}
     .bed-progress{height:7px;margin-top:1px;border-radius:99px;overflow:hidden;background:rgba(77,65,42,.18)}
     .bed-progress i{display:block;height:100%;border-radius:inherit;background:#c9d985;transition:width .25s}
     .bed-foot{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:7px;font-size:8px}
@@ -231,12 +206,16 @@
     .item-name{min-height:34px;font-family:"Fraunces",serif;font-size:13px;line-height:1.2;color:var(--forest)}
     .item-quality{margin-top:4px;color:var(--quality);font-size:7px;font-weight:900;text-transform:uppercase;letter-spacing:.08em}
     .item-cost{margin-top:8px;color:var(--soil);font-size:10px;font-weight:800}
+    .currency{display:inline-flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap}
+    .currency-icon{width:14px;height:14px;flex:0 0 14px;object-fit:contain;image-rendering:pixelated;image-rendering:crisp-edges}
+    .wallet-pill .currency-icon{width:16px;height:16px;flex-basis:16px}
+    .wallet-label{display:inline-flex!important;align-items:center;justify-content:center;gap:4px}
+    .seed-card-price{margin-top:8px}
     .fert-card .item-art{font-size:36px}
     .gear-grid .shop-item{min-height:146px;padding:9px}
     .gear-grid .item-art{height:55px;font-size:35px}
     .gear-grid .item-name{min-height:36px;font-size:10px}
-    .discount-card{grid-column:1/-1;display:grid;grid-template-columns:64px 1fr auto;align-items:center;gap:10px;min-height:91px;background:linear-gradient(135deg,#fff3c9,#e8f1d6)}
-    .discount-card .item-art{height:58px}.discount-card .item-name{min-height:0}.discount-card .item-cost{text-align:right}
+    .discount-card{background:linear-gradient(145deg,#fff3c9,#e8f1d6)}
     .quality-base{--quality:#8b887e}.quality-bronze{--quality:#a86d45}.quality-silver{--quality:#8798a4}.quality-gold{--quality:#d09d2f}.quality-iridium{--quality:#8c62aa}
     .quality-dot{display:inline-block;width:7px;height:7px;margin-right:4px;border-radius:50%;background:var(--quality)}
     .loadout{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:17px}
@@ -402,8 +381,8 @@
         <div><b>Ironbound</b><small id="levelLabel">Level 1 · New grower</small></div>
       </div>
       <div class="wallet">
-        <div class="wallet-pill"><b id="stepsBalance">0</b><small>Steps</small></div>
-        <div class="wallet-pill"><b id="goldBalance">120</b><small>Gold</small></div>
+        <div class="wallet-pill"><b id="stepsBalance">0</b><small class="wallet-label"><img class="currency-icon" src="assets/farm/ui/step-token-32.png" alt="">Steps</small></div>
+        <div class="wallet-pill"><b id="goldBalance">120</b><small class="wallet-label"><img class="currency-icon" src="assets/farm/ui/gold-coin-32.png" alt="">Gold</small></div>
       </div>
     </header>
 
@@ -493,7 +472,7 @@
           <div class="section-head"><h2>Admin mode</h2></div>
           <div class="admin-entry" id="adminEntry"><input id="adminCode" type="password" placeholder="Admin code" autocomplete="off"><button class="btn" id="enableAdmin">Enable</button></div>
           <div class="admin-panel" id="adminPanel" hidden>
-            <div class="admin-status">∞ steps · ∞ gold · every seed unlocked</div>
+            <div class="admin-status"><span class="currency"><img class="currency-icon" src="assets/farm/ui/step-token-32.png" alt="">∞ steps</span> · <span class="currency"><img class="currency-icon" src="assets/farm/ui/gold-coin-32.png" alt="">∞ gold</span> · every seed unlocked</div>
             <button class="btn" id="adminGrowAll">Grow all crops</button>
             <button class="btn secondary" id="disableAdmin">Disable</button>
           </div>
@@ -543,6 +522,16 @@
     </div>
   </div>
 
+  <div class="modal" id="seedModal" role="dialog" aria-modal="true">
+    <div class="modal-card quality-base" id="seedModalCard">
+      <div class="modal-head"><h2 id="seedDetailName">Seeds</h2><button class="close-btn" data-close-modal>×</button></div>
+      <div class="detail-art" id="seedDetailArt"></div>
+      <div class="detail-effect" id="seedDetailInfo"></div>
+      <div class="detail-effect" id="seedDetailOwned"></div>
+      <button class="btn wide" id="seedDetailBuy"></button>
+    </div>
+  </div>
+
   <div class="modal" id="itemModal" role="dialog" aria-modal="true">
     <div class="modal-card quality-base" id="itemModalCard">
       <div class="modal-head"><div><div class="detail-quality" id="detailQuality"></div><h2 id="detailName">Item</h2></div><button class="close-btn" data-close-modal>×</button></div>
@@ -589,33 +578,35 @@
       const clamp = (value,min,max) => Math.min(max,Math.max(min,value));
 
       const CROPS = [
-        {id:"radish",name:"Radish",icon:"🌱",image:"assets/farm/crops/radish-crop-64.png",seedImage:"assets/farm/crops/radish-seeds-64.png",stages:{planted:"assets/farm/crops/radish-planted-64.png",grown:"assets/farm/crops/radish-ready-planted-64.png"},level:1,seedCost:8,steps:700,expiryHours:8,baseValue:16,xp:18},
-        {id:"lettuce",name:"Lettuce",icon:"🥬",level:2,seedCost:13,steps:1100,expiryHours:8,baseValue:26,xp:27},
-        {id:"spinach",name:"Spinach",icon:"🌿",level:3,seedCost:17,steps:1500,expiryHours:8,baseValue:37,xp:35},
-        {id:"carrot",name:"Carrot",icon:"🥕",level:4,seedCost:21,steps:1900,expiryHours:7,baseValue:41,xp:44},
-        {id:"onion",name:"Onion",icon:"🧅",level:5,seedCost:24,steps:2200,expiryHours:7,baseValue:48,xp:50},
-        {id:"beetroot",name:"Beetroot",icon:"🫜",level:6,seedCost:29,steps:2600,expiryHours:7,baseValue:58,xp:58},
-        {id:"blueberry",name:"Blueberry",icon:"🫐",level:8,seedCost:36,steps:3300,expiryHours:6,baseValue:66,xp:72},
-        {id:"peas",name:"Garden Peas",icon:"🫛",level:10,seedCost:43,steps:3800,expiryHours:6,baseValue:78,xp:84},
-        {id:"potato",name:"Potato",icon:"🥔",level:12,seedCost:49,steps:4400,expiryHours:6,baseValue:92,xp:96},
-        {id:"strawberry",name:"Strawberry",icon:"🍓",level:14,seedCost:59,steps:5400,expiryHours:5,baseValue:104,xp:118},
-        {id:"pepper",name:"Bell Pepper",icon:"🫑",level:16,seedCost:68,steps:6500,expiryHours:5,baseValue:128,xp:135},
-        {id:"tomato",name:"Tomato",icon:"🍅",level:18,seedCost:78,steps:7400,expiryHours:5,baseValue:149,xp:155},
-        {id:"corn",name:"Sweetcorn",icon:"🌽",level:20,seedCost:92,steps:8600,expiryHours:4,baseValue:159,xp:185},
-        {id:"eggplant",name:"Aubergine",icon:"🍆",level:22,seedCost:104,steps:9800,expiryHours:4,baseValue:184,xp:215},
-        {id:"cabbage",name:"Cabbage",icon:"🥬",level:24,seedCost:116,steps:11000,expiryHours:4,baseValue:210,xp:245},
-        {id:"broccoli",name:"Broccoli",icon:"🥦",level:26,seedCost:126,steps:12000,expiryHours:4,baseValue:233,xp:270},
-        {id:"pumpkin",name:"Pumpkin",icon:"🎃",level:28,seedCost:142,steps:13500,expiryHours:3,baseValue:241,xp:305},
-        {id:"grapes",name:"Vine Grapes",icon:"🍇",level:30,seedCost:154,steps:14800,expiryHours:3,baseValue:268,xp:345},
-        {id:"melon",name:"Moon Melon",icon:"🍈",level:32,seedCost:168,steps:16000,expiryHours:3,baseValue:295,xp:385},
-        {id:"dragonfruit",name:"Dragonfruit",icon:"🐉",level:35,seedCost:184,steps:17400,expiryHours:2,baseValue:300,xp:430},
-        {id:"starfruit",name:"Starfruit",icon:"⭐",level:38,seedCost:204,steps:18700,expiryHours:2,baseValue:330,xp:470},
-        {id:"ancient-root",name:"Ancient Root",icon:"🪷",level:42,seedCost:230,steps:20000,expiryHours:2,baseValue:370,xp:520}
-      ].map(crop => ({
-        ...crop,
-        riskMultiplier: 1 + clamp((8-crop.expiryHours)/6,0,1),
-        sellValue: Math.round(crop.baseValue*(1+clamp((8-crop.expiryHours)/6,0,1)))
-      }));
+        {id:"radish",name:"Radish",icon:"🌱",image:"assets/farm/crops/radish-crop-64.png",seedImage:"assets/farm/crops/radish-seeds-64.png",stages:{planted:"assets/farm/crops/radish-planted-64.png",grown:"assets/farm/crops/radish-ready-planted-64.png"},level:1,steps:700,expiryHours:8,xp:18},
+        {id:"lettuce",name:"Lettuce",icon:"🥬",level:2,steps:1600,expiryHours:8,xp:30},
+        {id:"spinach",name:"Spinach",icon:"🌿",level:3,steps:1100,expiryHours:7,xp:27},
+        {id:"carrot",name:"Carrot",icon:"🥕",level:4,steps:2400,expiryHours:7,xp:48},
+        {id:"onion",name:"Onion",icon:"🧅",level:5,steps:1700,expiryHours:6,xp:40},
+        {id:"beetroot",name:"Beetroot",icon:"🫜",level:6,steps:3100,expiryHours:7,xp:62},
+        {id:"blueberry",name:"Blueberry",icon:"🫐",level:8,steps:2200,expiryHours:5,xp:58},
+        {id:"peas",name:"Garden Peas",icon:"🫛",level:10,steps:4200,expiryHours:6,xp:88},
+        {id:"potato",name:"Potato",icon:"🥔",level:12,steps:3300,expiryHours:5,xp:82},
+        {id:"strawberry",name:"Strawberry",icon:"🍓",level:14,steps:5400,expiryHours:5,xp:122},
+        {id:"pepper",name:"Bell Pepper",icon:"🫑",level:16,steps:4600,expiryHours:4,xp:116},
+        {id:"tomato",name:"Tomato",icon:"🍅",level:18,steps:6800,expiryHours:5,xp:158},
+        {id:"corn",name:"Sweetcorn",icon:"🌽",level:20,steps:5800,expiryHours:4,xp:150},
+        {id:"eggplant",name:"Aubergine",icon:"🍆",level:22,steps:8200,expiryHours:4,xp:210},
+        {id:"cabbage",name:"Cabbage",icon:"🥬",level:24,steps:7200,expiryHours:3,xp:198},
+        {id:"broccoli",name:"Broccoli",icon:"🥦",level:26,steps:10000,expiryHours:4,xp:270},
+        {id:"pumpkin",name:"Pumpkin",icon:"🎃",level:28,steps:9000,expiryHours:3,xp:252},
+        {id:"grapes",name:"Vine Grapes",icon:"🍇",level:30,steps:13000,expiryHours:3,xp:350},
+        {id:"melon",name:"Moon Melon",icon:"🍈",level:32,steps:11000,expiryHours:2,xp:320},
+        {id:"dragonfruit",name:"Dragonfruit",icon:"🐉",level:35,steps:15500,expiryHours:3,xp:430},
+        {id:"starfruit",name:"Starfruit",icon:"⭐",level:38,steps:13500,expiryHours:2,xp:400},
+        {id:"ancient-root",name:"Ancient Root",icon:"🪷",level:42,steps:20000,expiryHours:2,xp:560}
+      ].map(crop => {
+        const levelMultiplier=1+crop.level*.025;
+        const expiryMultiplier=1+(8-crop.expiryHours)*.12;
+        const stepEfficiency=1-(crop.steps/20000)*.12;
+        const sellValue=Math.max(1,Math.round(crop.steps*.018*levelMultiplier*expiryMultiplier*stepEfficiency));
+        return {...crop,levelMultiplier,expiryMultiplier,stepEfficiency,sellValue,seedCost:Math.max(5,Math.round(sellValue*.32))};
+      });
 
       const ITEMS = [
         {id:"meadow-treads",type:"boots",name:"Meadow Treads",icon:"🥾",quality:"base",cost:1200,effect:{growth:5}},
@@ -728,13 +719,14 @@
       let selectedFertiliser=null;
       let selectedItem=null;
       let selectedFromCatalogue=false;
+      let selectedSeedCrop=null;
+      let selectedSeedDiscount=false;
       let saveTimer=null;
       let toastTimer=null;
       let resetArmed=false;
       let placementCropId="radish";
       let placementStage="planted";
       let placementDraft=null;
-      const pullingBeds=new Set();
 
       function save(){
         clearTimeout(saveTimer);
@@ -747,6 +739,11 @@
       }
       function cropById(id){return CROPS.find(c=>c.id===id)}
       function itemById(id){return ITEMS.find(i=>i.id===id)}
+      const CURRENCY_ICONS={gold:"assets/farm/ui/gold-coin-32.png",steps:"assets/farm/ui/step-token-32.png"};
+      function currencyMarkup(type,amount,label=true){
+        const value=amount===Infinity?"∞":fmt(amount);
+        return `<span class="currency"><img class="currency-icon" src="${CURRENCY_ICONS[type]}" alt="">${value}${label?` ${type}`:""}</span>`;
+      }
       function cropIconMarkup(crop,seed=false,className="pixel-sprite"){
         const image=seed?crop?.seedImage:crop?.image;
         return image?`<img class="${className} pixel-sprite" src="${image}" alt="" draggable="false">`:crop?.icon||"🌱";
@@ -807,7 +804,7 @@
       function recipeUnlocked(recipe){return levelInfo().level>=cropById(recipe.cropId).level}
       function recipeText(recipe){
         const crop=cropById(recipe.cropId),quality=QUALITY_LABELS[recipe.quality];
-        return `${fmt(recipe.steps)} steps + ${recipe.amount} ${quality?quality+" ":""}${crop.name}`;
+        return `${currencyMarkup("steps",recipe.steps)} + ${recipe.amount} ${quality?quality+" ":""}${crop.name}`;
       }
       function cropRequirementText(requirement){
         if(!requirement)return "";
@@ -835,8 +832,8 @@
         ];
       }
       function questRewardText(quest){
-        if(quest.reward.type==="gear")return state.ownedItems.includes(quest.reward.item)?`${fmt(Math.round(itemById(quest.reward.item).cost*.35))} steps`:`${itemById(quest.reward.item).name}`;
-        return `${fmt(quest.reward.amount)} steps`;
+        if(quest.reward.type==="gear")return state.ownedItems.includes(quest.reward.item)?currencyMarkup("steps",Math.round(itemById(quest.reward.item).cost*.35)):`${itemById(quest.reward.item).name}`;
+        return currencyMarkup("steps",quest.reward.amount);
       }
       function spriteMarkup(entry,className="pixel-sprite"){
         return entry?.image?`<img class="${className} pixel-sprite" src="${entry.image}" alt="" draggable="false">`:entry?.icon||"";
@@ -997,10 +994,10 @@
         $("#weatherTitle").textContent=active?`${weather.label} · ${weather.temperature}°C`:"Local weather";
         $("#weatherDetail").textContent=active
           ? `Today: +${weather.growth}% growth${weather.quality?` · +${weather.quality}% quality`:""}${weather.expiry?` · +${weather.expiry}% lifetime`:""}`
-          : "Use your location for today’s crop bonus.";
+          : "Tap Enable, then Allow on the location prompt.";
         $("#weatherButton").textContent=active?"Refresh":"Enable";
       }
-      function loadLocalWeather(){
+      function requestLocalWeatherPermission(){
         if(!navigator.geolocation)return toast("Location is unavailable on this device");
         $("#weatherButton").disabled=true;$("#weatherButton").textContent="Finding…";
         navigator.geolocation.getCurrentPosition(async position=>{
@@ -1015,12 +1012,16 @@
           }catch{
             $("#weatherButton").disabled=false;renderWeather();toast("Weather could not be loaded");
           }
-        },()=>{
+        },error=>{
           $("#weatherButton").disabled=false;renderWeather();toast("Location permission is needed for local weather");
+          if(error?.code===1&&navigator.permissions){
+            navigator.permissions.query({name:"geolocation"}).then(result=>{
+              if(result.state==="denied")$("#weatherDetail").textContent="Location is blocked for Ironbound. Allow it in this app’s permissions, then tap Enable.";
+            }).catch(()=>{});
+          }
         },{enableHighAccuracy:false,timeout:12000,maximumAge:1800000});
       }
       function renderFarm(){
-        if(pullingBeds.size)return;
         const goal=Math.max(1,state.dailyGoal);
         const percent=clamp(state.todaySteps/goal*100,0,100);
         $("#todaySteps").textContent=fmt(state.todaySteps);
@@ -1034,7 +1035,7 @@
         $("#bedsGrid").innerHTML=Array.from({length:MAX_BEDS},(_,index)=>renderBed(index)).join("");
         $$("[data-plant-bed]").forEach(button=>button.onclick=()=>openPlantModal(Number(button.dataset.plantBed)));
         $$("[data-unlock-bed]").forEach(button=>button.onclick=()=>unlockBed(Number(button.dataset.unlockBed)));
-        $$("[data-harvest-bed]").forEach(button=>button.onclick=()=>pullAndHarvest(button,Number(button.dataset.harvestBed)));
+        $$("[data-harvest-bed]").forEach(button=>button.onclick=()=>harvestBed(Number(button.dataset.harvestBed)));
         $$("[data-clear-bed]").forEach(button=>button.onclick=()=>clearBed(Number(button.dataset.clearBed)));
         $("#plantAll").disabled=!state.beds.slice(0,state.unlockedBeds).some(bed=>!bed);
         $("#replantAll").disabled=!state.beds.slice(0,state.unlockedBeds).some((bed,index)=>!bed&&state.bedPlans[index]);
@@ -1043,7 +1044,7 @@
         if(index>=state.unlockedBeds){
           const next=index===state.unlockedBeds;
           const requirement=BED_REQUIREMENTS[index];
-          return `<article class="bed locked"><button class="bed-action" ${next?`data-unlock-bed="${index}"`:"disabled"}><strong>${next?"🔓":"🔒"}</strong><small>${next?`${fmt(BED_COSTS[index])} gold`:"Locked"}</small>${next&&requirement?`<span class="unlock-requirement">+ ${cropRequirementText(requirement)}</span>`:""}</button></article>`;
+          return `<article class="bed locked"><button class="bed-action" ${next?`data-unlock-bed="${index}"`:"disabled"}><strong>${next?"🔓":"🔒"}</strong><small>${next?currencyMarkup("gold",BED_COSTS[index]):"Locked"}</small>${next&&requirement?`<span class="unlock-requirement">+ ${cropRequirementText(requirement)}</span>`:""}</button></article>`;
         }
         const bed=state.beds[index];
         if(!bed)return `<article class="bed empty"><button class="bed-action" data-plant-bed="${index}"><img class="bed-art pixel-sprite" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><small>＋ Plant</small></button></article>`;
@@ -1053,7 +1054,7 @@
         if(status==="withered")return `<article class="bed withered"><div class="bed-scene"><img class="bed-art pixel-sprite" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><div class="crop-visual">🥀</div></div><button class="clear-btn" data-clear-bed="${index}">Clear</button></article>`;
         const stage=status==="ready"?"grown":"planted";
         const scene=status==="ready"
-          ? `<button class="bed-scene harvest-target" data-harvest-bed="${index}" aria-label="Harvest ${crop.name}"><img class="bed-art pixel-sprite" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><div class="crop-visual" style="${cropPlacementStyle(crop.id,stage)}">${cropStageMarkup(crop,stage)}</div><span class="pull-dirt dirt-1"></span><span class="pull-dirt dirt-2"></span><span class="pull-dirt dirt-3"></span><span class="pull-dirt dirt-4"></span></button>`
+          ? `<button class="bed-scene harvest-target" data-harvest-bed="${index}" aria-label="Harvest ${crop.name}"><img class="bed-art pixel-sprite" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><div class="crop-visual" style="${cropPlacementStyle(crop.id,stage)}">${cropStageMarkup(crop,stage)}</div></button>`
           : `<div class="bed-scene"><img class="bed-art pixel-sprite" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><div class="crop-visual" style="${cropPlacementStyle(crop.id,stage)}">${cropStageMarkup(crop,stage)}</div></div>`;
         return `<article class="bed">${scene}<div class="bed-progress"><i style="width:${progress}%"></i></div><div class="bed-foot"><span>${Math.floor(progress)}%</span><span data-bed-time="${bed.expiresAt}">${formatTime(bed.expiresAt-Date.now())}</span></div></article>`;
       }
@@ -1081,7 +1082,7 @@
         const crops=state.adminMode?CROPS:CROPS.filter(crop=>crop.level<=level);
         $("#plantChoices").innerHTML=crops.map(crop=>{
           const seeds=state.seeds[crop.id]||0;
-          return `<button class="plant-option ${selectedCrop===crop.id?"selected":""}" data-crop-choice="${crop.id}" ${!state.adminMode&&seeds<1?"disabled":""}><i>${cropIconMarkup(crop,true)}</i><b>${crop.name}</b><small>${state.adminMode?`Level ${crop.level} · ∞ seeds`:`×${seeds}`}</small></button>`;
+          return `<button class="plant-option ${selectedCrop===crop.id?"selected":""}" data-crop-choice="${crop.id}" ${!state.adminMode&&seeds<1?"disabled":""}><i>${cropIconMarkup(crop,true)}</i><b>${crop.name}</b><small>${currencyMarkup("steps",crop.steps)} · ${state.adminMode?`Level ${crop.level} · ∞ seeds`:`×${seeds}`}</small></button>`;
         }).join("");
         const noFert=`<button class="fert-option ${selectedFertiliser===null?"selected":""}" data-fert-choice=""><span><b>No fertiliser</b><small>Base Iridium chance: 1%</small></span><strong>Free</strong></button>`;
         const availableFertilisers=state.adminMode?FERTILISERS:FERTILISERS.filter(fert=>(state.fertilisers[fert.id]||0)>0);
@@ -1089,6 +1090,8 @@
         $$("[data-crop-choice]").forEach(button=>button.onclick=()=>{selectedCrop=button.dataset.cropChoice;renderPlantModal()});
         $$("[data-fert-choice]").forEach(button=>button.onclick=()=>{selectedFertiliser=button.dataset.fertChoice||null;renderPlantModal()});
         $("#confirmPlant").disabled=!state.adminMode&&(state.seeds[selectedCrop]||0)<1;
+        const crop=cropById(selectedCrop);
+        $("#confirmPlant").innerHTML=crop?`Plant · ${currencyMarkup("steps",crop.steps)} to grow`:"Plant";
       }
       function plantCrop(){
         const crop=cropById(selectedCrop);
@@ -1142,17 +1145,6 @@
         save();renderAll();celebrate(crop.icon);
         toast(`${amount===2?"Double harvest · ":""}${QUALITY_LABELS[quality]?QUALITY_LABELS[quality]+" ":""}${crop.name}`);
       }
-      function pullAndHarvest(button,index){
-        const bed=state.beds[index];
-        if(!bed||bedState(bed)!=="ready"||pullingBeds.has(index))return;
-        pullingBeds.add(index);
-        button.disabled=true;
-        button.classList.add("pulling");
-        setTimeout(()=>{
-          pullingBeds.delete(index);
-          harvestBed(index);
-        },760);
-      }
       function clearBed(index){state.beds[index]=null;save();renderAll();toast("Bed cleared")}
 
       function renderShop(){
@@ -1166,16 +1158,16 @@
           const level=levelInfo().level;
           const crops=state.adminMode?CROPS:CROPS.filter(crop=>crop.level<=level);
           const discount=discountedCrop(),discountCost=Math.max(1,Math.ceil(discount.seedCost/2));
-          const discountCard=`<button class="shop-item discount-card quality-gold" data-seed-buy="${discount.id}" data-discount="1" ${canSpendGold(discountCost)?"":"disabled"}><div class="item-art">${cropIconMarkup(discount,true)}</div><div><div class="item-name">Daily deal · ${discount.name}</div><div class="item-quality">Half-price seed · resets tomorrow</div></div><div class="item-cost">${fmt(discountCost)} gold</div></button>`;
+          const discountCard=`<div class="shop-section"><h2>Half-price seed</h2></div><button class="shop-item discount-card quality-gold" data-seed-view="${discount.id}" data-discount="1"><div class="item-art">${cropIconMarkup(discount,true)}</div><div class="item-name">${discount.name} seeds</div><div class="item-cost seed-card-price">${currencyMarkup("gold",discountCost)}</div></button><div class="shop-section"><h2>Seeds</h2></div>`;
           $("#shopGrid").innerHTML=discountCard+crops.map(crop=>{
-            return `<button class="shop-item quality-base" data-seed-buy="${crop.id}" ${canSpendGold(crop.seedCost)?"":"disabled"}><div class="item-art">${cropIconMarkup(crop,true)}</div><div class="item-name">${crop.name} seeds</div><div class="item-quality">${fmt(crop.steps)} steps${state.adminMode?` · Level ${crop.level}`:""}</div><div class="item-cost">${fmt(crop.seedCost)} gold · owned ${state.seeds[crop.id]||0}</div></button>`;
+            return `<button class="shop-item quality-base" data-seed-view="${crop.id}"><div class="item-art">${cropIconMarkup(crop,true)}</div><div class="item-name">${crop.name} seeds</div><div class="item-cost seed-card-price">${currencyMarkup("gold",crop.seedCost)}</div></button>`;
           }).join("");
-          $$("[data-seed-buy]").forEach(button=>button.onclick=()=>buySeed(button.dataset.seedBuy,button.dataset.discount==="1"));
+          $$("[data-seed-view]").forEach(button=>button.onclick=()=>openSeed(button.dataset.seedView,button.dataset.discount==="1"));
           return;
         }
         if(activeShopTab==="fertiliser"){
           const products=FERTILISERS.filter(fert=>fert.tier===selectedFertiliserTier);
-          $("#shopGrid").innerHTML=products.map(fert=>`<button class="shop-item fert-card quality-${fert.tier}" data-fert-buy="${fert.id}" ${canSpendSteps(fert.cost)?"":"disabled"}><div class="item-art">${spriteMarkup(fert)}</div><div class="item-name">${fert.name}</div><div class="item-quality">${fert.effectText}</div><div class="item-cost">${fmt(fert.cost)} steps · owned ${state.fertilisers[fert.id]||0}</div></button>`).join("");
+          $("#shopGrid").innerHTML=products.map(fert=>`<button class="shop-item fert-card quality-${fert.tier}" data-fert-buy="${fert.id}" ${canSpendSteps(fert.cost)?"":"disabled"}><div class="item-art">${spriteMarkup(fert)}</div><div class="item-name">${fert.name}</div><div class="item-quality">${fert.effectText}</div><div class="item-cost">${currencyMarkup("steps",fert.cost)} · owned ${state.fertilisers[fert.id]||0}</div></button>`).join("");
           $$("[data-fert-buy]").forEach(button=>button.onclick=()=>buyFertiliser(button.dataset.fertBuy));
           return;
         }
@@ -1187,7 +1179,26 @@
       }
       function itemCardMarkup(item,catalogue=false){
         const owned=state.ownedItems.includes(item.id),upgrade=itemUpgradeLevel(item);
-        return `<button class="shop-item quality-${item.quality} ${owned?"owned":""}" data-shop-item="${item.id}" data-catalogue="${catalogue?"1":"0"}"><div class="item-art">${item.icon}</div><div class="item-name">${item.name}</div><div class="item-quality">${upgrade?`Upgrade +${upgrade}`:item.type==="tools"?"Accessory":item.type}</div><div class="item-cost">${owned?"Owned":catalogue&&!state.adminMode?"View":fmt(item.cost)+" steps"}</div></button>`;
+        return `<button class="shop-item quality-${item.quality} ${owned?"owned":""}" data-shop-item="${item.id}" data-catalogue="${catalogue?"1":"0"}"><div class="item-art">${item.icon}</div><div class="item-name">${item.name}</div><div class="item-quality">${upgrade?`Upgrade +${upgrade}`:item.type==="tools"?"Accessory":item.type}</div><div class="item-cost">${owned?"Owned":catalogue&&!state.adminMode?"View":currencyMarkup("steps",item.cost)}</div></button>`;
+      }
+      function openSeed(id,discounted=false){
+        const crop=cropById(id);if(!crop)return;
+        selectedSeedCrop=crop;selectedSeedDiscount=discounted;
+        const cost=discounted?Math.max(1,Math.ceil(crop.seedCost/2)):crop.seedCost;
+        $("#seedModalCard").className=`modal-card ${discounted?"quality-gold":"quality-base"}`;
+        $("#seedDetailName").textContent=`${crop.name} seeds`;
+        $("#seedDetailArt").innerHTML=cropIconMarkup(crop,true);
+        $("#seedDetailInfo").innerHTML=`Level ${crop.level} · ${currencyMarkup("steps",crop.steps)} to grow · ${crop.expiryHours}h to harvest<br>Base crop value · ${currencyMarkup("gold",crop.sellValue)}`;
+        $("#seedDetailOwned").textContent=`Owned · ${state.adminMode?"∞":state.seeds[crop.id]||0}`;
+        $("#seedDetailBuy").innerHTML=`Buy · ${currencyMarkup("gold",cost)}${discounted?" · half price":""}`;
+        $("#seedDetailBuy").disabled=!canSpendGold(cost);
+        $("#seedModal").classList.add("show");
+      }
+      function buySelectedSeed(){
+        if(!selectedSeedCrop)return;
+        const id=selectedSeedCrop.id,discounted=selectedSeedDiscount;
+        buySeed(id,discounted);
+        openSeed(id,discounted);
       }
       function buySeed(id,discounted=false){
         const crop=cropById(id);
@@ -1209,10 +1220,10 @@
         $("#detailName").textContent=selectedItem.name;
         $("#detailArt").textContent=selectedItem.icon;
         $("#detailEffect").textContent=effectDescription(selectedItem.effect,itemEffectScale(selectedItem));
-        $("#detailAction").textContent=owned?(equipped?"Equipped":"Equip item"):available?`Buy for ${fmt(selectedItem.cost)} steps`:"Not in today’s stock";
+        $("#detailAction").innerHTML=owned?(equipped?"Equipped":"Equip item"):available?`Buy · ${currencyMarkup("steps",selectedItem.cost)}`:"Not in today’s stock";
         $("#detailAction").disabled=equipped||(!owned&&(!available||!canSpendSteps(selectedItem.cost)));
         $("#detailSell").hidden=!owned;
-        $("#detailSell").textContent=`Sell for ${fmt(gearSellValue(selectedItem))} steps`;
+        $("#detailSell").innerHTML=`Sell · ${currencyMarkup("steps",gearSellValue(selectedItem))}`;
         renderItemUpgrade();
         $("#itemModal").classList.add("show");
       }
@@ -1232,11 +1243,11 @@
         const unlocked=state.adminMode||recipeUnlocked(recipe);
         if(!unlocked){preview.hidden=true;return}
         $("#detailUpgradeTitle").textContent=`Upgrade to +${recipe.level}`;
-        $("#detailUpgradeRecipe").textContent=`${recipeText(recipe)} · each upgrade adds 25% to every benefit`;
+        $("#detailUpgradeRecipe").innerHTML=`${recipeText(recipe)} · each upgrade adds 25% to every benefit`;
         button.hidden=!unlocked;
         const cropEnough=(state.inventory[recipeCropKey(recipe)]||0)>=recipe.amount;
         button.disabled=!canSpendSteps(recipe.steps)||(!state.adminMode&&!cropEnough);
-        button.textContent=`Upgrade · ${fmt(recipe.steps)} steps`;
+        button.innerHTML=`Upgrade · ${currencyMarkup("steps",recipe.steps)}`;
       }
       function itemAction(){
         if(!selectedItem)return;
@@ -1320,12 +1331,12 @@
         $$("[data-equipped]").forEach(button=>{if(button.dataset.equipped)button.onclick=()=>openItem(button.dataset.equipped)});
         const ownedGear=state.ownedItems.map(itemById).filter(Boolean);
         $("#gearCount").textContent=`${ownedGear.length} item${ownedGear.length===1?"":"s"}`;
-        $("#ownedGearGrid").innerHTML=ownedGear.length?ownedGear.map(item=>`<button class="owned-gear-card quality-${item.quality}" data-owned-item="${item.id}"><i>${item.icon}</i><span><b>${item.name}</b><small>${itemUpgradeLevel(item)?`Upgrade +${itemUpgradeLevel(item)} · `:""}${fmt(gearSellValue(item))} steps resale</small></span></button>`).join(""):`<div class="empty-state" style="grid-column:1/-1">Buy gear from the Store.</div>`;
+        $("#ownedGearGrid").innerHTML=ownedGear.length?ownedGear.map(item=>`<button class="owned-gear-card quality-${item.quality}" data-owned-item="${item.id}"><i>${item.icon}</i><span><b>${item.name}</b><small>${itemUpgradeLevel(item)?`Upgrade +${itemUpgradeLevel(item)} · `:""}${currencyMarkup("steps",gearSellValue(item))} resale</small></span></button>`).join(""):`<div class="empty-state" style="grid-column:1/-1">Buy gear from the Store.</div>`;
         $$("[data-owned-item]").forEach(button=>button.onclick=()=>openItem(button.dataset.ownedItem));
         const fertiliserEntries=FERTILISERS.filter(fert=>(state.fertilisers[fert.id]||0)>0);
         const fertiliserCount=fertiliserEntries.reduce((sum,fert)=>sum+(state.fertilisers[fert.id]||0),0);
         $("#fertiliserCount").textContent=`${fmt(fertiliserCount)} item${fertiliserCount===1?"":"s"}`;
-        $("#fertiliserList").innerHTML=fertiliserEntries.length?fertiliserEntries.map(fert=>`<article class="inventory-row quality-${fert.tier}"><div class="seed-icon">${spriteMarkup(fert)}</div><div><b>${fert.name} ×${state.fertilisers[fert.id]}</b><small>${fert.effectText} · ${fmt(Math.round(fert.cost*.5))} steps resale</small></div><button class="sell-btn" data-sell-fertiliser="${fert.id}">Sell one</button></article>`).join(""):`<div class="empty-state">Purchased fertiliser appears here.</div>`;
+        $("#fertiliserList").innerHTML=fertiliserEntries.length?fertiliserEntries.map(fert=>`<article class="inventory-row quality-${fert.tier}"><div class="seed-icon">${spriteMarkup(fert)}</div><div><b>${fert.name} ×${state.fertilisers[fert.id]}</b><small>${fert.effectText} · ${currencyMarkup("steps",Math.round(fert.cost*.5))} resale</small></div><button class="sell-btn" data-sell-fertiliser="${fert.id}">Sell one</button></article>`).join(""):`<div class="empty-state">Purchased fertiliser appears here.</div>`;
         $$("[data-sell-fertiliser]").forEach(button=>button.onclick=()=>sellFertiliser(button.dataset.sellFertiliser));
         const entries=Object.entries(state.inventory).filter(([,count])=>count>0);
         const count=entries.reduce((sum,[,amount])=>sum+amount,0);
@@ -1336,7 +1347,7 @@
         }
         $("#inventoryList").innerHTML=entries.sort((a,b)=>QUALITY_ORDER.indexOf(b[0].split(":")[1])-QUALITY_ORDER.indexOf(a[0].split(":")[1])).map(([key,amount])=>{
           const [cropId,quality]=key.split(":"),crop=cropById(cropId),value=saleValue(crop,quality);
-          return `<article class="inventory-row quality-${quality}"><div class="seed-icon">${cropIconMarkup(crop)}</div><div><b>${QUALITY_LABELS[quality]?QUALITY_LABELS[quality]+" ":""}${crop.name} ×${amount}</b><small><span class="quality-dot"></span>${fmt(value)} gold each</small></div><button class="sell-btn" data-sell-crop="${key}">Sell one</button></article>`;
+          return `<article class="inventory-row quality-${quality}"><div class="seed-icon">${cropIconMarkup(crop)}</div><div><b>${QUALITY_LABELS[quality]?QUALITY_LABELS[quality]+" ":""}${crop.name} ×${amount}</b><small><span class="quality-dot"></span>${currencyMarkup("gold",value)} each</small></div><button class="sell-btn" data-sell-crop="${key}">Sell one</button></article>`;
         }).join("");
         $$("[data-sell-crop]").forEach(button=>button.onclick=()=>sellCrop(button.dataset.sellCrop));
       }
@@ -1367,7 +1378,7 @@
         const level=levelInfo().level,available=FARM_UPGRADES.filter(upgrade=>upgrade.level<=level);
         $("#upgradeList").innerHTML=available.length?available.map(upgrade=>{
           const purchased=state.farmUpgrades.includes(upgrade.id),requirement=upgrade.requirement;
-          const cost=`${fmt(upgrade.gold)} gold${requirement?` + ${cropRequirementText(requirement)}`:""}`;
+          const cost=`${currencyMarkup("gold",upgrade.gold)}${requirement?` + ${cropRequirementText(requirement)}`:""}`;
           return `<article class="upgrade-card card"><div class="upgrade-top"><div class="upgrade-icon">${upgrade.icon}</div><div class="upgrade-copy"><h3>${upgrade.name}</h3><p>${upgrade.description}</p></div><span class="upgrade-level">LV ${upgrade.level}</span></div><button class="btn wide ${purchased?"secondary":""}" data-upgrade="${upgrade.id}" ${purchased||!canSpendGold(upgrade.gold)||!hasCropRequirement(requirement)?"disabled":""}>${purchased?"Purchased":`Buy · ${cost}`}</button></article>`;
         }).join(""):`<div class="empty-state">Your first farmhouse upgrade unlocks at level 2.</div>`;
         $$("[data-upgrade]").forEach(button=>button.onclick=()=>buyUpgrade(button.dataset.upgrade));
@@ -1527,12 +1538,13 @@
       $$("[data-close-modal]").forEach(button=>button.onclick=closeModals);
       $$(".modal").forEach(modal=>modal.onclick=event=>{if(event.target===modal)closeModals()});
       $("#confirmPlant").onclick=plantCrop;
+      $("#seedDetailBuy").onclick=buySelectedSeed;
       $("#detailAction").onclick=itemAction;
       $("#detailSell").onclick=sellSelectedGear;
       $("#detailUpgrade").onclick=upgradeSelectedItem;
       $("#plantAll").onclick=openPlantAll;
       $("#replantAll").onclick=replantAll;
-      $("#weatherButton").onclick=loadLocalWeather;
+      $("#weatherButton").onclick=requestLocalWeatherPermission;
       $("#enableAdmin").onclick=enableAdmin;
       $("#adminCode").onkeydown=event=>{if(event.key==="Enter")enableAdmin()};
       $("#adminGrowAll").onclick=adminGrowAll;

@@ -23,7 +23,7 @@ for (const required of [
   "MAX_BEDS = 20",
   "stepBalance",
   "nativeLifetime",
-  "pullAndHarvest",
+  "harvestBed",
   "updateFarmTimes",
   "MILES-FARM",
   "dailyStock",
@@ -33,7 +33,7 @@ for (const required of [
   "doubleGoldSales",
   "dailyQuests",
   "discountedCrop",
-  "loadLocalWeather",
+  "requestLocalWeatherPermission",
   "replantAll",
   "sellSelectedGear",
 ]) {
@@ -73,8 +73,18 @@ if (!radish.stages.grown.includes("radish-ready-planted")) {
 if (!radish.image?.includes("radish-crop-64") || !radish.seedImage?.includes("radish-seeds-64")) {
   throw new Error("The radish crop and seed packet sprites must be configured");
 }
-if (html.includes("TAP TO HARVEST") || html.includes("harvest-ready 1.5s")) {
-  throw new Error("Ready crops must not bob or display a tap-to-harvest label");
+if (html.includes("TAP TO HARVEST") || html.includes("harvest-ready 1.5s") || html.includes("pullAndHarvest") || html.includes("pull-radish") || html.includes("pull-dirt")) {
+  throw new Error("Ready crops must not move, bob, or display a tap-to-harvest label");
+}
+for (const id of ["seedModal", "seedDetailName", "seedDetailInfo", "seedDetailBuy"]) {
+  if (!ids.includes(id)) throw new Error(`Missing seed detail control: ${id}`);
+}
+if (!html.includes("data-seed-view") || html.includes("data-seed-buy")) {
+  throw new Error("Seed cards must open details instead of buying immediately");
+}
+for (const asset of ["assets/farm/crops/radish-seeds-64.png", "assets/farm/ui/gold-coin-32.png", "assets/farm/ui/step-token-32.png"]) {
+  const size = fs.statSync(asset).size;
+  if (size < 100 || size > 20000) throw new Error(`Generated pixel asset has an unexpected size: ${asset} (${size} bytes)`);
 }
 if (farm.CROPS.length < 20) {
   throw new Error("The crop catalogue must include at least twenty crops");
@@ -107,17 +117,31 @@ if (Math.max(...farm.ITEMS.map((item) => item.cost)) !== 100000) {
 if (Math.max(...farm.CROPS.map((crop) => crop.steps)) !== 20000) {
   throw new Error("The longest crop must require exactly 20,000 steps");
 }
-const valueRates = farm.CROPS.map((crop) => crop.sellValue / crop.steps);
-if (valueRates.some((rate, index) => index > 0 && rate + 0.0002 < valueRates[index - 1])) {
-  throw new Error("Higher crops must remain slightly more valuable per step");
+if (!farm.CROPS.some((crop, index) => index > 0 && crop.steps < farm.CROPS[index - 1].steps)) {
+  throw new Error("Higher-level crops must not always require more steps");
+}
+for (const crop of farm.CROPS) {
+  const expected = Math.max(1, Math.round(crop.steps * 0.018 * crop.levelMultiplier * crop.expiryMultiplier * crop.stepEfficiency));
+  if (crop.sellValue !== expected || crop.seedCost !== Math.max(5, Math.round(expected * 0.32))) {
+    throw new Error(`Derived crop pricing is incorrect for ${crop.id}`);
+  }
+}
+const average = (values) => values.reduce((sum, value) => sum + value, 0) / values.length;
+const twoHourRates = farm.CROPS.filter((crop) => crop.expiryHours === 2).map((crop) => crop.sellValue / crop.steps);
+const eightHourRates = farm.CROPS.filter((crop) => crop.expiryHours === 8).map((crop) => crop.sellValue / crop.steps);
+if (average(twoHourRates) <= average(eightHourRates)) {
+  throw new Error("Short-expiry crops must pay more gold per step");
+}
+if (!farm.CROPS.every((crop) => crop.stepEfficiency < 1 && crop.stepEfficiency > 0.85)) {
+  throw new Error("Longer crops must have a modestly lower per-step efficiency");
+}
+const lettuce = farm.CROPS.find((crop) => crop.id === "lettuce");
+const spinach = farm.CROPS.find((crop) => crop.id === "spinach");
+if (!(spinach.level > lettuce.level && spinach.steps < lettuce.steps && spinach.sellValue / spinach.steps > lettuce.sellValue / lettuce.steps)) {
+  throw new Error("The crop curve must include higher-level, lower-step, better-paying alternatives");
 }
 if (farm.ITEM_UPGRADE_MAX !== 3 || !farm.upgradeRecipe(farm.ITEMS[0], 3)?.cropId) {
   throw new Error("Every gear item must support three crop-backed upgrades");
-}
-const twoHourCrop = farm.CROPS.find((crop) => crop.expiryHours === 2);
-const eightHourCrop = farm.CROPS.find((crop) => crop.expiryHours === 8);
-if (twoHourCrop?.riskMultiplier !== 2 || eightHourCrop?.riskMultiplier !== 1) {
-  throw new Error("Crop expiry value multipliers are incorrect");
 }
 const baseOdds = farm.qualityOdds(null);
 if (Math.abs(baseOdds.iridium - 1) > 0.001) {
