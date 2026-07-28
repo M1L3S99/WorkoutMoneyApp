@@ -20,7 +20,7 @@ for (const required of [
   "pedometerReady",
   "window.IronboundSteps",
   "iridium:1",
-  "MAX_BEDS = 10",
+  "MAX_BEDS = 20",
   "stepBalance",
   "nativeLifetime",
   "pullAndHarvest",
@@ -31,6 +31,11 @@ for (const required of [
   "adminGrowAll",
   "doubleStepCap",
   "doubleGoldSales",
+  "dailyQuests",
+  "discountedCrop",
+  "loadLocalWeather",
+  "replantAll",
+  "sellSelectedGear",
 ]) {
   if (!script[1].includes(required)) throw new Error(`Missing required implementation: ${required}`);
 }
@@ -40,7 +45,7 @@ const hook = '      $$(".nav-btn").forEach(button=>button.onclick';
 if (!script[1].includes(hook)) throw new Error("Could not locate runtime test hook");
 const instrumented = script[1].replace(
   hook,
-  `      globalThis.__farmTest = { CROPS, ITEMS, FERTILISERS, BED_COSTS, MAX_BEDS, qualityOdds, freshState, dailyStock, upgradeRecipe, ITEM_UPGRADE_MAX };
+  `      globalThis.__farmTest = { CROPS, ITEMS, FERTILISERS, BED_COSTS, BED_REQUIREMENTS, MAX_BEDS, FARM_UPGRADES, qualityOdds, freshState, dailyStock, dailyQuests, discountedCrop, weatherFromCurrent, upgradeRecipe, ITEM_UPGRADE_MAX };
       return;
 ${hook}`
 );
@@ -49,8 +54,8 @@ global.localStorage = { getItem() { return null; }, setItem() {} };
 new Function(instrumented)();
 
 const farm = global.__farmTest;
-if (farm.MAX_BEDS !== 10 || farm.BED_COSTS.length !== 10) {
-  throw new Error("The farm must support exactly ten beds");
+if (farm.MAX_BEDS !== 20 || farm.BED_COSTS.length !== 20 || farm.BED_REQUIREMENTS.length !== 20) {
+  throw new Error("The farm must support exactly twenty progressively unlocked beds");
 }
 if (farm.freshState().unlockedBeds !== 1) {
   throw new Error("A new farm must start with one unlocked bed");
@@ -65,13 +70,29 @@ if (!radish?.stages?.planted || !radish?.stages?.grown || radish?.stages?.half) 
 if (!radish.stages.grown.includes("radish-ready-planted")) {
   throw new Error("The ready radish must remain visibly planted in the soil");
 }
+if (!radish.image?.includes("radish-crop-64") || !radish.seedImage?.includes("radish-seeds-64")) {
+  throw new Error("The radish crop and seed packet sprites must be configured");
+}
+if (html.includes("TAP TO HARVEST") || html.includes("harvest-ready 1.5s")) {
+  throw new Error("Ready crops must not bob or display a tap-to-harvest label");
+}
 if (farm.CROPS.length < 20) {
   throw new Error("The crop catalogue must include at least twenty crops");
 }
-const fertiliserCosts = farm.FERTILISERS.map((item) => item.cost).join(",");
-if (farm.FERTILISERS.length !== 4 || fertiliserCosts !== "1000,2000,5000,10000" || farm.FERTILISERS.at(-1)?.guaranteed !== "iridium") {
-  throw new Error("Bronze, Silver, Gold, and guaranteed-Iridium fertilisers are configured incorrectly");
+const fertiliserFamilies = new Set(farm.FERTILISERS.map((item) => item.family));
+const fertiliserTiers = new Set(farm.FERTILISERS.map((item) => item.tier));
+if (farm.FERTILISERS.length !== 12 || fertiliserFamilies.size !== 3 || fertiliserTiers.size !== 4 || !farm.FERTILISERS.some((item) => item.id === "quality-iridium" && item.guaranteed === "iridium")) {
+  throw new Error("The three fertiliser families must each offer Bronze through Iridium tiers");
 }
+if (farm.FARM_UPGRADES.length < 8 || farm.FARM_UPGRADES.some((item) => !item.level || !item.gold)) {
+  throw new Error("Farmhouse upgrades must be one-time, level-gated purchases");
+}
+if (farm.dailyQuests().length !== 3 || !farm.dailyQuests().some((quest) => quest.reward.type === "gear")) {
+  throw new Error("Three deterministic daily NPC quests including a gear trade are required");
+}
+if (farm.discountedCrop().seedCost < 1) throw new Error("The daily discounted seed must resolve to a crop");
+const rain = farm.weatherFromCurrent({ weather_code: 61, temperature_2m: 16, precipitation: 2 });
+if (rain.growth <= 0 || rain.quality <= 0) throw new Error("Rain should provide a positive crop modifier");
 const itemTypes = new Set(farm.ITEMS.map((item) => item.type));
 for (const type of ["boots", "gloves", "tools"]) {
   if (!itemTypes.has(type)) throw new Error(`Missing shop item type: ${type}`);
