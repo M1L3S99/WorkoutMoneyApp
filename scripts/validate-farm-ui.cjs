@@ -47,6 +47,16 @@ if (farm.MAX_BEDS !== 10 || farm.BED_COSTS.length !== 10) {
 if (farm.freshState().unlockedBeds !== 1) {
   throw new Error("A new farm must start with one unlocked bed");
 }
+if ((farm.freshState().seeds?.radish || 0) < 1) {
+  throw new Error("A new farm must start with radish seeds");
+}
+const radish = farm.CROPS.find((crop) => crop.id === "radish");
+if (!radish?.stages?.planted || !radish?.stages?.half || !radish?.stages?.grown) {
+  throw new Error("Radish must have planted, half-grown, and ready sprites");
+}
+if (farm.FERTILISERS.length !== 2 || !farm.FERTILISERS.some((item) => item.id === "speed-gro") || !farm.FERTILISERS.some((item) => item.id === "fertiliser")) {
+  throw new Error("The store must offer Fertiliser and Speed-Gro");
+}
 const itemTypes = new Set(farm.ITEMS.map((item) => item.type));
 for (const type of ["boots", "gloves", "tools"]) {
   if (!itemTypes.has(type)) throw new Error(`Missing shop item type: ${type}`);
