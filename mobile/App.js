@@ -22,7 +22,9 @@ import { WebView } from 'react-native-webview';
 const GAME_URL = 'https://m1l3s99.github.io/WorkoutMoneyApp/';
 const STEP_STORAGE_KEY = 'ironbound-native-daily-steps-v1';
 const PERMISSION_ASKED_KEY = 'ironbound-native-pedometer-permission-asked-v1';
-const BACKGROUND_SETUP_KEY = 'ironbound-background-tracking-setup-v1';
+// Increment this whenever Android adds a required background permission so
+// existing installations are taken through the new native setup once.
+const BACKGROUND_SETUP_KEY = 'ironbound-background-tracking-setup-v2';
 const immediateStepDetector =
   Platform.OS === 'android' ? NativeModules.IronboundStepDetector : null;
 const colours = {

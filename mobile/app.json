@@ -2,7 +2,7 @@
   "expo": {
     "name": "Ironbound",
     "slug": "ironbound-step-rpg",
-    "version": "2.3.2",
+    "version": "2.3.3",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#020b19",
@@ -12,7 +12,7 @@
     ],
     "android": {
       "package": "com.m1l3s99.ironbound",
-      "versionCode": 8,
+      "versionCode": 9,
       "permissions": [
         "android.permission.ACTIVITY_RECOGNITION",
         "android.permission.FOREGROUND_SERVICE",
