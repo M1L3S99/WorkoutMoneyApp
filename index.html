@@ -125,11 +125,15 @@
     .bed.empty{background:#f2e3c4;color:var(--soil);border-color:#bfa576}
     .bed.locked{background:#e3dfce;color:#777a70;border-color:#bbb8aa}
     .bed-number{position:absolute;top:9px;left:11px;font-size:8px;font-weight:800;letter-spacing:.08em;opacity:.75}
-    .bed-action{border:0;background:transparent;color:inherit;cursor:pointer}
+    .bed-action{width:100%;border:0;background:transparent;color:inherit;cursor:pointer}
     .bed-action strong,.bed-action small{display:block}
     .bed-action strong{font-size:25px;line-height:1;margin-bottom:6px}
     .bed-action small{font-size:10px;font-weight:700}
-    .crop-visual{display:grid;place-items:center;height:56px;font-size:42px;filter:drop-shadow(0 5px 4px rgba(34,21,12,.25))}
+    .pixel-sprite{display:block;max-width:100%;object-fit:contain;image-rendering:pixelated;image-rendering:crisp-edges}
+    .bed-scene{position:relative;display:grid;place-items:end center;height:58px;margin-top:2px}
+    .bed-art{width:116px;height:70px;filter:drop-shadow(0 5px 4px rgba(34,21,12,.25))}
+    .bed.empty .bed-art{width:124px;height:78px;margin:-12px auto -4px}
+    .crop-visual{position:absolute;z-index:2;left:50%;top:-5px;display:grid;place-items:center;width:60px;height:50px;transform:translateX(-50%);font-size:39px;filter:drop-shadow(0 4px 3px rgba(34,21,12,.3))}
     .crop-name{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:8px}
     .crop-name b{font-family:"Fraunces",serif;font-size:15px}
     .crop-name small{font-size:8px;opacity:.8}
@@ -191,6 +195,7 @@
     .shop-item:before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--quality)}
     .shop-item.owned{background:#eef3e8}
     .item-art{display:grid;place-items:center;height:65px;font-size:42px;filter:drop-shadow(0 5px 5px rgba(52,42,24,.14))}
+    .item-art .pixel-sprite{width:60px;height:60px}
     .item-name{min-height:34px;font-family:"Fraunces",serif;font-size:13px;line-height:1.2;color:var(--forest)}
     .item-quality{margin-top:4px;color:var(--quality);font-size:7px;font-weight:900;text-transform:uppercase;letter-spacing:.08em}
     .item-cost{margin-top:8px;color:var(--soil);font-size:10px;font-weight:800}
@@ -268,6 +273,8 @@
     .fert-option.selected{border-color:var(--forest-2);background:#e7efdf}
     .fert-option b,.fert-option small{display:block}
     .fert-option b{font-size:10px}.fert-option small{margin-top:3px;color:var(--muted);font-size:7px}
+    .fert-title{display:flex!important;align-items:center;gap:8px}
+    .fert-title .pixel-sprite{width:34px;height:34px;flex:0 0 34px}
     .detail-art{display:grid;place-items:center;height:115px;margin-bottom:13px;border-radius:19px;background:#e8efdf;font-size:72px}
     .detail-quality{color:var(--quality);font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.1em}
     .detail-effect{margin:10px 0;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--paper);color:var(--muted);font-size:11px;line-height:1.45}
@@ -460,7 +467,7 @@
       ];
 
       const FERTILISERS = [
-        {id:"compost",name:"Garden Compost",icon:"🍂",cost:450,quality:7,iridium:.2,effectText:"+7% quality chance · +0.2% Iridium",pack:1},
+        {id:"compost",name:"Garden Compost",icon:"🍂",image:"assets/farm/fertiliser-compost-64.png",cost:450,quality:7,iridium:.2,effectText:"+7% quality chance · +0.2% Iridium",pack:1},
         {id:"rich-mix",name:"Rich Fertiliser",icon:"🪴",cost:1800,quality:15,iridium:.7,effectText:"+15% quality chance · +0.7% Iridium",pack:1},
         {id:"star-mix",name:"Stardust Fertiliser",icon:"✨",cost:6000,quality:24,iridium:2,effectText:"+24% quality chance · +2% Iridium",pack:1}
       ];
@@ -509,6 +516,9 @@
       }
       function cropById(id){return CROPS.find(c=>c.id===id)}
       function itemById(id){return ITEMS.find(i=>i.id===id)}
+      function spriteMarkup(entry,className="pixel-sprite"){
+        return entry?.image?`<img class="${className} pixel-sprite" src="${entry.image}" alt="" draggable="false">`:entry?.icon||"";
+      }
       function equippedEffects(){
         const total={growth:0,quality:0,iridium:0,expiry:0,sale:0};
         Object.values(state.equipment).forEach(id=>{
@@ -637,12 +647,12 @@
           return `<article class="bed locked"><span class="bed-number">BED ${index+1}</span><button class="bed-action" ${next?`data-unlock-bed="${index}"`:"disabled"}><strong>${next?"🔓":"🔒"}</strong><small>${next?`${fmt(BED_COSTS[index])} gold`:"Unlock previous bed"}</small></button></article>`;
         }
         const bed=state.beds[index];
-        if(!bed)return `<article class="bed empty"><span class="bed-number">BED ${index+1}</span><button class="bed-action" data-plant-bed="${index}"><strong>＋</strong><small>Plant a crop</small></button></article>`;
+        if(!bed)return `<article class="bed empty"><span class="bed-number">BED ${index+1}</span><button class="bed-action" data-plant-bed="${index}"><img class="bed-art pixel-sprite" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><small>＋ Plant a crop</small></button></article>`;
         const crop=cropById(bed.cropId);
         const status=bedState(bed);
         const progress=clamp(bed.growth/crop.steps*100,0,100);
-        if(status==="withered")return `<article class="bed withered"><span class="bed-number">BED ${index+1}</span><div class="crop-visual">🥀</div><div class="crop-name"><b>Withered ${crop.name}</b><small>Expired</small></div><div class="bed-progress"><i style="width:100%"></i></div><button class="clear-btn" data-clear-bed="${index}">Clear bed</button></article>`;
-        return `<article class="bed"><span class="bed-number">BED ${index+1}</span><div class="crop-visual">${crop.icon}</div><div class="crop-name"><b>${crop.name}</b><small>${status==="ready"?"Ready":`${Math.floor(progress)}%`}</small></div><div class="bed-progress"><i style="width:${progress}%"></i></div><div class="bed-foot"><span>${fmt(Math.min(crop.steps,bed.growth))} / ${fmt(crop.steps)}</span><span>${formatTime(bed.expiresAt-Date.now())}</span></div>${status==="ready"?`<button class="harvest-btn" data-harvest-bed="${index}">Harvest crop</button>`:""}</article>`;
+        if(status==="withered")return `<article class="bed withered"><span class="bed-number">BED ${index+1}</span><div class="bed-scene"><img class="bed-art pixel-sprite" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><div class="crop-visual">🥀</div></div><div class="crop-name"><b>Withered ${crop.name}</b><small>Expired</small></div><div class="bed-progress"><i style="width:100%"></i></div><button class="clear-btn" data-clear-bed="${index}">Clear bed</button></article>`;
+        return `<article class="bed"><span class="bed-number">BED ${index+1}</span><div class="bed-scene"><img class="bed-art pixel-sprite" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><div class="crop-visual">${crop.icon}</div></div><div class="crop-name"><b>${crop.name}</b><small>${status==="ready"?"Ready":`${Math.floor(progress)}%`}</small></div><div class="bed-progress"><i style="width:${progress}%"></i></div><div class="bed-foot"><span>${fmt(Math.min(crop.steps,bed.growth))} / ${fmt(crop.steps)}</span><span>${formatTime(bed.expiresAt-Date.now())}</span></div>${status==="ready"?`<button class="harvest-btn" data-harvest-bed="${index}">Harvest crop</button>`:""}</article>`;
       }
       function unlockBed(index){
         const cost=BED_COSTS[index];
@@ -662,7 +672,7 @@
         const level=levelInfo().level;
         $("#plantChoices").innerHTML=CROPS.map(crop=>`<button class="plant-option ${selectedCrop===crop.id?"selected":""}" data-crop-choice="${crop.id}" ${level<crop.level?"disabled":""}><i>${crop.icon}</i><b>${crop.name}</b><small>${level<crop.level?`Level ${crop.level}`:`${fmt(crop.steps)} steps`}</small></button>`).join("");
         const noFert=`<button class="fert-option ${selectedFertiliser===null?"selected":""}" data-fert-choice=""><span><b>No fertiliser</b><small>Base Iridium chance: 1%</small></span><strong>Free</strong></button>`;
-        $("#fertChoices").innerHTML=noFert+FERTILISERS.map(fert=>`<button class="fert-option ${selectedFertiliser===fert.id?"selected":""}" data-fert-choice="${fert.id}" ${(state.fertilisers[fert.id]||0)<1?"disabled":""}><span><b>${fert.icon} ${fert.name}</b><small>${fert.effectText}</small></span><strong>×${state.fertilisers[fert.id]||0}</strong></button>`).join("");
+        $("#fertChoices").innerHTML=noFert+FERTILISERS.map(fert=>`<button class="fert-option ${selectedFertiliser===fert.id?"selected":""}" data-fert-choice="${fert.id}" ${(state.fertilisers[fert.id]||0)<1?"disabled":""}><span><b class="fert-title">${spriteMarkup(fert)}<span>${fert.name}</span></b><small>${fert.effectText}</small></span><strong>×${state.fertilisers[fert.id]||0}</strong></button>`).join("");
         $$("[data-crop-choice]").forEach(button=>button.onclick=()=>{selectedCrop=button.dataset.cropChoice;renderPlantModal()});
         $$("[data-fert-choice]").forEach(button=>button.onclick=()=>{selectedFertiliser=button.dataset.fertChoice||null;renderPlantModal()});
       }
@@ -708,7 +718,7 @@
       function renderShop(){
         $$("#shopTabs .tab").forEach(tab=>tab.classList.toggle("active",tab.dataset.shopTab===activeShopTab));
         if(activeShopTab==="fertiliser"){
-          $("#shopGrid").innerHTML=FERTILISERS.map(fert=>`<button class="shop-item fert-card quality-base" data-fert-buy="${fert.id}"><div class="item-art">${fert.icon}</div><div class="item-name">${fert.name}</div><div class="item-quality">One bed use</div><div class="item-cost">${fmt(fert.cost)} steps · owned ${state.fertilisers[fert.id]||0}</div></button>`).join("");
+          $("#shopGrid").innerHTML=FERTILISERS.map(fert=>`<button class="shop-item fert-card quality-base" data-fert-buy="${fert.id}"><div class="item-art">${spriteMarkup(fert)}</div><div class="item-name">${fert.name}</div><div class="item-quality">One bed use</div><div class="item-cost">${fmt(fert.cost)} steps · owned ${state.fertilisers[fert.id]||0}</div></button>`).join("");
           $$("[data-fert-buy]").forEach(button=>button.onclick=()=>buyFertiliser(button.dataset.fertBuy));
           return;
         }
