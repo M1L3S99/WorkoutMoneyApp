@@ -23,6 +23,8 @@ for (const required of [
   "MAX_BEDS = 10",
   "stepBalance",
   "nativeLifetime",
+  "pullAndHarvest",
+  "updateFarmTimes",
 ]) {
   if (!script[1].includes(required)) throw new Error(`Missing required implementation: ${required}`);
 }
