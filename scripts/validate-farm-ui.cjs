@@ -106,23 +106,23 @@ if (html.includes('${currencyMarkup("steps",crop.steps)} · ${state.adminMode?')
 if (html.includes(".shop-item:before") || !html.includes("background:radial-gradient(circle at 50% 42%")) {
   throw new Error("Shop rarity must use the full card background without a side band");
 }
-if (farm.freshState().seedShopSize !== 46 || !html.includes("--seed-shop-size") || !html.includes("detailLinesMarkup")) {
+if (farm.freshState().seedShopSize !== 40 || !html.includes("--seed-shop-size") || !html.includes("detailLinesMarkup")) {
   throw new Error("Persistent seed sizing and one-line-per-stat shop details are required");
 }
 if (!html.includes(".shop-grid{display:grid;grid-template-columns:repeat(3") || html.includes("large-seeds") || html.includes("data-fert-buy")) {
   throw new Error("The reference-style shop must remain three wide with popup purchasing");
 }
-if (!html.includes("data-fert-view") || !html.includes("shopLayoutVersion:4") || !html.includes("class=\"seed-shop-row")) {
+if (!html.includes("data-fert-view") || !html.includes("shopLayoutVersion:5") || !html.includes("class=\"seed-shop-row")) {
   throw new Error("The seed shop must use the compact reference-list layout and migration");
 }
 if (!html.includes("grid-template-columns:var(--seed-shop-size) minmax(0,1fr) auto") || !html.includes("seed-row-price")) {
   throw new Error("Seed rows must align icon, name, and price in separate columns");
 }
-if (!html.includes('font-family:"DM Sans"') || !html.includes("font-weight:800") || !html.includes("background:transparent;")) {
-  throw new Error("The refined seed ledger requires thick modern typography and a transparent outer field");
+if (!html.includes('font-family:"Fraunces"') || !html.includes("font-weight:700") || !html.includes("background:#e2ad5f")) {
+  throw new Error("The seed ledger requires thick rustic typography and its golden parchment field");
 }
-if (!html.includes('${fmt(crop.seedCost)}<img class="currency-icon"') || !html.includes("border:3px solid #856a49") || !html.includes("border-radius:20px")) {
-  throw new Error("Seed prices and the substantial rounded outer frame must match the polished design");
+if (!html.includes('${fmt(crop.seedCost)}<img class="currency-icon"') || !html.includes("border:3px solid #693618") || !html.includes("background:linear-gradient(180deg,#f1d394 0%,#eac581 48%,#e8bd73 100%)")) {
+  throw new Error("Seed prices and the layered golden-brown frame must match the Stardew-inspired reference");
 }
 if (html.includes("discountedCrop") || html.includes("data-discount") || html.includes("half price") || html.includes("seed-shop-row discount")) {
   throw new Error("The daily seed discount must be removed completely");
