@@ -119,6 +119,12 @@ if (!html.includes("data-fert-view") || !html.includes("shopLayoutVersion:3") ||
 if (!html.includes("grid-template-columns:var(--seed-shop-size) minmax(0,1fr) auto") || !html.includes("seed-row-price")) {
   throw new Error("Seed rows must align icon, name, and price in separate columns");
 }
+if (!html.includes("Pixelify+Sans") || !html.includes('font-family:"Pixelify Sans"') || !html.includes("background:transparent;")) {
+  throw new Error("The refined seed ledger requires its pixel font and transparent thin frame");
+}
+if (!html.includes('${fmt(crop.seedCost)}<img class="currency-icon"') || !html.includes("border:2px solid #683718")) {
+  throw new Error("Seed prices and the thin outer frame must match the supplied reference");
+}
 if (farm.CROPS.length < 20) {
   throw new Error("The crop catalogue must include at least twenty crops");
 }
