@@ -107,14 +107,17 @@ if (html.includes('${currencyMarkup("steps",crop.steps)} · ${state.adminMode?')
 if (html.includes(".shop-item:before") || !html.includes("background:radial-gradient(circle at 50% 42%")) {
   throw new Error("Shop rarity must use the full card background without a side band");
 }
-if (farm.freshState().seedShopSize !== 88 || !html.includes("--seed-shop-size") || !html.includes("detailLinesMarkup")) {
+if (farm.freshState().seedShopSize !== 38 || !html.includes("--seed-shop-size") || !html.includes("detailLinesMarkup")) {
   throw new Error("Persistent seed sizing and one-line-per-stat shop details are required");
 }
 if (!html.includes(".shop-grid{display:grid;grid-template-columns:repeat(3") || html.includes("large-seeds") || html.includes("data-fert-buy")) {
   throw new Error("The reference-style shop must remain three wide with popup purchasing");
 }
-if (!html.includes("data-fert-view") || !html.includes("shopLayoutVersion:2") || !html.includes("width:min(var(--seed-shop-size),calc(100% - 4px))")) {
-  throw new Error("The shop must use maximum responsive seed art and the new layout migration");
+if (!html.includes("data-fert-view") || !html.includes("shopLayoutVersion:3") || !html.includes("class=\"seed-shop-row")) {
+  throw new Error("The seed shop must use the compact reference-list layout and migration");
+}
+if (!html.includes("grid-template-columns:var(--seed-shop-size) minmax(0,1fr) auto") || !html.includes("seed-row-price")) {
+  throw new Error("Seed rows must align icon, name, and price in separate columns");
 }
 if (farm.CROPS.length < 20) {
   throw new Error("The crop catalogue must include at least twenty crops");
