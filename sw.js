@@ -1,6 +1,16 @@
 /* Ironbound service worker — farming app shell for offline + home-screen install */
-const CACHE = 'ironbound-farm-v1';
-const ASSETS = ['./', './index.html', './app-backend.js', './manifest.webmanifest', './icon.svg'];
+const CACHE = 'ironbound-farm-v2';
+const ASSETS = [
+  './',
+  './index.html',
+  './app-backend.js',
+  './manifest.webmanifest',
+  './icon.svg',
+  './assets/farm/fertiliser-compost-64.png',
+  './assets/farm/planter-bed-128x96.png',
+  './assets/farm/crops/radish-planted-64.png',
+  './assets/farm/crops/radish-grown-64.png'
+];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
