@@ -233,33 +233,36 @@
     .seed-size-control button{width:30px;height:30px;border:1px solid var(--line);border-radius:9px;background:var(--cream);color:var(--forest);font-size:16px;font-weight:900}
     .seed-size-control output{text-align:right;color:var(--muted);font-size:8px;font-weight:900}
     .shop-grid.seed-grid{
-      --seed-shop-size:46px;display:grid;grid-template-columns:1fr;gap:8px;
-      padding:7px;border:3px solid #856a49;border-radius:20px;background:transparent;
-      box-shadow:0 8px 24px rgba(67,50,27,.11),inset 0 0 0 1px rgba(255,255,255,.55)
+      --seed-shop-size:40px;display:grid;grid-template-columns:1fr;gap:4px;
+      padding:5px;border:3px solid #693618;border-radius:10px;background:#e2ad5f;
+      box-shadow:0 0 0 2px #cf7f27,inset 0 0 0 2px #f1c673,0 6px 14px rgba(78,37,10,.22)
     }
     .seed-shop-row{
-      display:grid;grid-template-columns:var(--seed-shop-size) minmax(0,1fr) auto;align-items:center;gap:10px;
-      min-height:calc(var(--seed-shop-size) + 14px);padding:7px 10px;border:2px solid rgba(154,124,84,.34);border-radius:14px;
-      background:linear-gradient(180deg,#fffaf0 0%,#f6ecd6 100%);color:#2f4634;
-      box-shadow:0 3px 10px rgba(66,48,24,.075),inset 0 1px 0 rgba(255,255,255,.95);
+      display:grid;grid-template-columns:var(--seed-shop-size) minmax(0,1fr) auto;align-items:center;gap:8px;
+      min-height:calc(var(--seed-shop-size) + 12px);padding:5px 8px 5px 5px;border:2px solid #804615;border-radius:6px;
+      background:linear-gradient(180deg,#f1d394 0%,#eac581 48%,#e8bd73 100%);color:#542b25;
+      box-shadow:inset 0 0 0 1px #f7dda4,inset 0 -2px 0 #cc8030;
       cursor:pointer;text-align:left;transition:transform .14s ease,border-color .14s ease,box-shadow .14s ease
     }
-    .seed-shop-row:hover{border-color:rgba(88,117,78,.5);box-shadow:0 5px 14px rgba(66,48,24,.11),inset 0 1px 0 #fff}
-    .seed-shop-row:active{transform:scale(.99);border-color:#78906e}
-    .seed-shop-row:focus-visible{outline:3px solid rgba(69,104,74,.25);outline-offset:2px}
+    .seed-shop-row:hover{border-color:#63300f;background:linear-gradient(180deg,#f4d99d,#ecc581);box-shadow:inset 0 0 0 1px #fae5b6,inset 0 -2px 0 #cc8030}
+    .seed-shop-row:active{transform:translateY(1px);border-color:#63300f;background:#dfad64}
+    .seed-shop-row:focus-visible{outline:3px solid rgba(105,54,24,.3);outline-offset:2px}
     .seed-row-icon{
       display:grid;place-items:center;width:var(--seed-shop-size);height:var(--seed-shop-size);
-      border:2px solid rgba(77,105,69,.2);border-radius:12px;background:transparent;box-shadow:none;font-size:24px
+      border:2px solid #8d5422;border-radius:5px;background:#efd69d;
+      box-shadow:inset 0 0 0 1px #f8e7be,0 1px 0 #bc6b25;font-size:24px
     }
     .seed-row-icon .pixel-sprite{width:calc(var(--seed-shop-size) - 4px);height:calc(var(--seed-shop-size) - 4px)}
     .seed-row-name{
-      min-width:0;overflow:hidden;font-family:"DM Sans",system-ui,sans-serif;font-size:15px;font-weight:800;
-      line-height:1.15;letter-spacing:-.01em;white-space:nowrap;text-overflow:ellipsis;color:#2f4634
+      min-width:0;overflow:hidden;font-family:"Fraunces",Georgia,serif;font-size:15px;font-weight:700;
+      line-height:1.1;letter-spacing:.015em;white-space:nowrap;text-overflow:ellipsis;color:#542b25;
+      text-shadow:0 1px 0 rgba(255,232,179,.65)
     }
     .seed-row-price{
-      display:inline-flex;align-items:center;justify-content:flex-end;gap:3px;min-width:48px;padding:6px 8px;
-      border:1px solid rgba(137,108,70,.2);border-radius:999px;background:rgba(255,255,255,.55);
-      font-family:"DM Sans",system-ui,sans-serif;font-size:14px;font-weight:800;line-height:1;color:#61472d
+      display:inline-flex;align-items:center;justify-content:flex-end;gap:3px;min-width:50px;padding:0;
+      border:0;border-radius:0;background:none;color:#6e310e;
+      font-family:"Fraunces",Georgia,serif;font-size:15px;font-weight:700;line-height:1;
+      text-shadow:0 1px 0 rgba(255,232,179,.65)
     }
     .seed-row-price .currency-icon{width:15px;height:15px;margin:0;vertical-align:middle}
     .fert-card .item-art{font-size:40px}
@@ -435,8 +438,8 @@
       .topbar{padding-inline:11px}.brand-mark{width:37px;height:37px;flex-basis:37px}.brand b{font-size:18px}
       .wallet-pill{min-width:61px;padding-inline:6px}.step-card{grid-template-columns:104px 1fr;padding:14px;gap:12px}
       .step-ring{width:104px;height:104px}.step-ring-copy b{font-size:24px}.beds-grid{gap:8px}.bed{min-height:147px;padding:10px}
-      .shop-grid,.shop-grid.gear-grid{gap:7px}.shop-grid.seed-grid{gap:7px;padding:6px}.shop-item,.gear-grid .shop-item{min-height:0;padding:4px}.item-name,.gear-grid .item-name{font-size:8px}
-      .seed-shop-row{gap:7px;padding-inline:7px}.seed-row-name{font-size:13px}.seed-row-price{min-width:42px;padding:5px 6px;font-size:13px}
+      .shop-grid,.shop-grid.gear-grid{gap:7px}.shop-grid.seed-grid{gap:4px;padding:5px}.shop-item,.gear-grid .shop-item{min-height:0;padding:4px}.item-name,.gear-grid .item-name{font-size:8px}
+      .seed-shop-row{gap:7px;padding-inline:5px 7px}.seed-row-name{font-size:14px}.seed-row-price{min-width:44px;padding:0;font-size:14px}
       .quest-card{grid-template-columns:44px 1fr}.npc-portrait{width:44px;height:44px}.quest-card .btn{grid-column:1/-1;width:100%}
     }
   </style>
@@ -541,9 +544,9 @@
           <div class="seed-size-control" id="seedSizeControl">
             <label for="seedShopSize">Seed size</label>
             <button type="button" id="seedSizeDown" aria-label="Make shop seeds smaller">−</button>
-            <input type="range" id="seedShopSize" min="24" max="48" step="2" value="46">
+            <input type="range" id="seedShopSize" min="24" max="48" step="2" value="40">
             <button type="button" id="seedSizeUp" aria-label="Make shop seeds larger">＋</button>
-            <output id="seedShopSizeValue">46px</output>
+            <output id="seedShopSizeValue">40px</output>
           </div>
         </div>
         <div class="settings-card card">
@@ -765,7 +768,7 @@
           equipment:{boots:null,gloves:null,tools:null},fertilisers:{},
           cropRateLevel:0,qualityLevel:0,saleLevel:0,farmUpgrades:[],cropPlacements:{},trackingStatus:"checking",
           bedPlans:Array.from({length:MAX_BEDS},()=>null),questDate:todayKey(),completedQuests:[],
-          weather:null,weatherLocation:null,adminMode:false,seedShopSize:46,shopLayoutVersion:4,perkDate:todayKey(),doubleStepUsed:0,doubleGoldSalesUsed:0
+          weather:null,weatherLocation:null,adminMode:false,seedShopSize:40,shopLayoutVersion:5,perkDate:todayKey(),doubleStepUsed:0,doubleGoldSalesUsed:0
         };
       }
       function loadState(){
@@ -796,7 +799,7 @@
           merged.farmUpgrades=[...new Set(saved.farmUpgrades||[])];
           merged.completedQuests=saved.questDate===todayKey()?[...new Set(saved.completedQuests||[])]:[];
           merged.questDate=todayKey();
-          if(saved.shopLayoutVersion!==4){merged.seedShopSize=46;merged.shopLayoutVersion=4}
+          if(saved.shopLayoutVersion!==5){merged.seedShopSize=40;merged.shopLayoutVersion=5}
           return merged;
         }catch{return freshState()}
       }
@@ -1249,7 +1252,7 @@
         $("#fertTierTabs").hidden=activeShopTab!=="fertiliser";
         $$("#gearViewTabs .tab").forEach(tab=>tab.classList.toggle("active",tab.dataset.gearView===activeGearView));
         $$("#fertTierTabs .tab").forEach(tab=>tab.classList.toggle("active",tab.dataset.fertTier===selectedFertiliserTier));
-        const seedSize=clamp(Number(state.seedShopSize)||46,24,48);
+        const seedSize=clamp(Number(state.seedShopSize)||40,24,48);
         $("#seedShopSize").value=String(seedSize);
         $("#seedShopSizeValue").textContent=`${seedSize}px`;
         $("#shopGrid").style.setProperty("--seed-shop-size",`${seedSize}px`);
@@ -1679,9 +1682,9 @@
       $$("#shopTabs .tab").forEach(tab=>tab.onclick=()=>{activeShopTab=tab.dataset.shopTab;renderShop()});
       $$("#gearViewTabs .tab").forEach(tab=>tab.onclick=()=>{activeGearView=tab.dataset.gearView;renderShop()});
       $$("#fertTierTabs .tab").forEach(tab=>tab.onclick=()=>{selectedFertiliserTier=tab.dataset.fertTier;renderShop()});
-      $("#seedShopSize").oninput=event=>{state.seedShopSize=clamp(Number(event.target.value)||46,24,48);save();renderShop()};
-      $("#seedSizeDown").onclick=()=>{state.seedShopSize=clamp((Number(state.seedShopSize)||46)-2,24,48);save();renderShop()};
-      $("#seedSizeUp").onclick=()=>{state.seedShopSize=clamp((Number(state.seedShopSize)||46)+2,24,48);save();renderShop()};
+      $("#seedShopSize").oninput=event=>{state.seedShopSize=clamp(Number(event.target.value)||40,24,48);save();renderShop()};
+      $("#seedSizeDown").onclick=()=>{state.seedShopSize=clamp((Number(state.seedShopSize)||40)-2,24,48);save();renderShop()};
+      $("#seedSizeUp").onclick=()=>{state.seedShopSize=clamp((Number(state.seedShopSize)||40)+2,24,48);save();renderShop()};
       $$("[data-close-modal]").forEach(button=>button.onclick=closeModals);
       $$(".modal").forEach(modal=>modal.onclick=event=>{if(event.target===modal)closeModals()});
       $("#confirmPlant").onclick=plantCrop;
