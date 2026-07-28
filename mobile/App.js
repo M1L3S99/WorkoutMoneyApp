@@ -419,6 +419,7 @@ export default function App() {
         style={styles.web}
         javaScriptEnabled
         domStorageEnabled
+        geolocationEnabled
         allowsInlineMediaPlayback
         mediaPlaybackRequiresUserAction={false}
         setSupportMultipleWindows={false}
