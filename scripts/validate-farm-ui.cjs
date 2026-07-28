@@ -79,6 +79,9 @@ if (html.includes("TAP TO HARVEST") || html.includes("harvest-ready 1.5s") || ht
 for (const id of ["seedModal", "seedDetailName", "seedDetailInfo", "seedDetailBuy", "seedSizeControl", "seedShopSize", "seedSizeDown", "seedSizeUp", "seedShopSizeValue"]) {
   if (!ids.includes(id)) throw new Error(`Missing seed detail control: ${id}`);
 }
+for (const id of ["fertModal", "fertModalCard", "fertDetailName", "fertDetailArt", "fertDetailInfo", "fertDetailBuy"]) {
+  if (!ids.includes(id)) throw new Error(`Missing fertiliser detail control: ${id}`);
+}
 if (!html.includes("data-seed-view") || html.includes("data-seed-buy")) {
   throw new Error("Seed cards must open details instead of buying immediately");
 }
@@ -101,11 +104,17 @@ if (!html.includes(".currency{display:inline;") || !html.includes("vertical-alig
 if (html.includes('${currencyMarkup("steps",crop.steps)} · ${state.adminMode?') || html.includes('Plant · ${currencyMarkup("steps",crop.steps)} to grow')) {
   throw new Error("The crop picker must list seeds without growth-step pricing");
 }
-if (html.includes(".shop-item:before") || !html.includes("background:color-mix(in srgb,var(--quality) 25%,#fffaf0)")) {
+if (html.includes(".shop-item:before") || !html.includes("background:radial-gradient(circle at 50% 42%")) {
   throw new Error("Shop rarity must use the full card background without a side band");
 }
-if (farm.freshState().seedShopSize !== 64 || !html.includes("--seed-shop-size") || !html.includes("detailLinesMarkup")) {
+if (farm.freshState().seedShopSize !== 88 || !html.includes("--seed-shop-size") || !html.includes("detailLinesMarkup")) {
   throw new Error("Persistent seed sizing and one-line-per-stat shop details are required");
+}
+if (!html.includes(".shop-grid{display:grid;grid-template-columns:repeat(3") || html.includes("large-seeds") || html.includes("data-fert-buy")) {
+  throw new Error("The reference-style shop must remain three wide with popup purchasing");
+}
+if (!html.includes("data-fert-view") || !html.includes("shopLayoutVersion:2") || !html.includes("width:min(var(--seed-shop-size),calc(100% - 4px))")) {
+  throw new Error("The shop must use maximum responsive seed art and the new layout migration");
 }
 if (farm.CROPS.length < 20) {
   throw new Error("The crop catalogue must include at least twenty crops");
