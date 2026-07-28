@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <title>Ironbound — Step Farm</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Pixelify+Sans:wght@400..700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap');
 
     :root{
       color-scheme:light;
@@ -233,29 +233,33 @@
     .seed-size-control button{width:30px;height:30px;border:1px solid var(--line);border-radius:9px;background:var(--cream);color:var(--forest);font-size:16px;font-weight:900}
     .seed-size-control output{text-align:right;color:var(--muted);font-size:8px;font-weight:900}
     .shop-grid.seed-grid{
-      --seed-shop-size:38px;display:grid;grid-template-columns:1fr;gap:2px;
-      padding:2px;border:2px solid #683718;border-radius:1px;background:transparent;
-      box-shadow:0 0 0 1px #c87932,inset 0 0 0 1px #ffd18a,0 5px 13px rgba(87,51,28,.12)
+      --seed-shop-size:46px;display:grid;grid-template-columns:1fr;gap:8px;
+      padding:7px;border:3px solid #856a49;border-radius:20px;background:transparent;
+      box-shadow:0 8px 24px rgba(67,50,27,.11),inset 0 0 0 1px rgba(255,255,255,.55)
     }
     .seed-shop-row{
-      display:grid;grid-template-columns:var(--seed-shop-size) minmax(0,1fr) auto;align-items:center;gap:8px;
-      min-height:calc(var(--seed-shop-size) + 8px);padding:3px 6px;border:1px solid #6b391b;border-radius:0;
-      background:linear-gradient(180deg,#f0cd83,#e3ad61);color:#562a18;
-      box-shadow:inset 0 0 0 1px #f9d995,0 1px 0 #9f5f2d;cursor:pointer;text-align:left
+      display:grid;grid-template-columns:var(--seed-shop-size) minmax(0,1fr) auto;align-items:center;gap:10px;
+      min-height:calc(var(--seed-shop-size) + 14px);padding:7px 10px;border:2px solid rgba(154,124,84,.34);border-radius:14px;
+      background:linear-gradient(180deg,#fffaf0 0%,#f6ecd6 100%);color:#2f4634;
+      box-shadow:0 3px 10px rgba(66,48,24,.075),inset 0 1px 0 rgba(255,255,255,.95);
+      cursor:pointer;text-align:left;transition:transform .14s ease,border-color .14s ease,box-shadow .14s ease
     }
-    .seed-shop-row.discount{background:linear-gradient(180deg,#f6d78f,#e9b76c)}
+    .seed-shop-row:hover{border-color:rgba(88,117,78,.5);box-shadow:0 5px 14px rgba(66,48,24,.11),inset 0 1px 0 #fff}
+    .seed-shop-row:active{transform:scale(.99);border-color:#78906e}
+    .seed-shop-row:focus-visible{outline:3px solid rgba(69,104,74,.25);outline-offset:2px}
     .seed-row-icon{
       display:grid;place-items:center;width:var(--seed-shop-size);height:var(--seed-shop-size);
-      border:1px solid #89532d;background:transparent;box-shadow:inset 0 0 0 1px rgba(255,226,164,.72);font-size:24px
+      border:2px solid rgba(77,105,69,.2);border-radius:12px;background:transparent;box-shadow:none;font-size:24px
     }
-    .seed-row-icon .pixel-sprite{width:calc(var(--seed-shop-size) - 5px);height:calc(var(--seed-shop-size) - 5px)}
+    .seed-row-icon .pixel-sprite{width:calc(var(--seed-shop-size) - 4px);height:calc(var(--seed-shop-size) - 4px)}
     .seed-row-name{
-      min-width:0;overflow:hidden;font-family:"Pixelify Sans",system-ui,sans-serif;font-size:15px;font-weight:600;
-      letter-spacing:.015em;white-space:nowrap;text-overflow:ellipsis;text-shadow:0 1px 0 #f8d99a
+      min-width:0;overflow:hidden;font-family:"DM Sans",system-ui,sans-serif;font-size:15px;font-weight:800;
+      line-height:1.15;letter-spacing:-.01em;white-space:nowrap;text-overflow:ellipsis;color:#2f4634
     }
     .seed-row-price{
-      display:inline-flex;align-items:center;justify-content:flex-end;gap:2px;min-width:48px;
-      font-family:"Pixelify Sans",system-ui,sans-serif;font-size:16px;font-weight:600;text-shadow:0 1px 0 #f8d99a
+      display:inline-flex;align-items:center;justify-content:flex-end;gap:3px;min-width:48px;padding:6px 8px;
+      border:1px solid rgba(137,108,70,.2);border-radius:999px;background:rgba(255,255,255,.55);
+      font-family:"DM Sans",system-ui,sans-serif;font-size:14px;font-weight:800;line-height:1;color:#61472d
     }
     .seed-row-price .currency-icon{width:15px;height:15px;margin:0;vertical-align:middle}
     .fert-card .item-art{font-size:40px}
@@ -431,8 +435,8 @@
       .topbar{padding-inline:11px}.brand-mark{width:37px;height:37px;flex-basis:37px}.brand b{font-size:18px}
       .wallet-pill{min-width:61px;padding-inline:6px}.step-card{grid-template-columns:104px 1fr;padding:14px;gap:12px}
       .step-ring{width:104px;height:104px}.step-ring-copy b{font-size:24px}.beds-grid{gap:8px}.bed{min-height:147px;padding:10px}
-      .shop-grid,.shop-grid.gear-grid{gap:7px}.shop-grid.seed-grid{gap:2px}.shop-item,.gear-grid .shop-item{min-height:0;padding:4px}.item-name,.gear-grid .item-name{font-size:8px}
-      .seed-shop-row{gap:6px;padding-inline:4px}.seed-row-name{font-size:13px}.seed-row-price{min-width:42px;font-size:14px}
+      .shop-grid,.shop-grid.gear-grid{gap:7px}.shop-grid.seed-grid{gap:7px;padding:6px}.shop-item,.gear-grid .shop-item{min-height:0;padding:4px}.item-name,.gear-grid .item-name{font-size:8px}
+      .seed-shop-row{gap:7px;padding-inline:7px}.seed-row-name{font-size:13px}.seed-row-price{min-width:42px;padding:5px 6px;font-size:13px}
       .quest-card{grid-template-columns:44px 1fr}.npc-portrait{width:44px;height:44px}.quest-card .btn{grid-column:1/-1;width:100%}
     }
   </style>
@@ -537,9 +541,9 @@
           <div class="seed-size-control" id="seedSizeControl">
             <label for="seedShopSize">Seed size</label>
             <button type="button" id="seedSizeDown" aria-label="Make shop seeds smaller">−</button>
-            <input type="range" id="seedShopSize" min="24" max="48" step="2" value="38">
+            <input type="range" id="seedShopSize" min="24" max="48" step="2" value="46">
             <button type="button" id="seedSizeUp" aria-label="Make shop seeds larger">＋</button>
-            <output id="seedShopSizeValue">38px</output>
+            <output id="seedShopSizeValue">46px</output>
           </div>
         </div>
         <div class="settings-card card">
@@ -761,7 +765,7 @@
           equipment:{boots:null,gloves:null,tools:null},fertilisers:{},
           cropRateLevel:0,qualityLevel:0,saleLevel:0,farmUpgrades:[],cropPlacements:{},trackingStatus:"checking",
           bedPlans:Array.from({length:MAX_BEDS},()=>null),questDate:todayKey(),completedQuests:[],
-          weather:null,weatherLocation:null,adminMode:false,seedShopSize:38,shopLayoutVersion:3,perkDate:todayKey(),doubleStepUsed:0,doubleGoldSalesUsed:0
+          weather:null,weatherLocation:null,adminMode:false,seedShopSize:46,shopLayoutVersion:4,perkDate:todayKey(),doubleStepUsed:0,doubleGoldSalesUsed:0
         };
       }
       function loadState(){
@@ -792,7 +796,7 @@
           merged.farmUpgrades=[...new Set(saved.farmUpgrades||[])];
           merged.completedQuests=saved.questDate===todayKey()?[...new Set(saved.completedQuests||[])]:[];
           merged.questDate=todayKey();
-          if(saved.shopLayoutVersion!==3){merged.seedShopSize=38;merged.shopLayoutVersion=3}
+          if(saved.shopLayoutVersion!==4){merged.seedShopSize=46;merged.shopLayoutVersion=4}
           return merged;
         }catch{return freshState()}
       }
@@ -808,7 +812,6 @@
       let selectedItem=null;
       let selectedFromCatalogue=false;
       let selectedSeedCrop=null;
-      let selectedSeedDiscount=false;
       let selectedShopFertiliser=null;
       const assetPreviewRequested=new URLSearchParams(globalThis.location?.search||"").get("asset-preview")==="1";
       let assetPreviewVisible=assetPreviewRequested;
@@ -865,11 +868,6 @@
       function dailyStock(type){
         const key=todayKey();
         return ITEMS.filter(item=>item.type===type).sort((a,b)=>hashText(`${key}:${a.id}`)-hashText(`${key}:${b.id}`)).slice(0,3);
-      }
-      function discountedCrop(){
-        const level=levelInfo().level;
-        const pool=CROPS.filter(crop=>crop.level<=level);
-        return pool[hashText(`${todayKey()}:discount-seed`)%pool.length]||CROPS[0];
       }
       function isDailyItem(id){return GEAR_TYPES.some(([type])=>dailyStock(type).some(item=>item.id===id))}
       function itemUpgradeLevel(item){return state.itemUpgrades[item?.id]||0}
@@ -1251,7 +1249,7 @@
         $("#fertTierTabs").hidden=activeShopTab!=="fertiliser";
         $$("#gearViewTabs .tab").forEach(tab=>tab.classList.toggle("active",tab.dataset.gearView===activeGearView));
         $$("#fertTierTabs .tab").forEach(tab=>tab.classList.toggle("active",tab.dataset.fertTier===selectedFertiliserTier));
-        const seedSize=clamp(Number(state.seedShopSize)||38,24,48);
+        const seedSize=clamp(Number(state.seedShopSize)||46,24,48);
         $("#seedShopSize").value=String(seedSize);
         $("#seedShopSizeValue").textContent=`${seedSize}px`;
         $("#shopGrid").style.setProperty("--seed-shop-size",`${seedSize}px`);
@@ -1260,12 +1258,10 @@
         if(activeShopTab==="seeds"){
           const level=levelInfo().level;
           const crops=state.adminMode?CROPS:CROPS.filter(crop=>crop.level<=level);
-          const discount=discountedCrop(),discountCost=Math.max(1,Math.ceil(discount.seedCost/2));
-          const discountRow=`<button class="seed-shop-row discount" data-seed-view="${discount.id}" data-discount="1"><span class="seed-row-icon">${cropIconMarkup(discount,true)}</span><span class="seed-row-name">${discount.name} Seeds</span><span class="seed-row-price">${fmt(discountCost)}<img class="currency-icon" src="${CURRENCY_ICONS.gold}" alt="Gold"></span></button>`;
-          $("#shopGrid").innerHTML=discountRow+crops.map(crop=>{
+          $("#shopGrid").innerHTML=crops.map(crop=>{
             return `<button class="seed-shop-row" data-seed-view="${crop.id}"><span class="seed-row-icon">${cropIconMarkup(crop,true)}</span><span class="seed-row-name">${crop.name} Seeds</span><span class="seed-row-price">${fmt(crop.seedCost)}<img class="currency-icon" src="${CURRENCY_ICONS.gold}" alt="Gold"></span></button>`;
           }).join("");
-          $$("[data-seed-view]").forEach(button=>button.onclick=()=>openSeed(button.dataset.seedView,button.dataset.discount==="1"));
+          $$("[data-seed-view]").forEach(button=>button.onclick=()=>openSeed(button.dataset.seedView));
           return;
         }
         if(activeShopTab==="fertiliser"){
@@ -1284,11 +1280,11 @@
         const owned=state.ownedItems.includes(item.id),upgrade=itemUpgradeLevel(item);
         return `<button class="shop-item quality-${item.quality} ${owned?"owned":""}" data-shop-item="${item.id}" data-catalogue="${catalogue?"1":"0"}"><div class="item-art">${item.icon}</div><div class="item-name">${item.name}</div></button>`;
       }
-      function openSeed(id,discounted=false){
+      function openSeed(id){
         const crop=cropById(id);if(!crop)return;
-        selectedSeedCrop=crop;selectedSeedDiscount=discounted;
-        const cost=discounted?Math.max(1,Math.ceil(crop.seedCost/2)):crop.seedCost;
-        $("#seedModalCard").className=`modal-card ${discounted?"quality-gold":"quality-base"}`;
+        selectedSeedCrop=crop;
+        const cost=crop.seedCost;
+        $("#seedModalCard").className="modal-card quality-base";
         $("#seedDetailName").textContent=`${crop.name} seeds`;
         $("#seedDetailArt").innerHTML=cropIconMarkup(crop,true);
         $("#seedDetailInfo").innerHTML=detailLinesMarkup([
@@ -1298,15 +1294,15 @@
           {label:"Value",value:currencyMarkup("gold",crop.sellValue)},
           {label:"Owned",value:state.adminMode?"∞":state.seeds[crop.id]||0}
         ]);
-        $("#seedDetailBuy").innerHTML=`Buy · ${currencyMarkup("gold",cost)}${discounted?" · half price":""}`;
+        $("#seedDetailBuy").innerHTML=`Buy · ${currencyMarkup("gold",cost)}`;
         $("#seedDetailBuy").disabled=!canSpendGold(cost);
         $("#seedModal").classList.add("show");
       }
       function buySelectedSeed(){
         if(!selectedSeedCrop)return;
-        const id=selectedSeedCrop.id,discounted=selectedSeedDiscount;
-        buySeed(id,discounted);
-        openSeed(id,discounted);
+        const id=selectedSeedCrop.id;
+        buySeed(id);
+        openSeed(id);
       }
       function openFertiliser(id){
         const fert=FERTILISERS.find(entry=>entry.id===id);if(!fert)return;
@@ -1330,10 +1326,10 @@
         buyFertiliser(id);
         openFertiliser(id);
       }
-      function buySeed(id,discounted=false){
+      function buySeed(id){
         const crop=cropById(id);
         if(!crop)return;
-        const cost=discounted?Math.max(1,Math.ceil(crop.seedCost/2)):crop.seedCost;
+        const cost=crop.seedCost;
         if(!canSpendGold(cost))return toast("Not enough gold");
         spendGold(cost);
         state.seeds[id]=(state.seeds[id]||0)+1;
@@ -1683,9 +1679,9 @@
       $$("#shopTabs .tab").forEach(tab=>tab.onclick=()=>{activeShopTab=tab.dataset.shopTab;renderShop()});
       $$("#gearViewTabs .tab").forEach(tab=>tab.onclick=()=>{activeGearView=tab.dataset.gearView;renderShop()});
       $$("#fertTierTabs .tab").forEach(tab=>tab.onclick=()=>{selectedFertiliserTier=tab.dataset.fertTier;renderShop()});
-      $("#seedShopSize").oninput=event=>{state.seedShopSize=clamp(Number(event.target.value)||38,24,48);save();renderShop()};
-      $("#seedSizeDown").onclick=()=>{state.seedShopSize=clamp((Number(state.seedShopSize)||38)-2,24,48);save();renderShop()};
-      $("#seedSizeUp").onclick=()=>{state.seedShopSize=clamp((Number(state.seedShopSize)||38)+2,24,48);save();renderShop()};
+      $("#seedShopSize").oninput=event=>{state.seedShopSize=clamp(Number(event.target.value)||46,24,48);save();renderShop()};
+      $("#seedSizeDown").onclick=()=>{state.seedShopSize=clamp((Number(state.seedShopSize)||46)-2,24,48);save();renderShop()};
+      $("#seedSizeUp").onclick=()=>{state.seedShopSize=clamp((Number(state.seedShopSize)||46)+2,24,48);save();renderShop()};
       $$("[data-close-modal]").forEach(button=>button.onclick=closeModals);
       $$(".modal").forEach(modal=>modal.onclick=event=>{if(event.target===modal)closeModals()});
       $("#confirmPlant").onclick=plantCrop;
