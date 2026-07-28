@@ -430,7 +430,7 @@
           <div class="section-head"><h2>Crop placement</h2></div>
           <div class="placement-fields">
             <label>Crop<select id="placementCrop"></select></label>
-            <label>Stage<select id="placementStage"><option value="planted">Planted</option><option value="half">Half grown</option><option value="grown">Ready</option></select></label>
+            <label>Stage<select id="placementStage"><option value="planted">Planted</option><option value="grown">Ready</option></select></label>
           </div>
           <div class="placement-preview" id="placementPreview"></div>
           <div class="placement-controls">
@@ -539,20 +539,28 @@
       const clamp = (value,min,max) => Math.min(max,Math.max(min,value));
 
       const CROPS = [
-        {id:"radish",name:"Radish",icon:"🌱",stages:{planted:"assets/farm/crops/radish-planted-64.png",half:"assets/farm/crops/radish-half-grown-64.png",grown:"assets/farm/crops/radish-ready-pulled-64.png"},level:1,seedCost:8,steps:700,expiryHours:8,baseValue:16,xp:18},
-        {id:"lettuce",name:"Lettuce",icon:"🥬",level:2,seedCost:13,steps:1200,expiryHours:8,baseValue:29,xp:29},
-        {id:"carrot",name:"Carrot",icon:"🥕",level:3,seedCost:20,steps:1900,expiryHours:7,baseValue:41,xp:44},
-        {id:"beetroot",name:"Beetroot",icon:"🫜",level:4,seedCost:27,steps:2500,expiryHours:7,baseValue:55,xp:56},
-        {id:"blueberry",name:"Blueberry",icon:"🫐",level:5,seedCost:36,steps:3300,expiryHours:6,baseValue:66,xp:72},
-        {id:"potato",name:"Potato",icon:"🥔",level:7,seedCost:47,steps:4300,expiryHours:6,baseValue:88,xp:92},
-        {id:"strawberry",name:"Strawberry",icon:"🍓",level:9,seedCost:61,steps:5600,expiryHours:5,baseValue:107,xp:118},
-        {id:"tomato",name:"Tomato",icon:"🍅",level:11,seedCost:76,steps:7000,expiryHours:5,baseValue:138,xp:148},
-        {id:"corn",name:"Sweetcorn",icon:"🌽",level:13,seedCost:92,steps:8500,expiryHours:4,baseValue:156,xp:182},
-        {id:"cabbage",name:"Cabbage",icon:"🥬",level:15,seedCost:112,steps:10500,expiryHours:4,baseValue:198,xp:225},
-        {id:"pumpkin",name:"Pumpkin",icon:"🎃",level:18,seedCost:136,steps:13000,expiryHours:3,baseValue:229,xp:280},
-        {id:"melon",name:"Moon Melon",icon:"🍈",level:21,seedCost:160,steps:15500,expiryHours:3,baseValue:284,xp:340},
-        {id:"starfruit",name:"Starfruit",icon:"⭐",level:24,seedCost:190,steps:18000,expiryHours:2,baseValue:315,xp:410},
-        {id:"ancient-root",name:"Ancient Root",icon:"🪷",level:27,seedCost:225,steps:20000,expiryHours:2,baseValue:370,xp:485}
+        {id:"radish",name:"Radish",icon:"🌱",stages:{planted:"assets/farm/crops/radish-planted-64.png",grown:"assets/farm/crops/radish-ready-planted-64.png"},level:1,seedCost:8,steps:700,expiryHours:8,baseValue:16,xp:18},
+        {id:"lettuce",name:"Lettuce",icon:"🥬",level:2,seedCost:13,steps:1100,expiryHours:8,baseValue:26,xp:27},
+        {id:"spinach",name:"Spinach",icon:"🌿",level:3,seedCost:17,steps:1500,expiryHours:8,baseValue:37,xp:35},
+        {id:"carrot",name:"Carrot",icon:"🥕",level:4,seedCost:21,steps:1900,expiryHours:7,baseValue:41,xp:44},
+        {id:"onion",name:"Onion",icon:"🧅",level:5,seedCost:24,steps:2200,expiryHours:7,baseValue:48,xp:50},
+        {id:"beetroot",name:"Beetroot",icon:"🫜",level:6,seedCost:29,steps:2600,expiryHours:7,baseValue:58,xp:58},
+        {id:"blueberry",name:"Blueberry",icon:"🫐",level:8,seedCost:36,steps:3300,expiryHours:6,baseValue:66,xp:72},
+        {id:"peas",name:"Garden Peas",icon:"🫛",level:10,seedCost:43,steps:3800,expiryHours:6,baseValue:78,xp:84},
+        {id:"potato",name:"Potato",icon:"🥔",level:12,seedCost:49,steps:4400,expiryHours:6,baseValue:92,xp:96},
+        {id:"strawberry",name:"Strawberry",icon:"🍓",level:14,seedCost:59,steps:5400,expiryHours:5,baseValue:104,xp:118},
+        {id:"pepper",name:"Bell Pepper",icon:"🫑",level:16,seedCost:68,steps:6500,expiryHours:5,baseValue:128,xp:135},
+        {id:"tomato",name:"Tomato",icon:"🍅",level:18,seedCost:78,steps:7400,expiryHours:5,baseValue:149,xp:155},
+        {id:"corn",name:"Sweetcorn",icon:"🌽",level:20,seedCost:92,steps:8600,expiryHours:4,baseValue:159,xp:185},
+        {id:"eggplant",name:"Aubergine",icon:"🍆",level:22,seedCost:104,steps:9800,expiryHours:4,baseValue:184,xp:215},
+        {id:"cabbage",name:"Cabbage",icon:"🥬",level:24,seedCost:116,steps:11000,expiryHours:4,baseValue:210,xp:245},
+        {id:"broccoli",name:"Broccoli",icon:"🥦",level:26,seedCost:126,steps:12000,expiryHours:4,baseValue:233,xp:270},
+        {id:"pumpkin",name:"Pumpkin",icon:"🎃",level:28,seedCost:142,steps:13500,expiryHours:3,baseValue:241,xp:305},
+        {id:"grapes",name:"Vine Grapes",icon:"🍇",level:30,seedCost:154,steps:14800,expiryHours:3,baseValue:268,xp:345},
+        {id:"melon",name:"Moon Melon",icon:"🍈",level:32,seedCost:168,steps:16000,expiryHours:3,baseValue:295,xp:385},
+        {id:"dragonfruit",name:"Dragonfruit",icon:"🐉",level:35,seedCost:184,steps:17400,expiryHours:2,baseValue:300,xp:430},
+        {id:"starfruit",name:"Starfruit",icon:"⭐",level:38,seedCost:204,steps:18700,expiryHours:2,baseValue:330,xp:470},
+        {id:"ancient-root",name:"Ancient Root",icon:"🪷",level:42,seedCost:230,steps:20000,expiryHours:2,baseValue:370,xp:520}
       ].map(crop => ({
         ...crop,
         riskMultiplier: 1 + clamp((8-crop.expiryHours)/6,0,1),
@@ -724,8 +732,7 @@
       }
       function defaultCropPlacement(cropId,stage){
         if(cropId==="radish"&&stage==="planted")return {x:0,y:-20,scale:1};
-        if(cropId==="radish"&&stage==="half")return {x:0,y:-13,scale:1};
-        if(cropId==="radish"&&stage==="grown")return {x:0,y:-4,scale:1.35};
+        if(cropId==="radish"&&stage==="grown")return {x:0,y:-10,scale:1.05};
         return {x:0,y:0,scale:1};
       }
       function cropPlacement(cropId,stage){
@@ -879,7 +886,7 @@
         const status=bedState(bed);
         const progress=clamp(bed.growth/crop.steps*100,0,100);
         if(status==="withered")return `<article class="bed withered"><div class="bed-scene"><img class="bed-art pixel-sprite" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><div class="crop-visual">🥀</div></div><button class="clear-btn" data-clear-bed="${index}">Clear</button></article>`;
-        const stage=status==="ready"?"grown":progress>=45?"half":"planted";
+        const stage=status==="ready"?"grown":"planted";
         const scene=status==="ready"
           ? `<button class="bed-scene harvest-target" data-harvest-bed="${index}" aria-label="Harvest ${crop.name}"><img class="bed-art pixel-sprite" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><div class="crop-visual" style="${cropPlacementStyle(crop.id,stage)}">${cropStageMarkup(crop,stage)}</div><span class="pull-dirt dirt-1"></span><span class="pull-dirt dirt-2"></span><span class="pull-dirt dirt-3"></span><span class="pull-dirt dirt-4"></span><span class="harvest-label">TAP TO HARVEST</span></button>`
           : `<div class="bed-scene"><img class="bed-art pixel-sprite" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><div class="crop-visual" style="${cropPlacementStyle(crop.id,stage)}">${cropStageMarkup(crop,stage)}</div></div>`;
@@ -907,7 +914,7 @@
         const crops=state.adminMode?CROPS:CROPS.filter(crop=>crop.level<=level);
         $("#plantChoices").innerHTML=crops.map(crop=>{
           const seeds=state.seeds[crop.id]||0;
-          return `<button class="plant-option ${selectedCrop===crop.id?"selected":""}" data-crop-choice="${crop.id}" ${!state.adminMode&&seeds<1?"disabled":""}><i>${crop.icon}</i><b>${crop.name}</b><small>${state.adminMode?"∞":`×${seeds}`}</small></button>`;
+          return `<button class="plant-option ${selectedCrop===crop.id?"selected":""}" data-crop-choice="${crop.id}" ${!state.adminMode&&seeds<1?"disabled":""}><i>${crop.icon}</i><b>${crop.name}</b><small>${state.adminMode?`Level ${crop.level} · ∞ seeds`:`×${seeds}`}</small></button>`;
         }).join("");
         const noFert=`<button class="fert-option ${selectedFertiliser===null?"selected":""}" data-fert-choice=""><span><b>No fertiliser</b><small>Base Iridium chance: 1%</small></span><strong>Free</strong></button>`;
         $("#fertChoices").innerHTML=noFert+FERTILISERS.map(fert=>`<button class="fert-option ${selectedFertiliser===fert.id?"selected":""}" data-fert-choice="${fert.id}" ${!state.adminMode&&(state.fertilisers[fert.id]||0)<1?"disabled":""}><span><b class="fert-title">${spriteMarkup(fert)}<span>${fert.name}</span></b><small>${fert.effectText}</small></span><strong>${state.adminMode?"∞":`×${state.fertilisers[fert.id]||0}`}</strong></button>`).join("");
@@ -963,7 +970,7 @@
           const level=levelInfo().level;
           const crops=state.adminMode?CROPS:CROPS.filter(crop=>crop.level<=level);
           $("#shopGrid").innerHTML=crops.map(crop=>{
-            return `<button class="shop-item quality-base" data-seed-buy="${crop.id}" ${canSpendGold(crop.seedCost)?"":"disabled"}><div class="item-art">${crop.icon}</div><div class="item-name">${crop.name} seeds</div><div class="item-quality">${fmt(crop.steps)} steps to grow</div><div class="item-cost">${fmt(crop.seedCost)} gold · owned ${state.seeds[crop.id]||0}</div></button>`;
+            return `<button class="shop-item quality-base" data-seed-buy="${crop.id}" ${canSpendGold(crop.seedCost)?"":"disabled"}><div class="item-art">${crop.icon}</div><div class="item-name">${crop.name} seeds</div><div class="item-quality">${fmt(crop.steps)} steps${state.adminMode?` · Level ${crop.level}`:""}</div><div class="item-cost">${fmt(crop.seedCost)} gold · owned ${state.seeds[crop.id]||0}</div></button>`;
           }).join("");
           $$("[data-seed-buy]").forEach(button=>button.onclick=()=>buySeed(button.dataset.seedBuy));
           return;
