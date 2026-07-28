@@ -137,8 +137,33 @@
     .crop-stage-sprite{width:64px;height:64px}
     .harvest-target{cursor:pointer;touch-action:manipulation}
     .harvest-target .crop-visual{animation:harvest-ready 1.5s ease-in-out infinite}
+    .harvest-target.pulling{pointer-events:none}
+    .harvest-target.pulling .crop-visual{animation:pull-radish .76s cubic-bezier(.22,.8,.3,1) forwards}
+    .harvest-target.pulling .bed-art{animation:soil-bump .3s ease-out}
     .harvest-label{position:absolute;z-index:4;right:2px;bottom:2px;padding:4px 7px;border-radius:99px;background:#eef3cf;color:#395134;font-size:7px;font-weight:900}
-    @keyframes harvest-ready{50%{filter:drop-shadow(0 0 8px rgba(239,195,72,.9));transform:translateX(-50%) translate(var(--crop-x,0px),calc(var(--crop-y,0px) - 3px)) scale(var(--crop-scale,1))}}
+    .harvest-target.pulling .harvest-label{opacity:0}
+    .pull-dirt{position:absolute;z-index:3;left:50%;top:51px;width:5px;height:5px;border-radius:2px;background:#694329;opacity:0;pointer-events:none}
+    .pull-dirt.dirt-1{--dirt-x:-25px;--dirt-y:-17px}
+    .pull-dirt.dirt-2{--dirt-x:-12px;--dirt-y:-25px;animation-delay:.04s!important}
+    .pull-dirt.dirt-3{--dirt-x:17px;--dirt-y:-23px;animation-delay:.08s!important}
+    .pull-dirt.dirt-4{--dirt-x:28px;--dirt-y:-13px;animation-delay:.12s!important}
+    .harvest-target.pulling .pull-dirt{animation:dirt-pop .5s ease-out forwards}
+    @keyframes harvest-ready{
+      0%,100%{filter:drop-shadow(0 3px 3px rgba(34,21,12,.3));transform:translateX(-50%) translate(var(--crop-x,0px),calc(var(--crop-y,0px) + 12px)) scale(var(--crop-scale,1))}
+      50%{filter:drop-shadow(0 0 8px rgba(239,195,72,.9));transform:translateX(-50%) translate(var(--crop-x,0px),calc(var(--crop-y,0px) + 9px)) scale(var(--crop-scale,1))}
+    }
+    @keyframes pull-radish{
+      0%{filter:drop-shadow(0 3px 3px rgba(34,21,12,.3));transform:translateX(-50%) translate(var(--crop-x,0px),calc(var(--crop-y,0px) + 12px)) rotate(0) scale(var(--crop-scale,1))}
+      24%{transform:translateX(-50%) translate(var(--crop-x,0px),calc(var(--crop-y,0px) + 16px)) rotate(-4deg) scale(var(--crop-scale,1))}
+      48%{transform:translateX(-50%) translate(var(--crop-x,0px),calc(var(--crop-y,0px) - 5px)) rotate(5deg) scale(var(--crop-scale,1))}
+      100%{filter:drop-shadow(0 8px 4px rgba(34,21,12,.18));transform:translateX(-50%) translate(var(--crop-x,0px),calc(var(--crop-y,0px) - 48px)) rotate(-8deg) scale(var(--crop-scale,1)) scale(1.06)}
+    }
+    @keyframes dirt-pop{
+      0%{opacity:0;transform:translate(-50%,0) scale(.5)}
+      20%{opacity:1}
+      100%{opacity:0;transform:translate(calc(-50% + var(--dirt-x)),var(--dirt-y)) rotate(80deg) scale(1)}
+    }
+    @keyframes soil-bump{50%{transform:translateY(2px) scaleX(1.015)}}
     .bed-progress{height:7px;margin-top:1px;border-radius:99px;overflow:hidden;background:rgba(77,65,42,.18)}
     .bed-progress i{display:block;height:100%;border-radius:inherit;background:#c9d985;transition:width .25s}
     .bed-foot{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:7px;font-size:8px}
@@ -539,6 +564,7 @@
       let placementCropId="radish";
       let placementStage="planted";
       let placementDraft=null;
+      const pullingBeds=new Set();
 
       function save(){
         clearTimeout(saveTimer);
@@ -679,6 +705,7 @@
         $("#levelLabel").textContent=`Level ${level} · ${level<5?"New grower":level<12?"Field keeper":"Master farmer"}`;
       }
       function renderFarm(){
+        if(pullingBeds.size)return;
         const goal=Math.max(1,state.dailyGoal);
         const percent=clamp(state.todaySteps/goal*100,0,100);
         $("#todaySteps").textContent=fmt(state.todaySteps);
@@ -691,7 +718,7 @@
         $("#bedsGrid").innerHTML=Array.from({length:MAX_BEDS},(_,index)=>renderBed(index)).join("");
         $$("[data-plant-bed]").forEach(button=>button.onclick=()=>openPlantModal(Number(button.dataset.plantBed)));
         $$("[data-unlock-bed]").forEach(button=>button.onclick=()=>unlockBed(Number(button.dataset.unlockBed)));
-        $$("[data-harvest-bed]").forEach(button=>button.onclick=()=>harvestBed(Number(button.dataset.harvestBed)));
+        $$("[data-harvest-bed]").forEach(button=>button.onclick=()=>pullAndHarvest(button,Number(button.dataset.harvestBed)));
         $$("[data-clear-bed]").forEach(button=>button.onclick=()=>clearBed(Number(button.dataset.clearBed)));
       }
       function renderBed(index){
@@ -707,9 +734,12 @@
         if(status==="withered")return `<article class="bed withered"><div class="bed-scene"><img class="bed-art pixel-sprite" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><div class="crop-visual">🥀</div></div><button class="clear-btn" data-clear-bed="${index}">Clear</button></article>`;
         const stage=status==="ready"?"grown":progress>=45?"half":"planted";
         const scene=status==="ready"
-          ? `<button class="bed-scene harvest-target" data-harvest-bed="${index}" aria-label="Harvest ${crop.name}"><img class="bed-art pixel-sprite" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><div class="crop-visual" style="${cropPlacementStyle(crop.id,stage)}">${cropStageMarkup(crop,stage)}</div><span class="harvest-label">TAP TO HARVEST</span></button>`
+          ? `<button class="bed-scene harvest-target" data-harvest-bed="${index}" aria-label="Harvest ${crop.name}"><img class="bed-art pixel-sprite" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><div class="crop-visual" style="${cropPlacementStyle(crop.id,stage)}">${cropStageMarkup(crop,stage)}</div><span class="pull-dirt dirt-1"></span><span class="pull-dirt dirt-2"></span><span class="pull-dirt dirt-3"></span><span class="pull-dirt dirt-4"></span><span class="harvest-label">TAP TO HARVEST</span></button>`
           : `<div class="bed-scene"><img class="bed-art pixel-sprite" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><div class="crop-visual" style="${cropPlacementStyle(crop.id,stage)}">${cropStageMarkup(crop,stage)}</div></div>`;
-        return `<article class="bed">${scene}<div class="bed-progress"><i style="width:${progress}%"></i></div><div class="bed-foot"><span>${Math.floor(progress)}%</span><span>${formatTime(bed.expiresAt-Date.now())}</span></div></article>`;
+        return `<article class="bed">${scene}<div class="bed-progress"><i style="width:${progress}%"></i></div><div class="bed-foot"><span>${Math.floor(progress)}%</span><span data-bed-time="${bed.expiresAt}">${formatTime(bed.expiresAt-Date.now())}</span></div></article>`;
+      }
+      function updateFarmTimes(){
+        $$("[data-bed-time]").forEach(label=>label.textContent=formatTime(Number(label.dataset.bedTime)-Date.now()));
       }
       function unlockBed(index){
         const cost=BED_COSTS[index];
@@ -763,6 +793,17 @@
         state.beds[index]=null;
         save();renderAll();celebrate(crop.icon);
         toast(`${QUALITY_LABELS[quality]?QUALITY_LABELS[quality]+" ":""}${crop.name} harvested`);
+      }
+      function pullAndHarvest(button,index){
+        const bed=state.beds[index];
+        if(!bed||bedState(bed)!=="ready"||pullingBeds.has(index))return;
+        pullingBeds.add(index);
+        button.disabled=true;
+        button.classList.add("pulling");
+        setTimeout(()=>{
+          pullingBeds.delete(index);
+          harvestBed(index);
+        },760);
       }
       function clearBed(index){state.beds[index]=null;save();renderAll();toast("Bed cleared")}
 
@@ -1018,7 +1059,7 @@
       $("#goalSelect").onchange=event=>{state.dailyGoal=number(event.target.value)||DAILY_GOAL_DEFAULT;save();renderFarm()};
       $("#resetButton").onclick=resetFarm;
       document.addEventListener("visibilitychange",()=>{if(!document.hidden){postNative({type:"pedometerReady"});renderAll()}});
-      setInterval(()=>{if(activeScreen==="farm")renderFarm()},1000);
+      setInterval(()=>{if(activeScreen==="farm")updateFarmTimes()},1000);
       if("serviceWorker" in navigator)navigator.serviceWorker.register("./sw.js").catch(()=>{});
       renderAll();
       postNative({type:"pedometerReady"});
