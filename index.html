@@ -301,8 +301,7 @@
     }
     .tab.active{background:var(--paper);color:var(--forest);box-shadow:0 3px 9px rgba(75,63,40,.1)}
     .tabs[hidden]{display:none}
-    #shop>.section-head{margin:2px 2px 15px}
-    #shop>.section-head h1{font-size:38px;line-height:1;text-transform:uppercase;letter-spacing:.02em}
+    #shop>#shopTabs{margin-top:1px}
     .shop-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
     .shop-grid.gear-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
     .shop-grid .shop-section{grid-column:1/-1;display:flex;align-items:center;gap:9px;margin:16px 2px 2px;color:var(--forest)}
@@ -347,19 +346,20 @@
     .seed-size-control button{width:30px;height:30px;border:1px solid var(--line);border-radius:9px;background:var(--cream);color:var(--forest);font-size:16px;font-weight:900}
     .seed-size-control output{text-align:right;color:var(--muted);font-size:8px;font-weight:900}
     .shop-grid.seed-grid{
-      --seed-shop-size:40px;display:grid;grid-template-columns:1fr;gap:4px;
-      padding:5px;border:3px solid #856a49;border-radius:20px;background:transparent;
-      box-shadow:0 8px 24px rgba(67,50,27,.11),inset 0 0 0 1px rgba(255,255,255,.55)
+      --seed-shop-size:44px;display:grid;grid-template-columns:1fr;gap:0;
+      padding:6px;border:1px solid rgba(100,123,91,.28);border-radius:24px;
+      background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(244,248,239,.91));
+      box-shadow:0 12px 30px rgba(44,69,47,.12),inset 0 1px 0 #fff;overflow:hidden
     }
     .seed-shop-row{
       display:grid;grid-template-columns:var(--seed-shop-size) minmax(0,1fr) auto;align-items:center;gap:8px;
-      min-height:calc(var(--seed-shop-size) + 12px);padding:5px 8px 5px 5px;border:2px solid rgba(154,124,84,.34);border-radius:14px;
-      background:linear-gradient(180deg,#fffaf0 0%,#f6ecd6 100%);color:#2f4634;
-      box-shadow:0 3px 10px rgba(66,48,24,.075),inset 0 1px 0 rgba(255,255,255,.95);
+      min-height:calc(var(--seed-shop-size) + 16px);padding:8px 8px;border:0;border-bottom:1px solid rgba(91,113,82,.14);border-radius:14px;
+      background:transparent;color:#2f4634;
       cursor:pointer;text-align:left;transition:transform .14s ease,border-color .14s ease,box-shadow .14s ease
     }
-    .seed-shop-row:hover{border-color:rgba(88,117,78,.5);box-shadow:0 5px 14px rgba(66,48,24,.11),inset 0 1px 0 #fff}
-    .seed-shop-row:active{transform:scale(.99);border-color:#78906e}
+    .seed-shop-row:last-child{border-bottom:0}
+    .seed-shop-row:hover{background:rgba(224,237,215,.58);box-shadow:inset 0 0 0 1px rgba(88,117,78,.13)}
+    .seed-shop-row:active{transform:scale(.99);background:rgba(215,232,205,.75)}
     .seed-shop-row:focus-visible{outline:3px solid rgba(69,104,74,.25);outline-offset:2px}
     .seed-row-icon{
       display:grid;place-items:center;width:var(--seed-shop-size);height:var(--seed-shop-size);
@@ -376,19 +376,19 @@
     .seed-row-copy{display:grid;align-content:center;gap:3px;min-width:0}
     .seed-row-name{
       min-width:0;overflow:hidden;font-family:"DM Sans",system-ui,sans-serif;font-size:15px;font-weight:800;
-      line-height:1.15;letter-spacing:-.01em;white-space:nowrap;text-overflow:ellipsis;color:#2f4634
+      line-height:1.15;letter-spacing:-.01em;white-space:nowrap;text-overflow:ellipsis;color:#24412c
     }
     .seed-row-meta{display:flex;align-items:center;gap:4px;min-width:0}
     .seed-row-steps{
       display:inline-flex;align-items:center;gap:4px;width:max-content;padding:3px 6px;
-      border:1px solid rgba(77,105,69,.17);border-radius:999px;background:#edf3e7;
-      color:#536252;font-family:"DM Sans",system-ui,sans-serif;font-size:9px;font-weight:900;line-height:1
+      border:1px solid rgba(77,105,69,.13);border-radius:999px;background:#edf4e8;
+      color:#4c674f;font-family:"DM Sans",system-ui,sans-serif;font-size:9px;font-weight:900;line-height:1
     }
     .seed-row-steps .currency-icon{width:12px;height:12px;margin:0;vertical-align:middle}
     .seed-row-price{
       display:inline-flex;align-items:center;justify-content:flex-end;gap:3px;min-width:48px;padding:6px 8px;
-      border:1px solid rgba(137,108,70,.2);border-radius:999px;background:rgba(255,255,255,.55);
-      font-family:"DM Sans",system-ui,sans-serif;font-size:14px;font-weight:800;line-height:1;color:#61472d
+      border:1px solid rgba(181,142,60,.22);border-radius:999px;background:#fbf3d9;
+      font-family:"DM Sans",system-ui,sans-serif;font-size:14px;font-weight:900;line-height:1;color:#6a5025
     }
     .seed-row-price .currency-icon{width:15px;height:15px;margin:0;vertical-align:middle}
     .fert-card .item-art{font-size:40px}
@@ -403,6 +403,7 @@
       min-height:92px;padding:10px 5px;border:1px dashed #aebba7;border-radius:17px;background:#edf2e7;text-align:center
     }
     .loadout-slot i{display:block;font-style:normal;font-size:27px}
+    .loadout-slot .loadout-sprite{width:42px;height:42px;margin:auto;filter:drop-shadow(0 3px 3px rgba(45,36,22,.16))}
     .loadout-slot b,.loadout-slot small{display:block}
     .loadout-slot b{margin-top:5px;font-size:9px;color:var(--forest)}
     .loadout-slot small{margin-top:3px;color:var(--muted);font-size:7px}
@@ -631,7 +632,6 @@
       </section>
 
       <section class="screen" id="shop">
-        <div class="section-head"><h1>Shop</h1></div>
         <div class="tabs" id="shopTabs">
           <button class="tab active" data-shop-tab="seeds">Seeds</button>
           <button class="tab" data-shop-tab="gear">Gear</button>
@@ -898,14 +898,14 @@
       const FERTILISERS = QUALITY_ORDER.slice(1).flatMap(tier=>{
         const config=FERTILISER_TIERS[tier],power=config.power;
         return [
-          {id:`double-${tier}`,family:"double",name:"Double Grow Fertiliser",icon:"🌱",image:"assets/farm/fertiliser-compost-64.png",tier,cost:config.cost,yieldChance:[25,50,75,100][power-1],effectText:`${[25,50,75,100][power-1]}% chance of a double harvest`,pack:1},
+          {id:`double-${tier}`,family:"double",name:"Double Grow Fertiliser",icon:"🌱",tier,cost:config.cost,yieldChance:[25,50,75,100][power-1],effectText:`${[25,50,75,100][power-1]}% chance of a double harvest`,pack:1},
           {id:`speed-${tier}`,family:"speed",name:"Speed Grow",icon:"⚡",tier,cost:config.cost,growth:[20,40,70,100][power-1],effectText:`+${[20,40,70,100][power-1]}% growth from steps`,pack:1},
           {id:`quality-${tier}`,family:"quality",name:"Quality Fertiliser",icon:"✨",tier,cost:config.cost,quality:[12,25,45,70][power-1],iridium:[.2,.6,1.5,4][power-1],guaranteed:tier==="iridium"?"iridium":null,effectText:tier==="iridium"?"Guaranteed Iridium crop":`+${[12,25,45,70][power-1]}% quality chance`,pack:1}
         ];
       }).map(fertiliser=>({
         ...fertiliser,
         image:fertiliser.family==="double"
-          ?"assets/farm/fertiliser-compost-64.png"
+          ?`assets/farm/fertilisers/speed-${fertiliser.tier}-96.png`
           :`assets/farm/fertilisers/${fertiliser.id}-96.png`
       }));
       const LEGACY_ITEMS = {
@@ -1161,11 +1161,11 @@
         const boost=gear.quality+weatherBonus().quality+(fert?.quality||0);
         const iridiumExtra=gear.iridium+(fert?.iridium||0);
         const odds={
-          base:69-boost,
-          bronze:18+boost*.45,
-          silver:8+boost*.28,
-          gold:4+boost*.18,
-          iridium:1+boost*.09+iridiumExtra
+          base:80-boost*.65,
+          bronze:13+boost*.32,
+          silver:5+boost*.18,
+          gold:1+boost*.1,
+          iridium:1+boost*.05+iridiumExtra
         };
         odds.base=Math.max(5,odds.base);
         const total=Object.values(odds).reduce((a,b)=>a+b,0);
@@ -1630,7 +1630,7 @@
         const slots=[["boots","Boots","🥾"],["gloves","Gloves","🧤"],["tools","Tool","🚿"]];
         $("#loadout").innerHTML=slots.map(([type,label,icon])=>{
           const item=itemById(state.equipment[type]);
-          return `<button class="loadout-slot quality-${item?.quality||"base"}" data-equipped="${item?.id||""}"><i>${item?.icon||icon}</i><b>${item?.name||label}</b><small>${item?itemUpgradeLevel(item)?`Upgrade +${itemUpgradeLevel(item)}`:"Equipped":"Empty"}</small></button>`;
+          return `<button class="loadout-slot quality-${item?.quality||"base"}" data-equipped="${item?.id||""}"><i>${item?spriteMarkup(item,"loadout-sprite"):icon}</i><b>${item?.name||label}</b><small>${item?itemUpgradeLevel(item)?`Upgrade +${itemUpgradeLevel(item)}`:"Equipped":"Empty"}</small></button>`;
         }).join("");
         $$("[data-equipped]").forEach(button=>{if(button.dataset.equipped)button.onclick=()=>openItem(button.dataset.equipped)});
         const ownedGear=state.ownedItems.map(itemById).filter(Boolean);

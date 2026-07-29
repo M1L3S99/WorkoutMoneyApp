@@ -97,7 +97,7 @@ for (const asset of ["assets/farm/crops/radish-seeds-96.png", "assets/farm/ui/go
 }
 const backgroundAsset = "assets/farm/ui/farm-background-v2.webp";
 const backgroundSize = fs.statSync(backgroundAsset).size;
-if (backgroundSize < 50000 || backgroundSize > 150000 || !html.includes(backgroundAsset) || !serviceWorker.includes(`./${backgroundAsset}`) || !serviceWorker.includes("ironbound-farm-v23")) {
+if (backgroundSize < 50000 || backgroundSize > 150000 || !html.includes(backgroundAsset) || !serviceWorker.includes(`./${backgroundAsset}`) || !serviceWorker.includes("ironbound-farm-v24")) {
   throw new Error(`The compressed offline Farm background is missing or too heavy (${backgroundSize} bytes)`);
 }
 if (!html.includes('background-attachment:fixed,fixed') ||
@@ -147,6 +147,11 @@ if (!html.includes("data-fert-view") || !html.includes("shopLayoutVersion:6") ||
 if (!html.includes("grid-template-columns:var(--seed-shop-size) minmax(0,1fr) auto") || !html.includes("seed-row-price") || !html.includes("seed-row-steps")) {
   throw new Error("Seed rows must align the unframed packet, growing steps, name, and price");
 }
+if (html.includes('<div class="section-head"><h1>Shop</h1></div>') ||
+    !html.includes("#shop>#shopTabs{margin-top:1px}") ||
+    !html.includes("background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(244,248,239,.91))")) {
+  throw new Error("The seed shop must use the clean mobile list without a redundant Shop heading");
+}
 if (!html.includes('src="${CURRENCY_ICONS.steps}" alt="Steps">${fmt(crop.steps)}')) {
   throw new Error("Every seed row must show that crop's growing steps with the step icon");
 }
@@ -156,8 +161,8 @@ for (const forbiddenTimer of ["expiryHours", "effectiveExpiryMs", "data-bed-time
 if (!html.includes('font-family:"DM Sans"') || !html.includes("font-weight:800") || !html.includes("background:transparent;") || !html.includes("border:0;border-radius:0")) {
   throw new Error("The refined seed ledger requires thick modern typography and a transparent outer field");
 }
-if (!html.includes('${fmt(crop.seedCost)}<img class="currency-icon"') || !html.includes("border:3px solid #856a49") || !html.includes("border-radius:20px")) {
-  throw new Error("Seed prices and the substantial rounded outer frame must match the polished design");
+if (!html.includes('${fmt(crop.seedCost)}<img class="currency-icon"') || !html.includes("border-radius:24px") || !html.includes(".seed-shop-row:last-child{border-bottom:0}")) {
+  throw new Error("Seed prices and the polished rounded mobile list must remain intact");
 }
 if (html.includes("discountedCrop") || html.includes("data-discount") || html.includes("half price") || html.includes("seed-shop-row discount")) {
   throw new Error("The daily seed discount must be removed completely");
@@ -207,6 +212,13 @@ for (const fertiliser of farm.FERTILISERS.filter((entry) => entry.family !== "do
     throw new Error(`Fertiliser art is incomplete for ${fertiliser.id}`);
   }
   generatedArtPaths.push(fertiliser.image);
+}
+for (const tier of ["bronze", "silver", "gold", "iridium"]) {
+  const doubleGrow = farm.FERTILISERS.find((entry) => entry.id === `double-${tier}`);
+  const speedGrow = farm.FERTILISERS.find((entry) => entry.id === `speed-${tier}`);
+  if (!doubleGrow || !speedGrow || doubleGrow.image !== speedGrow.image) {
+    throw new Error(`Double Grow must match the Speed Grow art for ${tier}`);
+  }
 }
 const questNpcs = farm.dailyQuests();
 if (questNpcs.length !== 3 || questNpcs.some((quest) => !quest.image?.includes(`/npcs/${quest.id}-96.png`))) {
@@ -288,8 +300,11 @@ if (farm.ITEM_UPGRADE_MAX !== 3 || !farm.upgradeRecipe(farm.ITEMS[0], 3)?.cropId
   throw new Error("Every gear item must support three crop-backed upgrades");
 }
 const baseOdds = farm.qualityOdds(null);
-if (Math.abs(baseOdds.iridium - 1) > 0.001) {
-  throw new Error(`Base Iridium chance must be 1%, received ${baseOdds.iridium}`);
+if (baseOdds.base < 79.9 || Math.abs(baseOdds.iridium - 1) > 0.001) {
+  throw new Error(`Base crop quality should be common while preserving 1% Iridium: ${JSON.stringify(baseOdds)}`);
+}
+if (!html.includes('item?spriteMarkup(item,"loadout-sprite"):icon') || !html.includes(".loadout-slot .loadout-sprite")) {
+  throw new Error("Equipped gear must keep using its generated item artwork");
 }
 console.log(
   `Economy checks OK: ${farm.CROPS.length} crops, ${farm.ITEMS.length} equipment items, ${farm.FERTILISERS.length} fertilisers`
