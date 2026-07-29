@@ -77,11 +77,14 @@ if (!radish.image?.includes("radish-crop-64") || !radish.seedImage?.includes("ra
 if (html.includes("TAP TO HARVEST") || html.includes("harvest-ready 1.5s") || html.includes("pullAndHarvest") || html.includes("pull-radish") || html.includes("pull-dirt")) {
   throw new Error("Ready crops must not move, bob, or display a tap-to-harvest label");
 }
-for (const id of ["seedModal", "seedDetailName", "seedDetailInfo", "seedDetailBuy", "seedSizeControl", "seedShopSize", "seedSizeDown", "seedSizeUp", "seedShopSizeValue"]) {
+for (const id of ["seedModal", "seedDetailName", "seedDetailInfo", "seedDetailBuy", "seedDetailAdjust", "seedSizeControl", "seedShopSize", "seedSizeDown", "seedSizeUp", "seedShopSizeValue"]) {
   if (!ids.includes(id)) throw new Error(`Missing seed detail control: ${id}`);
 }
-for (const id of ["stepRing", "todaySteps", "dailyGoalLabel", "dailyPercent", "stepStatus", "dailyProgress", "growingCount", "readyCount", "bedsGrid"]) {
+for (const id of ["stepRing", "todaySteps", "dailyGoalLabel", "accountName", "accountLevel", "growingCount", "readyCount", "bedsGrid"]) {
   if (!ids.includes(id)) throw new Error(`Missing modern Farm control: ${id}`);
+}
+for (const removedId of ["dailyPercent", "stepStatus", "dailyProgress"]) {
+  if (ids.includes(removedId)) throw new Error(`The simplified step hero must not retain ${removedId}`);
 }
 for (const id of ["fertModal", "fertModalCard", "fertDetailName", "fertDetailArt", "fertDetailInfo", "fertDetailBuy"]) {
   if (!ids.includes(id)) throw new Error(`Missing fertiliser detail control: ${id}`);
@@ -93,13 +96,13 @@ for (const asset of ["assets/farm/crops/radish-seeds-96.png", "assets/farm/ui/go
   const size = fs.statSync(asset).size;
   if (size < 100 || size > 20000) throw new Error(`Generated pixel asset has an unexpected size: ${asset} (${size} bytes)`);
 }
-const heroAsset = "assets/farm/ui/walk-to-grow-hero-960.webp";
-const heroSize = fs.statSync(heroAsset).size;
-if (heroSize < 10000 || heroSize > 60000 || !html.includes(heroAsset) || !serviceWorker.includes(`./${heroAsset}`) || !serviceWorker.includes("ironbound-farm-v20")) {
-  throw new Error(`The compressed offline Farm hero is missing or too heavy (${heroSize} bytes)`);
+const backgroundAsset = "assets/farm/ui/farm-background-v2.webp";
+const backgroundSize = fs.statSync(backgroundAsset).size;
+if (backgroundSize < 50000 || backgroundSize > 150000 || !html.includes(backgroundAsset) || !serviceWorker.includes(`./${backgroundAsset}`) || !serviceWorker.includes("ironbound-farm-v21")) {
+  throw new Error(`The compressed offline Farm background is missing or too heavy (${backgroundSize} bytes)`);
 }
-if (html.includes('class="brand"') || ids.includes("levelLabel") || !html.includes('class="wallet" aria-label="Steps and gold"')) {
-  throw new Error("The top bar must contain only the centred step and gold balances");
+if (html.includes('class="brand"') || !html.includes('class="account-summary" aria-label="Account"') || !html.includes('class="wallet" aria-label="Steps and gold"')) {
+  throw new Error("The top bar must show the account and level on the left with currencies on the right");
 }
 if (!html.includes("width:min(104%,180px)") || !html.includes("border:0;border-radius:0;color:var(--soil);background:transparent;box-shadow:none")) {
   throw new Error("Unlocked planter art must be enlarged and shown without surrounding plot cards");
@@ -119,8 +122,8 @@ if (!html.includes(".currency{display:inline;") || !html.includes("vertical-alig
 if (html.includes('${currencyMarkup("steps",crop.steps)} · ${state.adminMode?') || html.includes('Plant · ${currencyMarkup("steps",crop.steps)} to grow')) {
   throw new Error("The crop picker must list seeds without growth-step pricing");
 }
-if (html.includes(".shop-item:before") || !html.includes("background:radial-gradient(circle at 50% 42%")) {
-  throw new Error("Shop rarity must use the full card background without a side band");
+if (html.includes(".shop-item:before") || !html.includes("background:linear-gradient(180deg,#fff,#f7f3e9)") || html.includes("background:radial-gradient(circle at 50% 42%,color-mix")) {
+  throw new Error("Shop items must use neutral full-card backplates without a rarity side band");
 }
 if (farm.freshState().seedShopSize !== 40 || !html.includes("--seed-shop-size") || !html.includes("detailLinesMarkup")) {
   throw new Error("Persistent seed sizing and one-line-per-stat shop details are required");
@@ -152,16 +155,26 @@ if (html.includes("discountedCrop") || html.includes("data-discount") || html.in
 if (!html.includes("height:10px;margin-top:1px;border:2px solid #804615") || !html.includes("background:linear-gradient(90deg,#a7b86b,#60753a)")) {
   throw new Error("The thicker garden crop-progress bar must be preserved");
 }
-if (!html.includes('class="farm-hero"') || !html.includes('class="garden-panel"') || !html.includes("#farm .farm-hero") || !html.includes('if(!next)return ""') || !html.includes('class="bed ${status}"')) {
-  throw new Error("The professional fitness-first Farm screen and condensed plot board are required");
+if (!html.includes('class="farm-hero"') || !html.includes('class="garden-panel"') || !html.includes("#farm .farm-hero") || !html.includes('if(!next)return ""') || !html.includes('class="bed ${status}"') ||
+    html.includes("WALK-POWERED FARM") || html.includes("MOVE TO GROW") || html.includes("Walk. Grow. Harvest.")) {
+  throw new Error("The Farm must use the clean step-ring-only hero and condensed plot board");
 }
 if (!html.includes("#farm .bed-scene,.placement-bed-scene{") ||
     !html.includes("#farm .crop-visual,.placement-bed-scene .crop-visual{") ||
     !html.includes('class="placement-bed-scene"') ||
     !html.includes(".placement-preview .bed-art{pointer-events:none") ||
     !html.includes("preview.onpointerdown=event=>") ||
-    !html.includes("preview.ontouchstart=event=>")) {
-  throw new Error("The crop editor must match farm-bed geometry and remain draggable through the planter on touch screens");
+    !html.includes("preview.ontouchstart=event=>") ||
+    !html.includes('<option value="seed">Seed packet</option>') ||
+    !html.includes('class="seed-placement-scene"') ||
+    !html.includes("adjustSelectedSeedPosition")) {
+  throw new Error("The crop editor must position seeds and crop stages with phone-safe dragging");
+}
+if (!html.includes('class="empty-head-spacer"') || !html.includes('<span class="bed-scene"><img class="bed-art')) {
+  throw new Error("Empty planters must preserve the occupied bed geometry after harvesting");
+}
+if (!html.includes("background:linear-gradient(180deg,#fff,#f7f3e9)") || !html.includes('id="detailQualityLine"') || !html.includes("Quality · ${QUALITY_LABELS[selectedItem.quality]||\"Standard\"}")) {
+  throw new Error("Gear cards must use neutral backplates with quality shown beneath the description");
 }
 const generatedArtPaths = [];
 for (const crop of farm.CROPS) {
@@ -199,7 +212,7 @@ if (generatedBytes > 1_500_000 || !serviceWorker.includes("const GENERATED_ART")
 if (!html.includes('spriteMarkup(item,"gear-sprite")') || !html.includes('spriteMarkup(quest,"npc-sprite")') || !fs.existsSync("scripts/build_generated_farm_art.py")) {
   throw new Error("Generated gear and NPC sprites must be wired into every UI surface with a reproducible build script");
 }
-if (!html.includes('<meta name="theme-color" content="#304c35">') || manifest.theme_color !== "#304c35" || manifest.background_color !== "#f7f1df" || html.includes("Golden farm-shop theme")) {
+if (!html.includes('<meta name="theme-color" content="#304c35">') || manifest.theme_color !== "#304c35" || manifest.background_color !== "#ffffff" || html.includes("Golden farm-shop theme")) {
   throw new Error("The clean cream-and-green app theme must remain restored");
 }
 if (farm.CROPS.length < 20) {
