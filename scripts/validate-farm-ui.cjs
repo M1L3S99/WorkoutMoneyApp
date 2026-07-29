@@ -68,7 +68,7 @@ const radish = farm.CROPS.find((crop) => crop.id === "radish");
 if (!radish?.stages?.planted || !radish?.stages?.grown || radish?.stages?.half) {
   throw new Error("Radish must have exactly planted and ready growth sprites");
 }
-if (!radish.stages.grown.includes("radish-ready-planted")) {
+if (!radish.stages.grown.includes("radish-grown-64")) {
   throw new Error("The ready radish must remain visibly planted in the soil");
 }
 if (!radish.image?.includes("radish-crop-64") || !radish.seedImage?.includes("radish-seeds-96")) {
@@ -95,7 +95,7 @@ for (const asset of ["assets/farm/crops/radish-seeds-96.png", "assets/farm/ui/go
 }
 const heroAsset = "assets/farm/ui/walk-to-grow-hero-960.webp";
 const heroSize = fs.statSync(heroAsset).size;
-if (heroSize < 10000 || heroSize > 60000 || !html.includes(heroAsset) || !serviceWorker.includes(`./${heroAsset}`) || !serviceWorker.includes("ironbound-farm-v19")) {
+if (heroSize < 10000 || heroSize > 60000 || !html.includes(heroAsset) || !serviceWorker.includes(`./${heroAsset}`) || !serviceWorker.includes("ironbound-farm-v20")) {
   throw new Error(`The compressed offline Farm hero is missing or too heavy (${heroSize} bytes)`);
 }
 if (html.includes('class="brand"') || ids.includes("levelLabel") || !html.includes('class="wallet" aria-label="Steps and gold"')) {
@@ -154,6 +154,42 @@ if (!html.includes("height:10px;margin-top:1px;border:2px solid #804615") || !ht
 }
 if (!html.includes('class="farm-hero"') || !html.includes('class="garden-panel"') || !html.includes("#farm .farm-hero") || !html.includes('if(!next)return ""') || !html.includes('class="bed ${status}"')) {
   throw new Error("The professional fitness-first Farm screen and condensed plot board are required");
+}
+const generatedArtPaths = [];
+for (const crop of farm.CROPS) {
+  const paths = [crop.seedImage, crop.stages?.planted, crop.stages?.grown, crop.image];
+  if (paths.some((asset) => !asset)) throw new Error(`Crop art is incomplete for ${crop.id}`);
+  generatedArtPaths.push(...paths);
+}
+for (const item of farm.ITEMS) {
+  if (!item.image?.includes(`/gear/${item.id}-96.png`)) throw new Error(`Gear art is incomplete for ${item.id}`);
+  generatedArtPaths.push(item.image);
+}
+for (const fertiliser of farm.FERTILISERS.filter((entry) => entry.family !== "double")) {
+  if (!fertiliser.image?.includes(`/fertilisers/${fertiliser.id}-96.png`)) {
+    throw new Error(`Fertiliser art is incomplete for ${fertiliser.id}`);
+  }
+  generatedArtPaths.push(fertiliser.image);
+}
+const questNpcs = farm.dailyQuests();
+if (questNpcs.length !== 3 || questNpcs.some((quest) => !quest.image?.includes(`/npcs/${quest.id}-96.png`))) {
+  throw new Error("Every quest NPC must use a generated portrait");
+}
+generatedArtPaths.push(...questNpcs.map((quest) => quest.image));
+if (generatedArtPaths.length !== 123 || new Set(generatedArtPaths).size !== 123) {
+  throw new Error(`Expected 123 unique generated production sprites, received ${new Set(generatedArtPaths).size}`);
+}
+let generatedBytes = 0;
+for (const asset of generatedArtPaths) {
+  const size = fs.statSync(asset).size;
+  if (size < 250 || size > 30000) throw new Error(`Generated sprite has an unexpected size: ${asset} (${size} bytes)`);
+  generatedBytes += size;
+}
+if (generatedBytes > 1_500_000 || !serviceWorker.includes("const GENERATED_ART") || !serviceWorker.includes("...GENERATED_ART")) {
+  throw new Error(`The generated art catalogue is not efficiently compressed and cached (${generatedBytes} bytes)`);
+}
+if (!html.includes('spriteMarkup(item,"gear-sprite")') || !html.includes('spriteMarkup(quest,"npc-sprite")') || !fs.existsSync("scripts/build_generated_farm_art.py")) {
+  throw new Error("Generated gear and NPC sprites must be wired into every UI surface with a reproducible build script");
 }
 if (!html.includes('<meta name="theme-color" content="#304c35">') || manifest.theme_color !== "#304c35" || manifest.background_color !== "#f7f1df" || html.includes("Golden farm-shop theme")) {
   throw new Error("The clean cream-and-green app theme must remain restored");

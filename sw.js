@@ -1,5 +1,29 @@
 /* Ironbound service worker — farming app shell for offline + home-screen install */
-const CACHE = 'ironbound-farm-v19';
+const CACHE = 'ironbound-farm-v20';
+const CROP_IDS = [
+  'radish','lettuce','spinach','carrot','onion','beetroot','blueberry','peas','potato','strawberry','pepper',
+  'tomato','corn','eggplant','cabbage','broccoli','pumpkin','grapes','melon','dragonfruit','starfruit','ancient-root'
+];
+const GEAR_IDS = [
+  'meadow-treads','dewrunner','mossbound','riverstone','suntrail','harvestmoon','cloudstep','starroot',
+  'seedkeeper','clayhand','bramblegrip','pollinator-touch','moonweave','greenfingers','orchard-warden',
+  'starlight-wraps','raincall','rootwake','brookglass','windrow','silverleaf','sunspoke','goldenhour','rainstaff'
+];
+const FERTILISER_ART_IDS = [
+  'speed-bronze','speed-silver','speed-gold','speed-iridium',
+  'quality-bronze','quality-silver','quality-gold','quality-iridium'
+];
+const GENERATED_ART = [
+  ...CROP_IDS.flatMap((id) => [
+    `./assets/farm/crops/${id}-seeds-96.png`,
+    `./assets/farm/crops/${id}-planted-64.png`,
+    `./assets/farm/crops/${id}-grown-64.png`,
+    `./assets/farm/crops/${id}-crop-64.png`
+  ]),
+  ...GEAR_IDS.map((id) => `./assets/farm/gear/${id}-96.png`),
+  ...FERTILISER_ART_IDS.map((id) => `./assets/farm/fertilisers/${id}-96.png`),
+  ...['tilda','bram','nia'].map((id) => `./assets/farm/npcs/${id}-96.png`)
+];
 const ASSETS = [
   './',
   './index.html',
@@ -8,13 +32,10 @@ const ASSETS = [
   './icon.svg',
   './assets/farm/fertiliser-compost-64.png',
   './assets/farm/planter-bed-128x96.png',
-  './assets/farm/crops/radish-planted-64.png',
-  './assets/farm/crops/radish-ready-planted-64.png',
-  './assets/farm/crops/radish-crop-64.png',
-  './assets/farm/crops/radish-seeds-96.png',
   './assets/farm/ui/walk-to-grow-hero-960.webp',
   './assets/farm/ui/gold-coin-64.png',
-  './assets/farm/ui/step-token-64.png'
+  './assets/farm/ui/step-token-64.png',
+  ...GENERATED_ART
 ];
 
 self.addEventListener('install', (e) => {
