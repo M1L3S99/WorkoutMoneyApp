@@ -239,21 +239,21 @@
     }
     #farm .unlock-requirement{margin-top:5px;color:#74786f;font-size:8px;line-height:1.3}
     .pixel-sprite{display:block;max-width:100%;object-fit:contain;image-rendering:pixelated;image-rendering:crisp-edges}
-    #farm .bed-scene{
+    #farm .bed-scene,.placement-bed-scene{
       position:relative;display:grid;place-items:end center;width:100%;height:116px;margin:0;padding:0;
       border:0;background:transparent
     }
-    #farm .bed-art{
+    #farm .bed-art,.placement-bed-scene .bed-art{
       width:min(104%,180px);max-width:none;height:auto;
       filter:drop-shadow(0 6px 5px rgba(34,21,12,.27))
     }
     #farm .bed.empty .bed-art{width:min(104%,180px);height:auto;margin:-4px auto -2px}
-    #farm .crop-visual{
+    #farm .crop-visual,.placement-bed-scene .crop-visual{
       position:absolute;z-index:2;left:50%;top:-8px;display:grid;place-items:center;width:64px;height:64px;
       transform:translateX(-50%) translate(var(--crop-x,0px),var(--crop-y,0px)) scale(var(--crop-scale,1));
       transform-origin:50% 100%;font-size:39px;filter:drop-shadow(0 4px 3px rgba(34,21,12,.3))
     }
-    #farm .crop-stage-sprite{width:64px;height:64px}
+    #farm .crop-stage-sprite,.placement-bed-scene .crop-stage-sprite{width:64px;height:64px}
     #farm .harvest-target{cursor:pointer;touch-action:manipulation}
     #farm .harvest-target .crop-visual{animation:none}
     #farm .bed-progress{
@@ -467,11 +467,11 @@
     .placement-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:11px}
     .placement-fields label{display:grid;gap:4px;color:var(--muted);font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
     .placement-fields select{width:100%;min-width:0;padding:9px;border:1px solid var(--line);border-radius:11px;background:var(--paper);color:var(--ink);font-size:10px}
-    .placement-preview{position:relative;display:grid;place-items:center;height:190px;overflow:hidden;border:2px dashed #8ba17e;border-radius:18px;background:#eef3e7;cursor:grab;touch-action:none}
+    .placement-preview{position:relative;display:flex;align-items:center;justify-content:center;height:190px;overflow:hidden;border:2px dashed #8ba17e;border-radius:18px;background:#eef3e7;cursor:grab;touch-action:none}
     .placement-preview:active{cursor:grabbing}
-    .placement-preview .bed-art{position:absolute;bottom:10px;width:190px;height:140px;pointer-events:none;user-select:none}
-    .placement-preview .crop-visual{top:27px}
-    .placement-preview .crop-visual.editing{z-index:3;width:78px;height:78px;border:2px solid #416a49;border-radius:15px;background:rgba(255,255,255,.3);pointer-events:none;touch-action:none}
+    .placement-bed-scene{width:calc(50% + 1.6px);flex:0 0 auto}
+    .placement-preview .bed-art{pointer-events:none;user-select:none}
+    .placement-preview .crop-visual.editing{z-index:3;outline:2px solid #416a49;outline-offset:4px;border-radius:10px;background:rgba(255,255,255,.3);pointer-events:none;touch-action:none}
     .drag-hint{position:absolute;z-index:4;top:9px;left:50%;transform:translateX(-50%);padding:5px 9px;border-radius:99px;background:#304c35;color:#fff;font-size:8px;font-weight:900;pointer-events:none}
     .placement-controls{display:grid;gap:9px;margin-top:13px}
     .placement-control{display:grid;grid-template-columns:52px 36px 1fr 36px 42px;align-items:center;gap:7px;color:var(--muted);font-size:9px}
@@ -597,6 +597,7 @@
       #farm .garden-panel{padding:14px 10px 17px;border-radius:24px}
       #farm .garden-heading h1{font-size:24px}
       #farm .beds-grid{gap:8px}
+      .placement-bed-scene{width:calc(50% + 7.6px)}
       #farm .bed{min-height:174px;padding:6px 0 8px}
       #farm .bed.locked{padding:8px;border-radius:19px}
       .shop-grid,.shop-grid.gear-grid{gap:7px}.shop-grid.seed-grid{gap:4px;padding:5px}.shop-item,.gear-grid .shop-item{min-height:0;padding:4px}.item-name,.gear-grid .item-name{font-size:8px}
@@ -1803,23 +1804,38 @@
       function renderPlacementPreview(){
         const crop=cropById(placementCropId);
         if(!crop||!placementDraft)return;
-        $("#placementPreview").innerHTML=`<span class="drag-hint">DRAG CROP</span><img class="bed-art pixel-sprite" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><div class="crop-visual editing" style="${cropPlacementStyle(crop.id,placementStage,placementDraft)}">${cropStageMarkup(crop,placementStage)}</div>`;
+        $("#placementPreview").innerHTML=`<span class="drag-hint">DRAG CROP</span><div class="placement-bed-scene"><img class="bed-art pixel-sprite" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><div class="crop-visual editing" style="${cropPlacementStyle(crop.id,placementStage,placementDraft)}">${cropStageMarkup(crop,placementStage)}</div></div>`;
         const preview=$("#placementPreview"),sprite=$("#placementPreview .crop-visual");
         let drag=null;
+        const beginDrag=(clientX,clientY,pointerId=null)=>{
+          drag={pointerId,startX:clientX,startY:clientY,x:placementDraft.x,y:placementDraft.y};
+        };
+        const moveDrag=(clientX,clientY,pointerId=null)=>{
+          if(!drag||(drag.pointerId!==null&&pointerId!==null&&pointerId!==drag.pointerId))return;
+          placementDraft.x=clamp(Math.round(drag.x+clientX-drag.startX),-70,70);
+          placementDraft.y=clamp(Math.round(drag.y+clientY-drag.startY),-55,55);
+          updatePlacementPreview();
+        };
         preview.onpointerdown=event=>{
           event.preventDefault();
-          preview.setPointerCapture(event.pointerId);
-          drag={pointerId:event.pointerId,startX:event.clientX,startY:event.clientY,x:placementDraft.x,y:placementDraft.y};
+          try{preview.setPointerCapture(event.pointerId)}catch{}
+          beginDrag(event.clientX,event.clientY,event.pointerId);
         };
         preview.onpointermove=event=>{
-          if(!drag||event.pointerId!==drag.pointerId)return;
-          placementDraft.x=clamp(Math.round(drag.x+event.clientX-drag.startX),-70,70);
-          placementDraft.y=clamp(Math.round(drag.y+event.clientY-drag.startY),-55,55);
-          updatePlacementPreview();
+          moveDrag(event.clientX,event.clientY,event.pointerId);
         };
         preview.onpointerup=preview.onpointercancel=event=>{
           if(drag&&event.pointerId===drag.pointerId)drag=null;
         };
+        preview.ontouchstart=event=>{
+          const touch=event.touches[0];if(!touch)return;
+          event.preventDefault();beginDrag(touch.clientX,touch.clientY);
+        };
+        preview.ontouchmove=event=>{
+          const touch=event.touches[0];if(!touch||!drag)return;
+          event.preventDefault();moveDrag(touch.clientX,touch.clientY);
+        };
+        preview.ontouchend=preview.ontouchcancel=()=>{drag=null};
         updatePlacementPreview();
       }
       function updatePlacementPreview(){

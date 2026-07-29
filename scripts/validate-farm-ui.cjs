@@ -155,10 +155,13 @@ if (!html.includes("height:10px;margin-top:1px;border:2px solid #804615") || !ht
 if (!html.includes('class="farm-hero"') || !html.includes('class="garden-panel"') || !html.includes("#farm .farm-hero") || !html.includes('if(!next)return ""') || !html.includes('class="bed ${status}"')) {
   throw new Error("The professional fitness-first Farm screen and condensed plot board are required");
 }
-if (!html.includes(".placement-preview .bed-art{position:absolute;bottom:10px;width:190px;height:140px;pointer-events:none") ||
-    !html.includes('const preview=$("#placementPreview"),sprite=$("#placementPreview .crop-visual")') ||
-    !html.includes("preview.onpointerdown=event=>")) {
-  throw new Error("The crop placement canvas must remain draggable through the planter artwork");
+if (!html.includes("#farm .bed-scene,.placement-bed-scene{") ||
+    !html.includes("#farm .crop-visual,.placement-bed-scene .crop-visual{") ||
+    !html.includes('class="placement-bed-scene"') ||
+    !html.includes(".placement-preview .bed-art{pointer-events:none") ||
+    !html.includes("preview.onpointerdown=event=>") ||
+    !html.includes("preview.ontouchstart=event=>")) {
+  throw new Error("The crop editor must match farm-bed geometry and remain draggable through the planter on touch screens");
 }
 const generatedArtPaths = [];
 for (const crop of farm.CROPS) {
