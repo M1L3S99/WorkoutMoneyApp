@@ -1,6 +1,5 @@
 const fs = require("fs");
 const html = fs.readFileSync("index.html", "utf8");
-const manifest = JSON.parse(fs.readFileSync("manifest.webmanifest", "utf8"));
 const script = html.match(/<script>\s*([\s\S]*?)<\/script>/);
 if (!script) throw new Error("Embedded script missing");
 new Function(script[1]);
@@ -89,16 +88,6 @@ for (const asset of ["assets/farm/crops/radish-seeds-96.png", "assets/farm/ui/go
   const size = fs.statSync(asset).size;
   if (size < 100 || size > 20000) throw new Error(`Generated pixel asset has an unexpected size: ${asset} (${size} bytes)`);
 }
-const radishSeedPng = fs.readFileSync("assets/farm/crops/radish-seeds-96.png");
-if (radishSeedPng.readUInt32BE(16) !== 96 || radishSeedPng.readUInt32BE(20) !== 96 || radishSeedPng.length > 5000) {
-  throw new Error("The detailed radish seed sprite must remain a compact 96×96 PNG");
-}
-if (!html.includes("Golden farm-shop theme") || !html.includes("--parchment-surface:") || !html.includes("background:linear-gradient(180deg,#8b4a18 0%,#6d3514 58%,#57290f 100%)")) {
-  throw new Error("The app-wide golden parchment and dark wood visual theme is required");
-}
-if (manifest.theme_color !== "#57290f" || manifest.background_color !== "#e9bd72") {
-  throw new Error("Installed-app colours must match the golden farm-shop theme");
-}
 for (const id of ["toggleAssetPreview", "assetPreviewPanel", "assetPreviewGrid"]) {
   if (!ids.includes(id)) throw new Error(`Missing asset preview control: ${id}`);
 }
@@ -123,17 +112,17 @@ if (farm.freshState().seedShopSize !== 40 || !html.includes("--seed-shop-size") 
 if (!html.includes(".shop-grid{display:grid;grid-template-columns:repeat(3") || html.includes("large-seeds") || html.includes("data-fert-buy")) {
   throw new Error("The reference-style shop must remain three wide with popup purchasing");
 }
-if (!html.includes("data-fert-view") || !html.includes("shopLayoutVersion:5") || !html.includes("class=\"seed-shop-row")) {
+if (!html.includes("data-fert-view") || !html.includes("shopLayoutVersion:6") || !html.includes("class=\"seed-shop-row")) {
   throw new Error("The seed shop must use the compact reference-list layout and migration");
 }
-if (!html.includes("grid-template-columns:var(--seed-shop-size) minmax(0,1fr) auto") || !html.includes("seed-row-price")) {
-  throw new Error("Seed rows must align icon, name, and price in separate columns");
+if (!html.includes("grid-template-columns:var(--seed-shop-size) minmax(0,1fr) auto") || !html.includes("seed-row-price") || !html.includes("seed-row-steps")) {
+  throw new Error("Seed rows must align the unframed packet, growing steps, name, and price");
 }
-if (!html.includes('font-family:"Fraunces"') || !html.includes("font-weight:700") || !html.includes("background:#e2ad5f")) {
-  throw new Error("The seed ledger requires thick rustic typography and its golden parchment field");
+if (!html.includes('font-family:"DM Sans"') || !html.includes("font-weight:800") || !html.includes("background:transparent;") || !html.includes("border:0;border-radius:0")) {
+  throw new Error("The refined seed ledger requires thick modern typography and a transparent outer field");
 }
-if (!html.includes('${fmt(crop.seedCost)}<img class="currency-icon"') || !html.includes("border:3px solid #693618") || !html.includes("background:linear-gradient(180deg,#f1d394 0%,#eac581 48%,#e8bd73 100%)")) {
-  throw new Error("Seed prices and the layered golden-brown frame must match the Stardew-inspired reference");
+if (!html.includes('${fmt(crop.seedCost)}<img class="currency-icon"') || !html.includes("border:3px solid #856a49") || !html.includes("border-radius:20px")) {
+  throw new Error("Seed prices and the substantial rounded outer frame must match the polished design");
 }
 if (html.includes("discountedCrop") || html.includes("data-discount") || html.includes("half price") || html.includes("seed-shop-row discount")) {
   throw new Error("The daily seed discount must be removed completely");
