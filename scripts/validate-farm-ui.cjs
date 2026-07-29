@@ -97,7 +97,7 @@ for (const asset of ["assets/farm/crops/radish-seeds-96.png", "assets/farm/ui/go
 }
 const backgroundAsset = "assets/farm/ui/farm-background-v2.webp";
 const backgroundSize = fs.statSync(backgroundAsset).size;
-if (backgroundSize < 50000 || backgroundSize > 150000 || !html.includes(backgroundAsset) || !serviceWorker.includes(`./${backgroundAsset}`) || !serviceWorker.includes("ironbound-farm-v24")) {
+if (backgroundSize < 50000 || backgroundSize > 150000 || !html.includes(backgroundAsset) || !serviceWorker.includes(`./${backgroundAsset}`) || !serviceWorker.includes("ironbound-farm-v25")) {
   throw new Error(`The compressed offline Farm background is missing or too heavy (${backgroundSize} bytes)`);
 }
 if (!html.includes('background-attachment:fixed,fixed') ||
@@ -167,8 +167,13 @@ if (!html.includes('${fmt(crop.seedCost)}<img class="currency-icon"') || !html.i
 if (html.includes("discountedCrop") || html.includes("data-discount") || html.includes("half price") || html.includes("seed-shop-row discount")) {
   throw new Error("The daily seed discount must be removed completely");
 }
-if (!html.includes("height:10px;margin-top:1px;border:2px solid #804615") || !html.includes("background:linear-gradient(90deg,#a7b86b,#60753a)")) {
+if (!html.includes("width:min(104%,180px);height:10px;margin:1px auto 0;border:2px solid #804615") || !html.includes("background:linear-gradient(90deg,#a7b86b,#60753a)")) {
   throw new Error("The thicker garden crop-progress bar must be preserved");
+}
+if (!html.includes("height:189px;min-height:189px") ||
+    !html.includes("height:181px;min-height:181px") ||
+    !html.includes("width:min(104%,180px);height:10px")) {
+  throw new Error("Empty, growing, and ready planters must keep identical fixed geometry");
 }
 if (!html.includes('class="farm-hero"') || !html.includes('class="garden-panel"') || !html.includes("#farm .farm-hero") || !html.includes('if(!next)return ""') || !html.includes('class="bed ${status}"') ||
     html.includes("WALK-POWERED FARM") || html.includes("MOVE TO GROW") || html.includes("Walk. Grow. Harvest.")) {
@@ -207,18 +212,11 @@ for (const item of farm.ITEMS) {
   if (!item.image?.includes(`/gear/${item.id}-96.png`)) throw new Error(`Gear art is incomplete for ${item.id}`);
   generatedArtPaths.push(item.image);
 }
-for (const fertiliser of farm.FERTILISERS.filter((entry) => entry.family !== "double")) {
+for (const fertiliser of farm.FERTILISERS) {
   if (!fertiliser.image?.includes(`/fertilisers/${fertiliser.id}-96.png`)) {
     throw new Error(`Fertiliser art is incomplete for ${fertiliser.id}`);
   }
   generatedArtPaths.push(fertiliser.image);
-}
-for (const tier of ["bronze", "silver", "gold", "iridium"]) {
-  const doubleGrow = farm.FERTILISERS.find((entry) => entry.id === `double-${tier}`);
-  const speedGrow = farm.FERTILISERS.find((entry) => entry.id === `speed-${tier}`);
-  if (!doubleGrow || !speedGrow || doubleGrow.image !== speedGrow.image) {
-    throw new Error(`Double Grow must match the Speed Grow art for ${tier}`);
-  }
 }
 const questNpcs = farm.dailyQuests();
 if (questNpcs.length !== 3 || questNpcs.some((quest) => !quest.image?.includes(`/npcs/${quest.id}-96.png`))) {
@@ -248,8 +246,8 @@ if (farm.CROPS.length < 20) {
 }
 const fertiliserFamilies = new Set(farm.FERTILISERS.map((item) => item.family));
 const fertiliserTiers = new Set(farm.FERTILISERS.map((item) => item.tier));
-if (farm.FERTILISERS.length !== 12 || fertiliserFamilies.size !== 3 || fertiliserTiers.size !== 4 || !farm.FERTILISERS.some((item) => item.id === "quality-iridium" && item.guaranteed === "iridium")) {
-  throw new Error("The three fertiliser families must each offer Bronze through Iridium tiers");
+if (farm.FERTILISERS.length !== 8 || fertiliserFamilies.size !== 2 || fertiliserFamilies.has("double") || fertiliserTiers.size !== 4 || !farm.FERTILISERS.some((item) => item.id === "quality-iridium" && item.guaranteed === "iridium")) {
+  throw new Error("Speed Grow and Quality Fertiliser must each offer Bronze through Iridium tiers");
 }
 if (farm.FARM_UPGRADES.length < 8 || farm.FARM_UPGRADES.some((item) => !item.level || !item.gold)) {
   throw new Error("Farmhouse upgrades must be one-time, level-gated purchases");
@@ -305,6 +303,19 @@ if (baseOdds.base < 79.9 || Math.abs(baseOdds.iridium - 1) > 0.001) {
 }
 if (!html.includes('item?spriteMarkup(item,"loadout-sprite"):icon') || !html.includes(".loadout-slot .loadout-sprite")) {
   throw new Error("Equipped gear must keep using its generated item artwork");
+}
+for (const id of ["imageCenterAsset", "imageCenterPreview", "imageCenterY", "imageCenterUp", "imageCenterDown", "resetImageCenter", "saveImageCenter"]) {
+  if (!ids.includes(id)) throw new Error(`Missing permanent sprite-centre control: ${id}`);
+}
+if (!html.includes("imageCenterY:{}") ||
+    !html.includes("function applyImageCentering()") ||
+    !html.includes("getImageData(0,0,width,height)") ||
+    !html.includes("data-center-src") ||
+    !html.includes("saveNow();renderAll();toast(\"Image centre saved\")")) {
+  throw new Error("Gameplay sprites must be alpha-centred with permanent per-image vertical corrections");
+}
+if (html.includes("<h1>Farmhouse</h1>") || html.includes("first farmhouse upgrade")) {
+  throw new Error("The redundant Farmhouse heading must be removed");
 }
 console.log(
   `Economy checks OK: ${farm.CROPS.length} crops, ${farm.ITEMS.length} equipment items, ${farm.FERTILISERS.length} fertilisers`
