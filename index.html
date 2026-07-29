@@ -31,12 +31,15 @@
       --quality:#9b9385;
     }
     *{box-sizing:border-box}
-    html,body{margin:0;min-height:100%;background:#d9d3bc;color:var(--ink);font-family:"DM Sans",sans-serif}
+    html,body{margin:0;min-height:100%;background:#eef1e6;color:var(--ink);font-family:"DM Sans",sans-serif}
     body{
-      background:
-        radial-gradient(circle at 20% 10%,rgba(255,255,255,.7),transparent 28rem),
-        repeating-linear-gradient(90deg,rgba(73,61,38,.025) 0 1px,transparent 1px 5px),
-        #ddd7c3;
+      background-color:#eef1e6;
+      background-image:
+        linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,.24)),
+        url("assets/farm/ui/farm-background-v2.webp");
+      background-position:center,center 58%;
+      background-size:cover,cover;
+      background-attachment:fixed,fixed;
     }
     button,input,select{font:inherit}
     button{touch-action:manipulation}
@@ -47,7 +50,7 @@
       margin:0 auto;
       overflow:hidden;
       background:
-        linear-gradient(rgba(247,241,223,.96),rgba(247,241,223,.98)),
+        linear-gradient(rgba(255,255,255,.58),rgba(255,255,255,.68)),
         repeating-linear-gradient(0deg,transparent 0 31px,rgba(76,88,61,.035) 32px);
       box-shadow:0 0 45px rgba(52,43,26,.2);
     }
@@ -98,9 +101,7 @@
       --farm-soil:#8a5334;
       position:relative;min-height:calc(100dvh - 62px);margin:-17px -15px -20px;padding:16px 14px 42px;
       overflow:hidden;
-      background:
-        linear-gradient(180deg,rgba(255,255,255,.82),rgba(255,255,255,.92) 46%,rgba(255,255,255,.96)),
-        url("assets/farm/ui/farm-background-v2.webp") center top/cover
+      background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.3) 46%,rgba(255,255,255,.48))
     }
     #farm:before{
       content:"";position:absolute;inset:0;pointer-events:none;
@@ -453,6 +454,9 @@
     .upgrade-card .btn{margin-top:14px}
     .settings-card{padding:16px;margin-top:18px}
     .placement-card{padding:16px;margin-top:18px}
+    .placement-scope{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px}
+    .placement-scope button{min-height:38px;border:1px solid #aebda7;border-radius:12px;background:var(--paper);color:var(--forest);font-size:9px;font-weight:900;cursor:pointer}
+    .placement-scope button.active{border-color:#31583a;background:#31583a;color:#fff;box-shadow:0 5px 14px rgba(38,75,46,.2)}
     .placement-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:11px}
     .placement-fields label{display:grid;gap:4px;color:var(--muted);font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
     .placement-fields select{width:100%;min-width:0;padding:9px;border:1px solid var(--line);border-radius:11px;background:var(--paper);color:var(--ink);font-size:10px}
@@ -501,9 +505,10 @@
     .catalogue-row b{font-size:10px}.catalogue-row small{margin-top:4px;color:var(--muted);font-size:7px;line-height:1.35}
     .catalogue-row em{font-style:normal;color:var(--gold-dark);font-size:8px;font-weight:900}
     .bottom-nav{
-      position:fixed;z-index:80;left:50%;bottom:max(8px,env(safe-area-inset-bottom));transform:translateX(-50%);
-      display:grid;grid-template-columns:repeat(5,1fr);gap:3px;width:min(calc(100% - 16px),464px);padding:6px;
-      border:1px solid rgba(255,255,255,.15);border-radius:22px;background:rgba(43,69,48,.97);
+      position:fixed;z-index:80;left:50%;bottom:0;transform:translateX(-50%);
+      display:grid;grid-template-columns:repeat(5,1fr);gap:3px;width:min(100%,480px);
+      min-height:calc(64px + env(safe-area-inset-bottom));padding:6px 8px calc(6px + env(safe-area-inset-bottom));
+      border:1px solid rgba(255,255,255,.15);border-bottom:0;border-radius:22px 22px 0 0;background:rgba(43,69,48,.98);
       box-shadow:0 12px 34px rgba(32,45,32,.3);backdrop-filter:blur(14px)
     }
     .nav-btn{min-width:0;padding:8px 2px 7px;border:0;border-radius:15px;background:transparent;color:#c6d4c3;cursor:pointer}
@@ -680,6 +685,10 @@
         <div id="upgradeList"></div>
         <div class="placement-card card">
           <div class="section-head"><h2>Crop placement</h2></div>
+          <div class="placement-scope" aria-label="Crop placement scope">
+            <button type="button" id="moveOneCrop" class="active" aria-pressed="true">One crop</button>
+            <button type="button" id="moveAllCrops" aria-pressed="false">All crops together</button>
+          </div>
           <div class="placement-fields">
             <label>Crop<select id="placementCrop"></select></label>
             <label>Stage<select id="placementStage"><option value="seed">Seed packet</option><option value="planted">Planted</option><option value="grown">Ready</option></select></label>
@@ -940,7 +949,7 @@
           nativeDate:todayKey(),lastNativeToday:0,nativeLifetime:0,xp:0,unlockedBeds:1,
           beds:Array.from({length:MAX_BEDS},()=>null),inventory:{},seeds:{radish:4},ownedItems:[],itemUpgrades:{},
           equipment:{boots:null,gloves:null,tools:null},fertilisers:{},
-          cropRateLevel:0,qualityLevel:0,saleLevel:0,farmUpgrades:[],cropPlacements:{},trackingStatus:"checking",
+          cropRateLevel:0,qualityLevel:0,saleLevel:0,farmUpgrades:[],cropPlacements:{},globalCropPlacement:{x:0,y:0,scale:1},trackingStatus:"checking",
           bedPlans:Array.from({length:MAX_BEDS},()=>null),questDate:todayKey(),completedQuests:[],
           weather:null,weatherLocation:null,adminMode:false,profileName:"Farmer",seedShopSize:40,shopLayoutVersion:6,farmArtVersion:1,perkDate:todayKey(),doubleStepUsed:0,doubleGoldSalesUsed:0
         };
@@ -999,6 +1008,7 @@
       let placementCropId="radish";
       let placementStage="planted";
       let placementDraft=null;
+      let placementAllCrops=false;
 
       function save(){
         clearTimeout(saveTimer);
@@ -1120,9 +1130,18 @@
         return image?`<img class="crop-stage-sprite pixel-sprite" src="${image}" alt="" draggable="false">`:crop?.icon||"";
       }
       function defaultCropPlacement(){return {x:0,y:0,scale:1}}
+      function globalCropPlacement(){
+        return {...defaultCropPlacement(),...(state.globalCropPlacement||{})};
+      }
       function cropPlacement(cropId,stage){
         const saved=state.cropPlacements?.[`${cropId}:${stage}`]||{};
-        return {...defaultCropPlacement(cropId,stage),...saved};
+        const local={...defaultCropPlacement(cropId,stage),...saved};
+        const global=globalCropPlacement();
+        return {
+          x:(Number(local.x)||0)+(Number(global.x)||0),
+          y:(Number(local.y)||0)+(Number(global.y)||0),
+          scale:(Number(local.scale)||1)*(Number(global.scale)||1)
+        };
       }
       function cropPlacementStyle(cropId,stage,placement=cropPlacement(cropId,stage)){
         return `--crop-x:${clamp(Number(placement.x)||0,-70,70)}px;--crop-y:${clamp(Number(placement.y)||0,-55,55)}px;--crop-scale:${clamp(Number(placement.scale)||1,.4,2.2)}`;
@@ -1504,6 +1523,7 @@
         if(!selectedSeedCrop)return;
         placementCropId=selectedSeedCrop.id;
         placementStage="seed";
+        placementAllCrops=false;
         placementDraft=null;
         closeModals();
         navigate("upgrades");
@@ -1759,7 +1779,9 @@
         save();renderAll();toast(grown?`${grown} crop${grown===1?"":"s"} ready`:"No planted crops");
       }
       function loadPlacementDraft(){
-        placementDraft={...cropPlacement(placementCropId,placementStage)};
+        placementDraft=placementAllCrops
+          ? {...globalCropPlacement()}
+          : {...(state.cropPlacements?.[`${placementCropId}:${placementStage}`]||defaultCropPlacement(placementCropId,placementStage))};
       }
       function renderPlacementEditor(){
         const cropSelect=$("#placementCrop"),stageSelect=$("#placementStage");
@@ -1767,10 +1789,17 @@
         cropSelect.innerHTML=CROPS.map(crop=>`<option value="${crop.id}">${crop.name}</option>`).join("");
         cropSelect.value=placementCropId;
         stageSelect.value=placementStage;
+        cropSelect.disabled=placementAllCrops;
+        $("#moveOneCrop").classList.toggle("active",!placementAllCrops);
+        $("#moveOneCrop").setAttribute("aria-pressed",String(!placementAllCrops));
+        $("#moveAllCrops").classList.toggle("active",placementAllCrops);
+        $("#moveAllCrops").setAttribute("aria-pressed",String(placementAllCrops));
         if(!placementDraft)loadPlacementDraft();
         renderPlacementPreview();
+        $("#moveOneCrop").onclick=()=>{placementAllCrops=false;placementDraft=null;renderPlacementEditor()};
+        $("#moveAllCrops").onclick=()=>{placementAllCrops=true;placementDraft=null;renderPlacementEditor()};
         cropSelect.onchange=()=>{placementCropId=cropSelect.value;loadPlacementDraft();renderPlacementEditor()};
-        stageSelect.onchange=()=>{placementStage=stageSelect.value;loadPlacementDraft();renderPlacementEditor()};
+        stageSelect.onchange=()=>{placementStage=stageSelect.value;if(!placementAllCrops)loadPlacementDraft();renderPlacementEditor()};
         $("#placementScale").oninput=event=>{
           placementDraft.scale=Number(event.target.value)/100;
           updatePlacementPreview();
@@ -1790,8 +1819,9 @@
         $("#scaleUp").onclick=()=>{placementDraft.scale=clamp(placementDraft.scale+.1,.4,2.2);updatePlacementPreview()};
         $("#resetPlacement").onclick=()=>{placementDraft={...defaultCropPlacement(placementCropId,placementStage)};updatePlacementPreview()};
         $("#savePlacement").onclick=()=>{
-          state.cropPlacements[`${placementCropId}:${placementStage}`]={...placementDraft};
-          save();renderAll();toast(`${cropById(placementCropId).name} ${placementStage==="seed"?"seed":placementStage} placement saved`);
+          if(placementAllCrops)state.globalCropPlacement={...placementDraft};
+          else state.cropPlacements[`${placementCropId}:${placementStage}`]={...placementDraft};
+          save();renderAll();toast(placementAllCrops?"All crop images moved together":`${cropById(placementCropId).name} ${placementStage==="seed"?"seed":placementStage} placement saved`);
         };
       }
       function renderPlacementPreview(){
@@ -1838,7 +1868,15 @@
       function updatePlacementPreview(){
         const crop=cropById(placementCropId),sprite=$("#placementPreview .crop-visual, #placementPreview .positioned-seed");
         if(!crop||!sprite||!placementDraft)return;
-        sprite.style.cssText=cropPlacementStyle(crop.id,placementStage,placementDraft);
+        const local=state.cropPlacements?.[`${crop.id}:${placementStage}`]||defaultCropPlacement(crop.id,placementStage);
+        const previewPlacement=placementAllCrops
+          ? {
+              x:(Number(local.x)||0)+(Number(placementDraft.x)||0),
+              y:(Number(local.y)||0)+(Number(placementDraft.y)||0),
+              scale:(Number(local.scale)||1)*(Number(placementDraft.scale)||1)
+            }
+          : placementDraft;
+        sprite.style.cssText=cropPlacementStyle(crop.id,placementStage,previewPlacement);
         $("#placementScale").value=String(Math.round(placementDraft.scale*100));
         $("#placementScaleValue").textContent=`${Math.round(placementDraft.scale*100)}%`;
       }
