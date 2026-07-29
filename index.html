@@ -92,65 +92,203 @@
     .section-head h2{font-family:"Fraunces",serif;font-size:20px;color:var(--forest)}
     .section-head p,.section-head small{color:var(--muted);font-size:11px}
     .card{border:1px solid var(--line);border-radius:22px;background:rgba(255,250,240,.94);box-shadow:var(--shadow)}
-    .step-card{
-      display:grid;grid-template-columns:120px 1fr;align-items:center;gap:16px;
-      min-height:158px;padding:17px;margin-bottom:17px;overflow:hidden;
-      background:linear-gradient(145deg,#fffaf0,#edf3e6)
+    #farm{
+      --farm-deep:#173d2b;
+      --farm-mid:#28583a;
+      --farm-leaf:#58a85b;
+      --farm-lime:#b7e36b;
+      --farm-soil:#8a5334;
+      position:relative;min-height:calc(100dvh - 76px);margin:-17px -15px -20px;padding:16px 14px 42px;
+      overflow:hidden;
+      background:
+        radial-gradient(circle at 88% 2%,rgba(183,227,107,.3),transparent 15rem),
+        radial-gradient(circle at 10% 50%,rgba(112,157,91,.15),transparent 18rem),
+        linear-gradient(180deg,#dce8d2 0,#f4efe5 340px,#eee6d8 100%)
     }
-    .step-ring{
+    #farm:before{
+      content:"";position:absolute;inset:0;pointer-events:none;opacity:.28;
+      background-image:radial-gradient(rgba(44,83,51,.18) .7px,transparent .7px);
+      background-size:8px 8px
+    }
+    #farm>*{position:relative;z-index:1}
+    #farm .farm-hero{
+      position:relative;min-height:296px;padding:15px;overflow:hidden;border:1px solid rgba(255,255,255,.25);
+      border-radius:28px;color:#fff;
+      background:
+        linear-gradient(90deg,rgba(14,47,33,.95) 0%,rgba(20,62,42,.82) 47%,rgba(22,55,37,.38) 100%),
+        url("assets/farm/ui/walk-to-grow-hero-960.webp") center/cover;
+      box-shadow:0 18px 42px rgba(23,61,43,.25),inset 0 1px 0 rgba(255,255,255,.22)
+    }
+    #farm .farm-hero:after{
+      content:"";position:absolute;inset:0;pointer-events:none;
+      background:linear-gradient(180deg,rgba(255,255,255,.06),transparent 32%,rgba(7,31,21,.16))
+    }
+    #farm .farm-hero>*{position:relative;z-index:1}
+    #farm .farm-hero-badge{
+      display:inline-flex;align-items:center;gap:7px;min-height:30px;padding:6px 10px;border:1px solid rgba(255,255,255,.18);
+      border-radius:99px;background:rgba(10,37,25,.5);backdrop-filter:blur(8px);
+      color:#e8f5db;font-size:10px;font-weight:900;letter-spacing:.08em
+    }
+    #farm .farm-hero-badge:before{
+      content:"";width:7px;height:7px;border-radius:50%;background:var(--farm-lime);
+      box-shadow:0 0 0 4px rgba(183,227,107,.15)
+    }
+    #farm .step-card{
+      display:grid;grid-template-columns:128px minmax(0,1fr);align-items:center;gap:15px;
+      min-height:157px;padding:12px 0 7px;margin:0;border:0;background:transparent;box-shadow:none
+    }
+    #farm .step-ring{
       --progress:0deg;
-      position:relative;display:grid;place-items:center;width:118px;height:118px;border-radius:50%;
-      background:conic-gradient(var(--forest-2) var(--progress),#dbe2d1 0);
-      box-shadow:inset 0 0 0 1px rgba(48,76,53,.08)
+      position:relative;display:grid;place-items:center;width:128px;height:128px;border-radius:50%;
+      background:conic-gradient(var(--farm-lime) var(--progress),rgba(255,255,255,.19) 0);
+      box-shadow:0 10px 26px rgba(5,28,18,.3),inset 0 0 0 1px rgba(255,255,255,.15)
     }
-    .step-ring:before{content:"";position:absolute;inset:10px;border-radius:50%;background:var(--paper);box-shadow:inset 0 2px 9px rgba(80,61,28,.08)}
-    .step-ring-copy{position:relative;text-align:center}
-    .step-ring-copy b,.step-ring-copy span{display:block}
-    .step-ring-copy b{font-family:"Fraunces",serif;font-size:27px;color:var(--forest)}
-    .step-ring-copy span{margin-top:1px;color:var(--muted);font-size:8px;font-weight:800;letter-spacing:.1em}
-    .step-copy h2{margin:0 0 5px;font-family:"Fraunces",serif;font-size:21px;color:var(--soil)}
-    .step-copy p{margin:0;color:var(--muted);font-size:11px;line-height:1.45}
-    .step-copy .mini-progress{margin-top:12px}
-    .mini-progress{height:8px;overflow:hidden;border-radius:99px;background:#dfe6d8}
-    .mini-progress i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#789c69,#416a49);transition:width .3s}
-    .beds-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
-    .bed{
-      position:relative;min-height:148px;padding:8px 7px;border:0;border-radius:20px;
-      overflow:visible;background:transparent;color:var(--soil);box-shadow:none
+    #farm .step-ring:before{
+      content:"";position:absolute;inset:9px;border:1px solid rgba(255,255,255,.12);border-radius:50%;
+      background:rgba(13,46,32,.84);box-shadow:inset 0 3px 14px rgba(3,25,16,.28);backdrop-filter:blur(5px)
     }
-    .bed:after{display:none}
-    .bed>*{position:relative;z-index:1}
-    .bed.empty,.bed.locked{display:grid;place-items:center;text-align:center}
-    .bed.empty{background:transparent;color:var(--soil)}
-    .bed.locked{min-height:138px;border:1px dashed #bbb8aa;background:#e3dfce;color:#777a70}
-    .bed-number{display:none}
-    .bed-action{width:100%;border:0;background:transparent;color:inherit;cursor:pointer}
-    .bed-action strong,.bed-action small{display:block}
-    .bed-action strong{font-size:25px;line-height:1;margin-bottom:6px}
-    .bed-action small{font-size:10px;font-weight:700}
+    #farm .step-ring-copy{position:relative;text-align:center}
+    #farm .step-ring-copy b,#farm .step-ring-copy span,#farm .step-ring-copy small{display:block}
+    #farm .step-ring-copy b{
+      margin:2px 0;color:#fff;font-family:"DM Sans",sans-serif;font-size:30px;font-weight:800;line-height:1;letter-spacing:-.04em
+    }
+    #farm .step-ring-copy span{color:#dcebd8;font-size:9px;font-weight:900;letter-spacing:.1em}
+    #farm .step-ring-copy small{color:var(--farm-lime);font-size:10px;font-weight:800}
+    #farm .step-copy{min-width:0}
+    #farm .step-copy .step-mission{display:block;margin-bottom:5px;color:var(--farm-lime);font-size:10px;font-weight:900;letter-spacing:.09em}
+    #farm .step-copy h1{margin:0 0 7px;color:#fff;font-size:21px;line-height:1.06;letter-spacing:-.025em}
+    #farm .step-copy p{min-height:34px;margin:0;color:#d9e8d5;font-size:12px;font-weight:500;line-height:1.38}
+    #farm .step-copy .mini-progress{height:9px;margin-top:11px;overflow:hidden;border-radius:99px;background:rgba(255,255,255,.18)}
+    #farm .step-copy .mini-progress i{
+      display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--farm-lime),#75c665);
+      box-shadow:0 0 12px rgba(183,227,107,.45);transition:width .32s ease
+    }
+    #farm .progress-caption{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;color:#d9e8d5;font-size:9px;font-weight:800}
+    #farm .progress-caption b{color:#fff;font-size:10px}
+    #farm .weather-card{
+      display:grid;grid-template-columns:36px minmax(0,1fr) auto;align-items:center;gap:8px;min-height:57px;
+      padding:7px 8px;margin:2px 0 0;border:1px solid rgba(255,255,255,.18);border-radius:18px;
+      background:rgba(10,37,25,.56);box-shadow:none;backdrop-filter:blur(9px)
+    }
+    #farm .weather-icon{
+      display:grid;place-items:center;width:36px;height:36px;border:1px solid rgba(255,255,255,.13);
+      border-radius:12px;background:rgba(255,255,255,.12);font-size:20px
+    }
+    #farm .weather-copy{min-width:0}
+    #farm .weather-copy b,#farm .weather-copy small{display:block}
+    #farm .weather-copy b{overflow:hidden;color:#fff;font-size:11px;text-overflow:ellipsis;white-space:nowrap}
+    #farm .weather-copy small{margin-top:2px;color:#d9e8d5;font-size:9px;line-height:1.25}
+    #farm .weather-copy small:last-child{margin-top:1px}
+    #farm .weather-copy a{color:#cce8a2}
+    #farm .weather-card .btn{
+      min-width:61px;min-height:44px;padding:7px 9px;border:1px solid rgba(255,255,255,.2);border-radius:13px;
+      background:rgba(255,255,255,.13);color:#fff;font-size:10px;box-shadow:none
+    }
+    #farm .garden-panel{
+      margin-top:14px;padding:16px 12px 18px;border:1px solid rgba(255,255,255,.72);border-radius:28px;
+      background:
+        radial-gradient(circle at 88% 0,rgba(183,227,107,.23),transparent 11rem),
+        linear-gradient(180deg,rgba(255,253,248,.98),rgba(246,239,225,.98));
+      box-shadow:0 16px 38px rgba(66,72,48,.15),inset 0 1px 0 #fff
+    }
+    #farm .garden-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:0 2px 10px}
+    #farm .garden-heading p,#farm .garden-heading h1{margin:0}
+    #farm .garden-heading p{margin-bottom:3px;color:#6c7e66;font-size:10px;font-weight:900;letter-spacing:.1em}
+    #farm .garden-heading h1{color:var(--farm-deep);font-family:"DM Sans",sans-serif;font-size:26px;font-weight:800;line-height:1;letter-spacing:-.035em}
+    #farm .garden-count{
+      display:inline-flex;align-items:center;min-height:30px;padding:6px 10px;border:1px solid #cbd7bc;border-radius:99px;
+      background:#edf3e5;color:#496247;font-size:10px;font-weight:900
+    }
+    #farm .garden-status{display:flex;align-items:center;gap:7px;margin:0 2px 12px}
+    #farm .garden-status span{
+      display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:99px;
+      background:#f1ede3;color:#647064;font-size:10px;font-weight:700
+    }
+    #farm .garden-status i{width:7px;height:7px;border-radius:50%;background:#7bb66c;box-shadow:0 0 0 3px rgba(123,182,108,.13)}
+    #farm .garden-status .ready i{background:#e8a83b;box-shadow:0 0 0 3px rgba(232,168,59,.13)}
+    #farm .garden-status b{color:var(--farm-deep);font-size:10px}
+    #farm .farm-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:0 0 12px}
+    #farm .farm-actions .btn{
+      min-height:48px;padding:9px;border:1px solid #b9ccb1;border-radius:16px;
+      background:#e8f1e2;color:var(--farm-deep);font-size:11px;font-weight:800;box-shadow:0 5px 12px rgba(52,79,50,.08)
+    }
+    #farm .farm-actions .btn:last-child{border-color:#d9c8ae;background:#f5ecdd;color:#765038}
+    #farm .farm-actions .btn:disabled{opacity:.43;box-shadow:none}
+    #farm .beds-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    #farm .bed{
+      position:relative;min-width:0;min-height:177px;padding:10px 8px 9px;overflow:hidden;
+      border:1px solid rgba(103,135,82,.27);border-radius:22px;color:var(--soil);
+      background:
+        radial-gradient(circle at 50% 15%,rgba(255,255,255,.7),transparent 52%),
+        linear-gradient(180deg,#eaf2d8,#d9e6bf);
+      box-shadow:0 8px 16px rgba(67,82,48,.12),inset 0 1px 0 rgba(255,255,255,.85)
+    }
+    #farm .bed>*{position:relative;z-index:1}
+    #farm .bed-head{display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:24px}
+    #farm .bed-head strong{min-width:0;overflow:hidden;color:#314a34;font-size:12px;text-overflow:ellipsis;white-space:nowrap}
+    #farm .bed-state{
+      flex:0 0 auto;padding:4px 6px;border-radius:99px;background:rgba(255,255,255,.62);
+      color:#62725d;font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:.04em
+    }
+    #farm .bed.empty,#farm .bed.locked{display:grid;place-items:center;text-align:center}
+    #farm .bed.empty{background:linear-gradient(180deg,#eff5df,#dfeaca)}
+    #farm .bed.locked{
+      min-height:177px;border:1px dashed #a6ad96;background:linear-gradient(180deg,#ebe9de,#dddccf);color:#71766b
+    }
+    #farm .bed-number{display:none}
+    #farm .bed-action{
+      display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;min-height:148px;padding:4px;
+      border:0;background:transparent;color:inherit;cursor:pointer
+    }
+    #farm .bed-action strong,#farm .bed-action small{display:block}
+    #farm .bed-action strong{font-size:25px;line-height:1;margin-bottom:7px}
+    #farm .bed-action small{font-size:11px;font-weight:800}
+    #farm .unlock-cost{
+      display:inline-flex;align-items:center;justify-content:center;min-height:27px;margin-top:7px;padding:5px 8px;
+      border-radius:99px;background:rgba(255,255,255,.58);color:#68523d;font-size:9px;font-weight:900
+    }
+    #farm .unlock-requirement{margin-top:5px;color:#74786f;font-size:8px;line-height:1.3}
     .pixel-sprite{display:block;max-width:100%;object-fit:contain;image-rendering:pixelated;image-rendering:crisp-edges}
-    .bed-scene{position:relative;display:grid;place-items:end center;width:100%;height:98px;margin:0;border:0;background:transparent}
-    .bed-art{width:168px;height:112px;filter:drop-shadow(0 5px 4px rgba(34,21,12,.25))}
-    .bed.empty .bed-art{width:178px;height:122px;margin:-14px auto -13px}
-    .crop-visual{position:absolute;z-index:2;left:50%;top:-8px;display:grid;place-items:center;width:64px;height:64px;transform:translateX(-50%) translate(var(--crop-x,0px),var(--crop-y,0px)) scale(var(--crop-scale,1));transform-origin:50% 100%;font-size:39px;filter:drop-shadow(0 4px 3px rgba(34,21,12,.3))}
-    .crop-stage-sprite{width:64px;height:64px}
-    .harvest-target{cursor:pointer;touch-action:manipulation}
-    .harvest-target .crop-visual{animation:none}
-    .bed-progress{
+    #farm .bed-scene{
+      position:relative;display:grid;place-items:end center;width:100%;height:98px;margin:0;padding:0;
+      border:0;background:transparent
+    }
+    #farm .bed-art{width:min(100%,150px);height:106px;filter:drop-shadow(0 5px 4px rgba(34,21,12,.25))}
+    #farm .bed.empty .bed-art{width:min(100%,154px);height:112px;margin:-10px auto -10px}
+    #farm .crop-visual{
+      position:absolute;z-index:2;left:50%;top:-8px;display:grid;place-items:center;width:64px;height:64px;
+      transform:translateX(-50%) translate(var(--crop-x,0px),var(--crop-y,0px)) scale(var(--crop-scale,1));
+      transform-origin:50% 100%;font-size:39px;filter:drop-shadow(0 4px 3px rgba(34,21,12,.3))
+    }
+    #farm .crop-stage-sprite{width:64px;height:64px}
+    #farm .harvest-target{cursor:pointer;touch-action:manipulation}
+    #farm .harvest-target .crop-visual{animation:none}
+    #farm .bed-progress{
       height:10px;margin-top:1px;border:2px solid #804615;border-radius:99px;overflow:hidden;
       background:#bd7432;box-shadow:inset 0 2px 2px rgba(65,28,8,.25)
     }
-    .bed-progress i{
+    #farm .bed-progress i{
       display:block;height:100%;border-radius:inherit;
       background:linear-gradient(90deg,#a7b86b,#60753a);transition:width .25s
     }
-    .bed-foot{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:7px;font-size:8px}
-    .harvest-btn,.clear-btn{
-      width:100%;margin-top:8px;padding:8px;border:1px solid rgba(255,255,255,.25);border-radius:10px;
-      background:#eef3cf;color:#395134;font-size:9px;font-weight:800;cursor:pointer
+    #farm .bed-foot{
+      display:flex;align-items:center;justify-content:space-between;gap:5px;min-height:18px;margin-top:6px;
+      color:#677061;font-size:9px;font-weight:800
     }
-    .bed.withered{filter:saturate(.45)}
-    .bed.withered .bed-progress i{background:#cf7d69}
+    #farm .bed-time{display:inline-flex;align-items:center;gap:3px;white-space:nowrap}
+    #farm .bed-time.urgent{color:#a66a1f}
+    #farm .bed-time.critical{color:#b33d34}
+    #farm .bed.ready{
+      border-color:#d7a43c;background:linear-gradient(180deg,#fff4c9,#e4edc2);
+      box-shadow:0 0 0 3px rgba(215,164,60,.12),0 10px 20px rgba(86,82,40,.17)
+    }
+    #farm .bed.ready .bed-state{background:#f4c85d;color:#614817}
+    #farm .clear-btn{
+      width:100%;min-height:44px;margin-top:7px;padding:8px;border:1px solid #d7aaa2;border-radius:13px;
+      background:#fff1ed;color:#9c4038;font-size:10px;font-weight:800;cursor:pointer
+    }
+    #farm .bed.withered{border-color:#d8b2aa;background:linear-gradient(180deg,#eee6d9,#ddd3c4)}
+    #farm .bed.withered .crop-visual{filter:saturate(.35)}
     .btn{
       min-height:44px;padding:10px 15px;border:1px solid transparent;border-radius:14px;
       background:var(--forest);color:#fff;font-weight:800;font-size:12px;cursor:pointer;
@@ -261,16 +399,18 @@
       width:var(--seed-shop-size);height:var(--seed-shop-size);
       filter:drop-shadow(0 2px 2px rgba(55,43,27,.14))
     }
-    .seed-row-copy{display:grid;align-content:center;gap:4px;min-width:0}
+    .seed-row-copy{display:grid;align-content:center;gap:3px;min-width:0}
     .seed-row-name{
       min-width:0;overflow:hidden;font-family:"DM Sans",system-ui,sans-serif;font-size:15px;font-weight:800;
       line-height:1.15;letter-spacing:-.01em;white-space:nowrap;text-overflow:ellipsis;color:#2f4634
     }
-    .seed-row-steps{
+    .seed-row-meta{display:flex;align-items:center;gap:4px;min-width:0}
+    .seed-row-steps,.seed-row-expiry{
       display:inline-flex;align-items:center;gap:4px;width:max-content;padding:3px 6px;
       border:1px solid rgba(77,105,69,.17);border-radius:999px;background:#edf3e7;
       color:#536252;font-family:"DM Sans",system-ui,sans-serif;font-size:9px;font-weight:900;line-height:1
     }
+    .seed-row-expiry{border-color:rgba(139,100,66,.16);background:#f3eadc;color:#795a42}
     .seed-row-steps .currency-icon{width:12px;height:12px;margin:0;vertical-align:middle}
     .seed-row-price{
       display:inline-flex;align-items:center;justify-content:flex-end;gap:3px;min-width:48px;padding:6px 8px;
@@ -309,12 +449,6 @@
     .inventory-row b{font-size:12px}
     .inventory-row small{margin-top:3px;color:var(--muted);font-size:8px}
     .sell-btn{padding:8px 10px;border:0;border-radius:10px;background:var(--clay-soft);color:#74432f;font-size:9px;font-weight:800;cursor:pointer}
-    .farm-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:-3px 0 12px}
-    .farm-actions .btn{min-height:39px;padding:8px;font-size:9px}
-    .weather-card{display:grid;grid-template-columns:42px 1fr auto;align-items:center;gap:10px;padding:11px 13px;margin:-5px 0 16px}
-    .weather-icon{display:grid;place-items:center;width:42px;height:42px;border-radius:13px;background:#e6efdb;font-size:24px}
-    .weather-copy b,.weather-copy small{display:block}.weather-copy b{font-size:11px;color:var(--forest)}.weather-copy small{margin-top:3px;color:var(--muted);font-size:8px;line-height:1.35}
-    .weather-card .btn{min-height:34px;padding:7px 9px;font-size:8px}
     .quest-list{display:grid;gap:10px}
     .quest-card{display:grid;grid-template-columns:50px 1fr auto;align-items:center;gap:11px;padding:13px;border:1px solid var(--line);border-radius:19px;background:var(--paper)}
     .npc-portrait{display:grid;place-items:center;width:50px;height:50px;border-radius:16px;background:#e5eddb;font-size:28px}
@@ -409,6 +543,10 @@
     .plant-option i .pixel-sprite{width:34px;height:34px;margin:auto}
     .plant-option b{margin-top:5px;font-size:9px}
     .plant-option small{margin-top:3px;color:var(--muted);font-size:7px}
+    .plant-option .plant-expiry{
+      display:inline-flex;align-items:center;justify-content:center;gap:3px;margin:5px auto 0;padding:3px 5px;
+      border-radius:99px;background:#f1eadc;color:#76583f;font-size:8px;font-weight:900
+    }
     .plant-option.selected{border-color:var(--forest-2);background:#e7efdf}
     .plant-option:disabled{opacity:.4}
     .modal-label{margin:17px 2px 8px;color:var(--muted);font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:.09em}
@@ -449,11 +587,26 @@
     @keyframes float-away{to{opacity:0;transform:translate(var(--x),-120px) rotate(80deg)}}
     @media(max-width:370px){
       .topbar{padding-inline:11px}.brand-mark{width:37px;height:37px;flex-basis:37px}.brand b{font-size:18px}
-      .wallet-pill{min-width:61px;padding-inline:6px}.step-card{grid-template-columns:104px 1fr;padding:14px;gap:12px}
-      .step-ring{width:104px;height:104px}.step-ring-copy b{font-size:24px}.beds-grid{gap:8px}.bed{min-height:147px;padding:10px}
+      .wallet-pill{min-width:61px;padding-inline:6px}
+      #farm{padding:13px 11px 40px}
+      #farm .farm-hero{min-height:284px;padding:13px;border-radius:24px}
+      #farm .step-card{grid-template-columns:112px minmax(0,1fr);gap:10px;min-height:151px;padding:10px 0 6px}
+      #farm .step-ring{width:112px;height:112px}
+      #farm .step-ring-copy b{font-size:26px}
+      #farm .step-copy h1{font-size:18px}
+      #farm .step-copy p{font-size:11px}
+      #farm .weather-card{grid-template-columns:34px minmax(0,1fr) auto;gap:7px}
+      #farm .weather-icon{width:34px;height:34px}
+      #farm .garden-panel{padding:14px 10px 17px;border-radius:24px}
+      #farm .garden-heading h1{font-size:24px}
+      #farm .beds-grid{gap:8px}
+      #farm .bed{min-height:174px;padding:9px 7px 8px;border-radius:19px}
       .shop-grid,.shop-grid.gear-grid{gap:7px}.shop-grid.seed-grid{gap:4px;padding:5px}.shop-item,.gear-grid .shop-item{min-height:0;padding:4px}.item-name,.gear-grid .item-name{font-size:8px}
-      .seed-shop-row{gap:7px;padding-inline:5px 7px}.seed-row-name{font-size:13px}.seed-row-price{min-width:42px;padding:5px 6px;font-size:13px}
+      .seed-shop-row{gap:7px;padding-inline:5px 7px}.seed-row-name{font-size:13px}.seed-row-meta{gap:3px}.seed-row-steps,.seed-row-expiry{padding:3px 5px;font-size:8px}.seed-row-price{min-width:42px;padding:5px 6px;font-size:13px}
       .quest-card{grid-template-columns:44px 1fr}.npc-portrait{width:44px;height:44px}.quest-card .btn{grid-column:1/-1;width:100%}
+    }
+    @media(prefers-reduced-motion:reduce){
+      #farm .step-copy .mini-progress i,#farm .bed-progress i{transition:none}
     }
   </style>
 </head>
@@ -472,26 +625,38 @@
 
     <main>
       <section class="screen active" id="farm">
-        <div class="step-card card">
-          <div class="step-ring" id="stepRing">
-            <div class="step-ring-copy"><b id="todaySteps">0</b><span>TODAY</span></div>
+        <div class="farm-hero">
+          <span class="farm-hero-badge">WALK-POWERED FARM</span>
+          <div class="step-card">
+            <div class="step-ring" id="stepRing">
+              <div class="step-ring-copy"><span>STEPS TODAY</span><b id="todaySteps">0</b><small id="dailyGoalLabel">/ 8,000</small></div>
+            </div>
+            <div class="step-copy">
+              <span class="step-mission">MOVE TO GROW</span>
+              <h1>Walk. Grow. Harvest.</h1>
+              <p id="stepStatus">Connect your phone’s activity permission to grow crops while you walk.</p>
+              <div class="mini-progress"><i id="dailyProgress" style="width:0%"></i></div>
+              <div class="progress-caption"><span>Daily goal</span><b id="dailyPercent">0%</b></div>
+            </div>
           </div>
-          <div class="step-copy">
-            <p id="stepStatus">Connect your phone’s activity permission to grow crops while you walk.</p>
-            <div class="mini-progress"><i id="dailyProgress" style="width:0%"></i></div>
+          <div class="weather-card" id="weatherCard">
+            <div class="weather-icon" id="weatherIcon">🌤️</div>
+            <div class="weather-copy"><b id="weatherTitle">Local weather</b><small id="weatherDetail">Use your location for today’s crop bonus.</small><small><a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data: Open-Meteo</a></small></div>
+            <button class="btn secondary" id="weatherButton">Enable</button>
           </div>
         </div>
-        <div class="weather-card card" id="weatherCard">
-          <div class="weather-icon" id="weatherIcon">🌤️</div>
-          <div class="weather-copy"><b id="weatherTitle">Local weather</b><small id="weatherDetail">Use your location for today’s crop bonus.</small><small><a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data: Open-Meteo</a></small></div>
-          <button class="btn secondary" id="weatherButton">Enable</button>
+        <div class="garden-panel">
+          <div class="garden-heading">
+            <div><p>YOUR FARM</p><h1>Garden</h1></div>
+            <span class="garden-count" id="bedCount">1 / 20 plots</span>
+          </div>
+          <div class="garden-status" aria-label="Garden status">
+            <span><i></i><b id="growingCount">0</b> growing</span>
+            <span class="ready"><i></i><b id="readyCount">0</b> ready</span>
+          </div>
+          <div class="farm-actions"><button class="btn secondary" id="plantAll">Plant all</button><button class="btn secondary" id="replantAll">Replant all</button></div>
+          <div class="beds-grid" id="bedsGrid"></div>
         </div>
-        <div class="section-head">
-          <h1>Garden</h1>
-          <span class="chip" id="bedCount">1 / 20 beds</span>
-        </div>
-        <div class="farm-actions"><button class="btn secondary" id="plantAll">Plant all</button><button class="btn secondary" id="replantAll">Replant all</button></div>
-        <div class="beds-grid" id="bedsGrid"></div>
       </section>
 
       <section class="screen" id="shop">
@@ -1136,13 +1301,27 @@
       function renderFarm(){
         const goal=Math.max(1,state.dailyGoal);
         const percent=clamp(state.todaySteps/goal*100,0,100);
+        const activeBeds=state.beds.slice(0,state.unlockedBeds);
+        const growingBeds=activeBeds.filter(bed=>bed&&bedState(bed)==="growing");
+        const readyBeds=activeBeds.filter(bed=>bed&&bedState(bed)==="ready");
+        const nearestCrop=growingBeds.map(bed=>({crop:cropById(bed.cropId),remaining:Math.max(0,cropById(bed.cropId).steps-bed.growth)})).sort((a,b)=>a.remaining-b.remaining)[0];
         $("#todaySteps").textContent=fmt(state.todaySteps);
         $("#stepRing").style.setProperty("--progress",`${percent*3.6}deg`);
         $("#dailyProgress").style.width=`${percent}%`;
+        $("#dailyGoalLabel").textContent=`/ ${fmt(goal)}`;
+        $("#dailyPercent").textContent=`${Math.round(percent)}%`;
         $("#stepStatus").textContent=state.trackingStatus==="granted"
-          ? `${fmt(Math.max(0,goal-state.todaySteps))} steps until today’s goal.`
+          ? readyBeds.length
+            ? `${readyBeds.length} crop${readyBeds.length===1?" is":"s are"} ready to harvest.`
+            : nearestCrop
+              ? `${fmt(Math.ceil(nearestCrop.remaining))} steps until ${nearestCrop.crop.name} is ready.`
+              : percent>=100
+                ? "Daily goal complete. Your farm felt every step."
+                : `${fmt(Math.max(0,goal-state.todaySteps))} steps until today’s goal.`
           : "Enable background step tracking from the Farmhouse.";
-        $("#bedCount").textContent=`${state.unlockedBeds} / ${MAX_BEDS} beds`;
+        $("#bedCount").textContent=`${state.unlockedBeds} / ${MAX_BEDS} plots`;
+        $("#growingCount").textContent=String(growingBeds.length);
+        $("#readyCount").textContent=String(readyBeds.length);
         renderWeather();
         $("#bedsGrid").innerHTML=Array.from({length:MAX_BEDS},(_,index)=>renderBed(index)).join("");
         $$("[data-plant-bed]").forEach(button=>button.onclick=()=>openPlantModal(Number(button.dataset.plantBed)));
@@ -1151,27 +1330,39 @@
         $$("[data-clear-bed]").forEach(button=>button.onclick=()=>clearBed(Number(button.dataset.clearBed)));
         $("#plantAll").disabled=!state.beds.slice(0,state.unlockedBeds).some(bed=>!bed);
         $("#replantAll").disabled=!state.beds.slice(0,state.unlockedBeds).some((bed,index)=>!bed&&state.bedPlans[index]);
+        updateFarmTimes();
       }
       function renderBed(index){
         if(index>=state.unlockedBeds){
           const next=index===state.unlockedBeds;
+          if(!next)return "";
           const requirement=BED_REQUIREMENTS[index];
-          return `<article class="bed locked"><button class="bed-action" ${next?`data-unlock-bed="${index}"`:"disabled"}><strong>${next?"🔓":"🔒"}</strong><small>${next?currencyMarkup("gold",BED_COSTS[index]):"Locked"}</small>${next&&requirement?`<span class="unlock-requirement">+ ${cropRequirementText(requirement)}</span>`:""}</button></article>`;
+          return `<article class="bed locked next-unlock"><button class="bed-action" data-unlock-bed="${index}"><strong>＋</strong><small>Unlock plot ${index+1}</small><span class="unlock-cost">${currencyMarkup("gold",BED_COSTS[index])}</span>${requirement?`<span class="unlock-requirement">+ ${cropRequirementText(requirement)}</span>`:""}</button></article>`;
         }
         const bed=state.beds[index];
-        if(!bed)return `<article class="bed empty"><button class="bed-action" data-plant-bed="${index}"><img class="bed-art pixel-sprite" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><small>＋ Plant</small></button></article>`;
+        if(!bed)return `<article class="bed empty"><button class="bed-action" data-plant-bed="${index}"><img class="bed-art pixel-sprite" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><small>＋ Plant crop</small></button></article>`;
         const crop=cropById(bed.cropId);
         const status=bedState(bed);
         const progress=clamp(bed.growth/crop.steps*100,0,100);
-        if(status==="withered")return `<article class="bed withered"><div class="bed-scene"><img class="bed-art pixel-sprite" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><div class="crop-visual">🥀</div></div><button class="clear-btn" data-clear-bed="${index}">Clear</button></article>`;
+        if(status==="withered")return `<article class="bed withered"><div class="bed-head"><strong>${crop.name}</strong><span class="bed-state">Expired</span></div><div class="bed-scene"><img class="bed-art pixel-sprite" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><div class="crop-visual">🥀</div></div><button class="clear-btn" data-clear-bed="${index}">Clear plot</button></article>`;
         const stage=status==="ready"?"grown":"planted";
+        const remaining=bed.expiresAt-Date.now();
+        const urgency=remaining<=1800000?" critical":remaining<=7200000?" urgent":"";
         const scene=status==="ready"
           ? `<button class="bed-scene harvest-target" data-harvest-bed="${index}" aria-label="Harvest ${crop.name}"><img class="bed-art pixel-sprite" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><div class="crop-visual" style="${cropPlacementStyle(crop.id,stage)}">${cropStageMarkup(crop,stage)}</div></button>`
           : `<div class="bed-scene"><img class="bed-art pixel-sprite" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><div class="crop-visual" style="${cropPlacementStyle(crop.id,stage)}">${cropStageMarkup(crop,stage)}</div></div>`;
-        return `<article class="bed">${scene}<div class="bed-progress"><i style="width:${progress}%"></i></div><div class="bed-foot"><span>${Math.floor(progress)}%</span><span data-bed-time="${bed.expiresAt}">${formatTime(bed.expiresAt-Date.now())}</span></div></article>`;
+        return `<article class="bed ${status}"><div class="bed-head"><strong>${crop.name}</strong><span class="bed-state">${status==="ready"?"Ready":`${Math.floor(progress)}%`}</span></div>${scene}<div class="bed-progress"><i style="width:${progress}%"></i></div><div class="bed-foot"><span>${status==="ready"?"Ready now":`${Math.floor(progress)}% grown`}</span><span class="bed-time${urgency}" data-bed-time="${bed.expiresAt}">⏱ ${formatTime(remaining)}</span></div></article>`;
       }
       function updateFarmTimes(){
-        $$("[data-bed-time]").forEach(label=>label.textContent=formatTime(Number(label.dataset.bedTime)-Date.now()));
+        let expired=false;
+        $$("[data-bed-time]").forEach(label=>{
+          const remaining=Number(label.dataset.bedTime)-Date.now();
+          label.textContent=`⏱ ${formatTime(remaining)}`;
+          label.classList.toggle("urgent",remaining>1800000&&remaining<=7200000);
+          label.classList.toggle("critical",remaining<=1800000);
+          if(remaining<=0)expired=true;
+        });
+        if(expired)renderFarm();
       }
       function unlockBed(index){
         const cost=BED_COSTS[index],requirement=BED_REQUIREMENTS[index];
@@ -1194,7 +1385,9 @@
         const crops=state.adminMode?CROPS:CROPS.filter(crop=>crop.level<=level);
         $("#plantChoices").innerHTML=crops.map(crop=>{
           const seeds=state.seeds[crop.id]||0;
-          return `<button class="plant-option ${selectedCrop===crop.id?"selected":""}" data-crop-choice="${crop.id}" ${!state.adminMode&&seeds<1?"disabled":""}><i>${cropIconMarkup(crop,true)}</i><b>${crop.name} seeds</b><small>${state.adminMode?"∞ owned":`×${seeds} owned`}</small></button>`;
+          const expiryHours=effectiveExpiryMs(crop)/3600000;
+          const expiryLabel=Number.isInteger(expiryHours)?expiryHours:expiryHours.toFixed(1);
+          return `<button class="plant-option ${selectedCrop===crop.id?"selected":""}" data-crop-choice="${crop.id}" ${!state.adminMode&&seeds<1?"disabled":""}><i>${cropIconMarkup(crop,true)}</i><b>${crop.name} seeds</b><small>${state.adminMode?"∞ owned":`×${seeds} owned`}</small><small class="plant-expiry">⏱ ${expiryLabel}h expiry</small></button>`;
         }).join("");
         const noFert=`<button class="fert-option ${selectedFertiliser===null?"selected":""}" data-fert-choice=""><span><b>No fertiliser</b><small>Base Iridium chance: 1%</small></span><strong>Free</strong></button>`;
         const availableFertilisers=state.adminMode?FERTILISERS:FERTILISERS.filter(fert=>(state.fertilisers[fert.id]||0)>0);
@@ -1275,7 +1468,7 @@
           const level=levelInfo().level;
           const crops=state.adminMode?CROPS:CROPS.filter(crop=>crop.level<=level);
           $("#shopGrid").innerHTML=crops.map(crop=>{
-            return `<button class="seed-shop-row" data-seed-view="${crop.id}"><span class="seed-row-icon">${cropIconMarkup(crop,true)}</span><span class="seed-row-copy"><span class="seed-row-name">${crop.name} Seeds</span><span class="seed-row-steps"><img class="currency-icon" src="${CURRENCY_ICONS.steps}" alt="Steps">${fmt(crop.steps)}</span></span><span class="seed-row-price">${fmt(crop.seedCost)}<img class="currency-icon" src="${CURRENCY_ICONS.gold}" alt="Gold"></span></button>`;
+            return `<button class="seed-shop-row" data-seed-view="${crop.id}"><span class="seed-row-icon">${cropIconMarkup(crop,true)}</span><span class="seed-row-copy"><span class="seed-row-name">${crop.name} Seeds</span><span class="seed-row-meta"><span class="seed-row-steps"><img class="currency-icon" src="${CURRENCY_ICONS.steps}" alt="Steps">${fmt(crop.steps)}</span><span class="seed-row-expiry">⏱ ${crop.expiryHours}h</span></span></span><span class="seed-row-price">${fmt(crop.seedCost)}<img class="currency-icon" src="${CURRENCY_ICONS.gold}" alt="Gold"></span></button>`;
           }).join("");
           $$("[data-seed-view]").forEach(button=>button.onclick=()=>openSeed(button.dataset.seedView));
           return;
@@ -1306,7 +1499,7 @@
         $("#seedDetailInfo").innerHTML=detailLinesMarkup([
           {label:"Level",value:crop.level},
           {label:"Growth",value:currencyMarkup("steps",crop.steps)},
-          {label:"Harvest",value:`${crop.expiryHours}h`},
+          {label:"Expires",value:`${crop.expiryHours}h after planting`},
           {label:"Value",value:currencyMarkup("gold",crop.sellValue)},
           {label:"Owned",value:state.adminMode?"∞":state.seeds[crop.id]||0}
         ]);

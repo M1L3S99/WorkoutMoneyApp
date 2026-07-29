@@ -1,5 +1,5 @@
 /* Ironbound service worker — farming app shell for offline + home-screen install */
-const CACHE = 'ironbound-farm-v17';
+const CACHE = 'ironbound-farm-v18';
 const ASSETS = [
   './',
   './index.html',
@@ -12,6 +12,7 @@ const ASSETS = [
   './assets/farm/crops/radish-ready-planted-64.png',
   './assets/farm/crops/radish-crop-64.png',
   './assets/farm/crops/radish-seeds-96.png',
+  './assets/farm/ui/walk-to-grow-hero-960.webp',
   './assets/farm/ui/gold-coin-64.png',
   './assets/farm/ui/step-token-64.png'
 ];

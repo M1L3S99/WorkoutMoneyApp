@@ -1,6 +1,7 @@
 const fs = require("fs");
 const html = fs.readFileSync("index.html", "utf8");
 const manifest = JSON.parse(fs.readFileSync("manifest.webmanifest", "utf8"));
+const serviceWorker = fs.readFileSync("sw.js", "utf8");
 const script = html.match(/<script>\s*([\s\S]*?)<\/script>/);
 if (!script) throw new Error("Embedded script missing");
 new Function(script[1]);
@@ -79,6 +80,9 @@ if (html.includes("TAP TO HARVEST") || html.includes("harvest-ready 1.5s") || ht
 for (const id of ["seedModal", "seedDetailName", "seedDetailInfo", "seedDetailBuy", "seedSizeControl", "seedShopSize", "seedSizeDown", "seedSizeUp", "seedShopSizeValue"]) {
   if (!ids.includes(id)) throw new Error(`Missing seed detail control: ${id}`);
 }
+for (const id of ["stepRing", "todaySteps", "dailyGoalLabel", "dailyPercent", "stepStatus", "dailyProgress", "growingCount", "readyCount", "bedsGrid"]) {
+  if (!ids.includes(id)) throw new Error(`Missing modern Farm control: ${id}`);
+}
 for (const id of ["fertModal", "fertModalCard", "fertDetailName", "fertDetailArt", "fertDetailInfo", "fertDetailBuy"]) {
   if (!ids.includes(id)) throw new Error(`Missing fertiliser detail control: ${id}`);
 }
@@ -88,6 +92,11 @@ if (!html.includes("data-seed-view") || html.includes("data-seed-buy")) {
 for (const asset of ["assets/farm/crops/radish-seeds-96.png", "assets/farm/ui/gold-coin-64.png", "assets/farm/ui/step-token-64.png"]) {
   const size = fs.statSync(asset).size;
   if (size < 100 || size > 20000) throw new Error(`Generated pixel asset has an unexpected size: ${asset} (${size} bytes)`);
+}
+const heroAsset = "assets/farm/ui/walk-to-grow-hero-960.webp";
+const heroSize = fs.statSync(heroAsset).size;
+if (heroSize < 10000 || heroSize > 60000 || !html.includes(heroAsset) || !serviceWorker.includes(`./${heroAsset}`) || !serviceWorker.includes("ironbound-farm-v18")) {
+  throw new Error(`The compressed offline Farm hero is missing or too heavy (${heroSize} bytes)`);
 }
 for (const id of ["toggleAssetPreview", "assetPreviewPanel", "assetPreviewGrid"]) {
   if (!ids.includes(id)) throw new Error(`Missing asset preview control: ${id}`);
@@ -122,6 +131,9 @@ if (!html.includes("grid-template-columns:var(--seed-shop-size) minmax(0,1fr) au
 if (!html.includes('src="${CURRENCY_ICONS.steps}" alt="Steps">${fmt(crop.steps)}')) {
   throw new Error("Every seed row must show that crop's growing steps with the step icon");
 }
+if (!html.includes('class="seed-row-expiry">⏱ ${crop.expiryHours}h') || !html.includes('class="plant-expiry">⏱ ${expiryLabel}h expiry') || !html.includes('{label:"Expires",value:`${crop.expiryHours}h after planting`}')) {
+  throw new Error("Seed rows, the plant picker, and seed details must show explicit expiry times");
+}
 if (!html.includes('font-family:"DM Sans"') || !html.includes("font-weight:800") || !html.includes("background:transparent;") || !html.includes("border:0;border-radius:0")) {
   throw new Error("The refined seed ledger requires thick modern typography and a transparent outer field");
 }
@@ -133,6 +145,9 @@ if (html.includes("discountedCrop") || html.includes("data-discount") || html.in
 }
 if (!html.includes("height:10px;margin-top:1px;border:2px solid #804615") || !html.includes("background:linear-gradient(90deg,#a7b86b,#60753a)")) {
   throw new Error("The thicker garden crop-progress bar must be preserved");
+}
+if (!html.includes('class="farm-hero"') || !html.includes('class="garden-panel"') || !html.includes("#farm .farm-hero") || !html.includes('if(!next)return ""') || !html.includes('class="bed ${status}"')) {
+  throw new Error("The professional fitness-first Farm screen and condensed plot board are required");
 }
 if (!html.includes('<meta name="theme-color" content="#304c35">') || manifest.theme_color !== "#304c35" || manifest.background_color !== "#f7f1df" || html.includes("Golden farm-shop theme")) {
   throw new Error("The clean cream-and-green app theme must remain restored");
