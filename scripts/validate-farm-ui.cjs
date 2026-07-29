@@ -26,7 +26,6 @@ for (const required of [
   "stepBalance",
   "nativeLifetime",
   "harvestBed",
-  "updateFarmTimes",
   "MILES-FARM",
   "dailyStock",
   "upgradeSelectedItem",
@@ -46,7 +45,7 @@ const hook = '      $$(".nav-btn").forEach(button=>button.onclick';
 if (!script[1].includes(hook)) throw new Error("Could not locate runtime test hook");
 const instrumented = script[1].replace(
   hook,
-  `      globalThis.__farmTest = { CROPS, ITEMS, FERTILISERS, BED_COSTS, BED_REQUIREMENTS, MAX_BEDS, FARM_UPGRADES, qualityOdds, freshState, dailyStock, dailyQuests, weatherFromCurrent, upgradeRecipe, ITEM_UPGRADE_MAX };
+  `      globalThis.__farmTest = { CROPS, ITEMS, FERTILISERS, BED_COSTS, BED_REQUIREMENTS, MAX_BEDS, FARM_UPGRADES, qualityOdds, bedState, freshState, dailyStock, dailyQuests, weatherFromCurrent, upgradeRecipe, ITEM_UPGRADE_MAX };
       return;
 ${hook}`
 );
@@ -98,7 +97,7 @@ for (const asset of ["assets/farm/crops/radish-seeds-96.png", "assets/farm/ui/go
 }
 const backgroundAsset = "assets/farm/ui/farm-background-v2.webp";
 const backgroundSize = fs.statSync(backgroundAsset).size;
-if (backgroundSize < 50000 || backgroundSize > 150000 || !html.includes(backgroundAsset) || !serviceWorker.includes(`./${backgroundAsset}`) || !serviceWorker.includes("ironbound-farm-v22")) {
+if (backgroundSize < 50000 || backgroundSize > 150000 || !html.includes(backgroundAsset) || !serviceWorker.includes(`./${backgroundAsset}`) || !serviceWorker.includes("ironbound-farm-v23")) {
   throw new Error(`The compressed offline Farm background is missing or too heavy (${backgroundSize} bytes)`);
 }
 if (!html.includes('background-attachment:fixed,fixed') ||
@@ -151,8 +150,8 @@ if (!html.includes("grid-template-columns:var(--seed-shop-size) minmax(0,1fr) au
 if (!html.includes('src="${CURRENCY_ICONS.steps}" alt="Steps">${fmt(crop.steps)}')) {
   throw new Error("Every seed row must show that crop's growing steps with the step icon");
 }
-if (!html.includes('class="seed-row-expiry">⏱ ${crop.expiryHours}h') || !html.includes('class="plant-expiry">⏱ ${expiryLabel}h expiry') || !html.includes('{label:"Expires",value:`${crop.expiryHours}h after planting`}')) {
-  throw new Error("Seed rows, the plant picker, and seed details must show explicit expiry times");
+for (const forbiddenTimer of ["expiryHours", "effectiveExpiryMs", "data-bed-time", "plant-expiry", "seed-row-expiry", 'label:"Expires"', '"withered"', "crop lifetime"]) {
+  if (html.includes(forbiddenTimer)) throw new Error(`Crop timing must be removed completely: ${forbiddenTimer}`);
 }
 if (!html.includes('font-family:"DM Sans"') || !html.includes("font-weight:800") || !html.includes("background:transparent;") || !html.includes("border:0;border-radius:0")) {
   throw new Error("The refined seed ledger requires thick modern typography and a transparent outer field");
@@ -266,16 +265,16 @@ if (!farm.CROPS.some((crop, index) => index > 0 && crop.steps < farm.CROPS[index
   throw new Error("Higher-level crops must not always require more steps");
 }
 for (const crop of farm.CROPS) {
-  const expected = Math.max(1, Math.round(crop.steps * 0.018 * crop.levelMultiplier * crop.expiryMultiplier * crop.stepEfficiency));
+  const expected = Math.max(1, Math.round(crop.steps * 0.018 * crop.levelMultiplier * crop.stepEfficiency));
   if (crop.sellValue !== expected || crop.seedCost !== Math.max(5, Math.round(expected * 0.32))) {
     throw new Error(`Derived crop pricing is incorrect for ${crop.id}`);
   }
 }
-const average = (values) => values.reduce((sum, value) => sum + value, 0) / values.length;
-const twoHourRates = farm.CROPS.filter((crop) => crop.expiryHours === 2).map((crop) => crop.sellValue / crop.steps);
-const eightHourRates = farm.CROPS.filter((crop) => crop.expiryHours === 8).map((crop) => crop.sellValue / crop.steps);
-if (average(twoHourRates) <= average(eightHourRates)) {
-  throw new Error("Short-expiry crops must pay more gold per step");
+if (farm.CROPS.some((crop) => "expiryHours" in crop) ||
+    farm.ITEMS.some((item) => "expiry" in item.effect) ||
+    farm.FARM_UPGRADES.some((upgrade) => "expiry" in upgrade.effect) ||
+    farm.bedState({ cropId: "radish", growth: 0, expiresAt: 0 }) !== "growing") {
+  throw new Error("Crops, gear, upgrades, and old saves must be completely independent of time");
 }
 if (!farm.CROPS.every((crop) => crop.stepEfficiency < 1 && crop.stepEfficiency > 0.85)) {
   throw new Error("Longer crops must have a modestly lower per-step efficiency");
