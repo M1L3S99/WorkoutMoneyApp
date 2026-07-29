@@ -98,8 +98,19 @@ for (const asset of ["assets/farm/crops/radish-seeds-96.png", "assets/farm/ui/go
 }
 const backgroundAsset = "assets/farm/ui/farm-background-v2.webp";
 const backgroundSize = fs.statSync(backgroundAsset).size;
-if (backgroundSize < 50000 || backgroundSize > 150000 || !html.includes(backgroundAsset) || !serviceWorker.includes(`./${backgroundAsset}`) || !serviceWorker.includes("ironbound-farm-v21")) {
+if (backgroundSize < 50000 || backgroundSize > 150000 || !html.includes(backgroundAsset) || !serviceWorker.includes(`./${backgroundAsset}`) || !serviceWorker.includes("ironbound-farm-v22")) {
   throw new Error(`The compressed offline Farm background is missing or too heavy (${backgroundSize} bytes)`);
+}
+if (!html.includes('background-attachment:fixed,fixed') ||
+    !html.includes('linear-gradient(rgba(255,255,255,.58),rgba(255,255,255,.68))') ||
+    !html.includes('background:linear-gradient(180deg,rgba(255,255,255,.16)')) {
+  throw new Error("The farming artwork must remain visible behind the translucent app shell");
+}
+if (!html.includes('.bottom-nav{') ||
+    !html.includes('left:50%;bottom:0;transform:translateX(-50%)') ||
+    !html.includes('width:min(100%,480px)') ||
+    !html.includes('env(safe-area-inset-bottom)')) {
+  throw new Error("The bottom navigation must stay pinned to the visible phone viewport");
 }
 if (html.includes('class="brand"') || !html.includes('class="account-summary" aria-label="Account"') || !html.includes('class="wallet" aria-label="Steps and gold"')) {
   throw new Error("The top bar must show the account and level on the left with currencies on the right");
@@ -169,6 +180,12 @@ if (!html.includes("#farm .bed-scene,.placement-bed-scene{") ||
     !html.includes('class="seed-placement-scene"') ||
     !html.includes("adjustSelectedSeedPosition")) {
   throw new Error("The crop editor must position seeds and crop stages with phone-safe dragging");
+}
+if (!html.includes('id="moveAllCrops"') ||
+    !html.includes("globalCropPlacement:{x:0,y:0,scale:1}") ||
+    !html.includes("placementAllCrops") ||
+    !html.includes('state.globalCropPlacement={...placementDraft}')) {
+  throw new Error("The crop editor must support moving every crop image together");
 }
 if (!html.includes('class="empty-head-spacer"') || !html.includes('<span class="bed-scene"><img class="bed-art')) {
   throw new Error("Empty planters must preserve the occupied bed geometry after harvesting");
