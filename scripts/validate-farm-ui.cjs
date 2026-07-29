@@ -1,5 +1,6 @@
 const fs = require("fs");
 const html = fs.readFileSync("index.html", "utf8");
+const manifest = JSON.parse(fs.readFileSync("manifest.webmanifest", "utf8"));
 const script = html.match(/<script>\s*([\s\S]*?)<\/script>/);
 if (!script) throw new Error("Embedded script missing");
 new Function(script[1]);
@@ -118,6 +119,9 @@ if (!html.includes("data-fert-view") || !html.includes("shopLayoutVersion:6") ||
 if (!html.includes("grid-template-columns:var(--seed-shop-size) minmax(0,1fr) auto") || !html.includes("seed-row-price") || !html.includes("seed-row-steps")) {
   throw new Error("Seed rows must align the unframed packet, growing steps, name, and price");
 }
+if (!html.includes('src="${CURRENCY_ICONS.steps}" alt="Steps">${fmt(crop.steps)}')) {
+  throw new Error("Every seed row must show that crop's growing steps with the step icon");
+}
 if (!html.includes('font-family:"DM Sans"') || !html.includes("font-weight:800") || !html.includes("background:transparent;") || !html.includes("border:0;border-radius:0")) {
   throw new Error("The refined seed ledger requires thick modern typography and a transparent outer field");
 }
@@ -126,6 +130,12 @@ if (!html.includes('${fmt(crop.seedCost)}<img class="currency-icon"') || !html.i
 }
 if (html.includes("discountedCrop") || html.includes("data-discount") || html.includes("half price") || html.includes("seed-shop-row discount")) {
   throw new Error("The daily seed discount must be removed completely");
+}
+if (!html.includes("height:10px;margin-top:1px;border:2px solid #804615") || !html.includes("background:linear-gradient(90deg,#a7b86b,#60753a)")) {
+  throw new Error("The thicker garden crop-progress bar must be preserved");
+}
+if (!html.includes('<meta name="theme-color" content="#304c35">') || manifest.theme_color !== "#304c35" || manifest.background_color !== "#f7f1df" || html.includes("Golden farm-shop theme")) {
+  throw new Error("The clean cream-and-green app theme must remain restored");
 }
 if (farm.CROPS.length < 20) {
   throw new Error("The crop catalogue must include at least twenty crops");
