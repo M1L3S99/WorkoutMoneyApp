@@ -467,11 +467,11 @@
     .placement-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:11px}
     .placement-fields label{display:grid;gap:4px;color:var(--muted);font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
     .placement-fields select{width:100%;min-width:0;padding:9px;border:1px solid var(--line);border-radius:11px;background:var(--paper);color:var(--ink);font-size:10px}
-    .placement-preview{position:relative;display:grid;place-items:center;height:190px;overflow:hidden;border:2px dashed #8ba17e;border-radius:18px;background:#eef3e7;touch-action:none}
-    .placement-preview .bed-art{position:absolute;bottom:10px;width:190px;height:140px}
+    .placement-preview{position:relative;display:grid;place-items:center;height:190px;overflow:hidden;border:2px dashed #8ba17e;border-radius:18px;background:#eef3e7;cursor:grab;touch-action:none}
+    .placement-preview:active{cursor:grabbing}
+    .placement-preview .bed-art{position:absolute;bottom:10px;width:190px;height:140px;pointer-events:none;user-select:none}
     .placement-preview .crop-visual{top:27px}
-    .placement-preview .crop-visual.editing{width:78px;height:78px;border:2px solid #416a49;border-radius:15px;background:rgba(255,255,255,.3);cursor:grab;touch-action:none}
-    .placement-preview .crop-visual.editing:active{cursor:grabbing}
+    .placement-preview .crop-visual.editing{z-index:3;width:78px;height:78px;border:2px solid #416a49;border-radius:15px;background:rgba(255,255,255,.3);pointer-events:none;touch-action:none}
     .drag-hint{position:absolute;z-index:4;top:9px;left:50%;transform:translateX(-50%);padding:5px 9px;border-radius:99px;background:#304c35;color:#fff;font-size:8px;font-weight:900;pointer-events:none}
     .placement-controls{display:grid;gap:9px;margin-top:13px}
     .placement-control{display:grid;grid-template-columns:52px 36px 1fr 36px 42px;align-items:center;gap:7px;color:var(--muted);font-size:9px}
@@ -1804,20 +1804,20 @@
         const crop=cropById(placementCropId);
         if(!crop||!placementDraft)return;
         $("#placementPreview").innerHTML=`<span class="drag-hint">DRAG CROP</span><img class="bed-art pixel-sprite" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><div class="crop-visual editing" style="${cropPlacementStyle(crop.id,placementStage,placementDraft)}">${cropStageMarkup(crop,placementStage)}</div>`;
-        const sprite=$("#placementPreview .crop-visual");
+        const preview=$("#placementPreview"),sprite=$("#placementPreview .crop-visual");
         let drag=null;
-        sprite.onpointerdown=event=>{
+        preview.onpointerdown=event=>{
           event.preventDefault();
-          sprite.setPointerCapture(event.pointerId);
+          preview.setPointerCapture(event.pointerId);
           drag={pointerId:event.pointerId,startX:event.clientX,startY:event.clientY,x:placementDraft.x,y:placementDraft.y};
         };
-        sprite.onpointermove=event=>{
+        preview.onpointermove=event=>{
           if(!drag||event.pointerId!==drag.pointerId)return;
           placementDraft.x=clamp(Math.round(drag.x+event.clientX-drag.startX),-70,70);
           placementDraft.y=clamp(Math.round(drag.y+event.clientY-drag.startY),-55,55);
           updatePlacementPreview();
         };
-        sprite.onpointerup=sprite.onpointercancel=event=>{
+        preview.onpointerup=preview.onpointercancel=event=>{
           if(drag&&event.pointerId===drag.pointerId)drag=null;
         };
         updatePlacementPreview();
