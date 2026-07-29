@@ -155,6 +155,11 @@ if (!html.includes("height:10px;margin-top:1px;border:2px solid #804615") || !ht
 if (!html.includes('class="farm-hero"') || !html.includes('class="garden-panel"') || !html.includes("#farm .farm-hero") || !html.includes('if(!next)return ""') || !html.includes('class="bed ${status}"')) {
   throw new Error("The professional fitness-first Farm screen and condensed plot board are required");
 }
+if (!html.includes(".placement-preview .bed-art{position:absolute;bottom:10px;width:190px;height:140px;pointer-events:none") ||
+    !html.includes('const preview=$("#placementPreview"),sprite=$("#placementPreview .crop-visual")') ||
+    !html.includes("preview.onpointerdown=event=>")) {
+  throw new Error("The crop placement canvas must remain draggable through the planter artwork");
+}
 const generatedArtPaths = [];
 for (const crop of farm.CROPS) {
   const paths = [crop.seedImage, crop.stages?.planted, crop.stages?.grown, crop.image];
