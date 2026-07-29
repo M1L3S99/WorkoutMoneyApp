@@ -95,8 +95,14 @@ for (const asset of ["assets/farm/crops/radish-seeds-96.png", "assets/farm/ui/go
 }
 const heroAsset = "assets/farm/ui/walk-to-grow-hero-960.webp";
 const heroSize = fs.statSync(heroAsset).size;
-if (heroSize < 10000 || heroSize > 60000 || !html.includes(heroAsset) || !serviceWorker.includes(`./${heroAsset}`) || !serviceWorker.includes("ironbound-farm-v18")) {
+if (heroSize < 10000 || heroSize > 60000 || !html.includes(heroAsset) || !serviceWorker.includes(`./${heroAsset}`) || !serviceWorker.includes("ironbound-farm-v19")) {
   throw new Error(`The compressed offline Farm hero is missing or too heavy (${heroSize} bytes)`);
+}
+if (html.includes('class="brand"') || ids.includes("levelLabel") || !html.includes('class="wallet" aria-label="Steps and gold"')) {
+  throw new Error("The top bar must contain only the centred step and gold balances");
+}
+if (!html.includes("width:min(104%,180px)") || !html.includes("border:0;border-radius:0;color:var(--soil);background:transparent;box-shadow:none")) {
+  throw new Error("Unlocked planter art must be enlarged and shown without surrounding plot cards");
 }
 for (const id of ["toggleAssetPreview", "assetPreviewPanel", "assetPreviewGrid"]) {
   if (!ids.includes(id)) throw new Error(`Missing asset preview control: ${id}`);
