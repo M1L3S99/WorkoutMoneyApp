@@ -1,5 +1,6 @@
 const fs = require("fs");
 const html = fs.readFileSync("index.html", "utf8");
+const manifest = JSON.parse(fs.readFileSync("manifest.webmanifest", "utf8"));
 const script = html.match(/<script>\s*([\s\S]*?)<\/script>/);
 if (!script) throw new Error("Embedded script missing");
 new Function(script[1]);
@@ -87,6 +88,16 @@ if (!html.includes("data-seed-view") || html.includes("data-seed-buy")) {
 for (const asset of ["assets/farm/crops/radish-seeds-96.png", "assets/farm/ui/gold-coin-64.png", "assets/farm/ui/step-token-64.png"]) {
   const size = fs.statSync(asset).size;
   if (size < 100 || size > 20000) throw new Error(`Generated pixel asset has an unexpected size: ${asset} (${size} bytes)`);
+}
+const radishSeedPng = fs.readFileSync("assets/farm/crops/radish-seeds-96.png");
+if (radishSeedPng.readUInt32BE(16) !== 96 || radishSeedPng.readUInt32BE(20) !== 96 || radishSeedPng.length > 5000) {
+  throw new Error("The detailed radish seed sprite must remain a compact 96×96 PNG");
+}
+if (!html.includes("Golden farm-shop theme") || !html.includes("--parchment-surface:") || !html.includes("background:linear-gradient(180deg,#8b4a18 0%,#6d3514 58%,#57290f 100%)")) {
+  throw new Error("The app-wide golden parchment and dark wood visual theme is required");
+}
+if (manifest.theme_color !== "#57290f" || manifest.background_color !== "#e9bd72") {
+  throw new Error("Installed-app colours must match the golden farm-shop theme");
 }
 for (const id of ["toggleAssetPreview", "assetPreviewPanel", "assetPreviewGrid"]) {
   if (!ids.includes(id)) throw new Error(`Missing asset preview control: ${id}`);
