@@ -463,7 +463,9 @@
     .placement-fields select{width:100%;min-width:0;padding:9px;border:1px solid var(--line);border-radius:11px;background:var(--paper);color:var(--ink);font-size:10px}
     .placement-preview{position:relative;display:flex;align-items:center;justify-content:center;height:190px;overflow:hidden;border:2px dashed #8ba17e;border-radius:18px;background:#eef3e7;cursor:grab;touch-action:none}
     .placement-preview:active{cursor:grabbing}
-    .placement-bed-scene{width:calc(50% + 1.6px);flex:0 0 auto}
+    .placement-bed-scene{width:calc(50% + 1.6px);flex:0 0 auto;isolation:isolate}
+    .placement-bed-scene .bed-art{position:absolute;z-index:1;top:2px;left:50%;width:100%;filter:drop-shadow(0 2px 1px rgba(45,27,10,.22))}
+    .placement-bed-scene .planter-front{z-index:3;clip-path:inset(45% 0 0);filter:none}
     .placement-preview .bed-art{pointer-events:none;user-select:none}
     .placement-preview .crop-visual.editing{z-index:3;outline:2px solid #416a49;outline-offset:4px;border-radius:10px;background:rgba(255,255,255,.3);pointer-events:none;touch-action:none}
     .seed-placement-scene{display:grid;place-items:center;width:104px;height:104px;border:1px solid #d7dfcf;border-radius:21px;background:rgba(255,255,255,.86);box-shadow:0 10px 22px rgba(48,76,53,.1)}
@@ -655,7 +657,10 @@
         <div class="weather-card" id="weatherCard">
           <div class="weather-icon" id="weatherIcon">🌤️</div>
           <div class="weather-copy"><b id="weatherTitle">Local weather</b><small id="weatherDetail">Use your location for today’s crop bonus.</small><small><a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data: Open-Meteo</a></small></div>
-          <button class="btn secondary" id="weatherButton">Enable</button>
+          <div class="weather-side">
+            <button class="weather-status" id="weatherStatus" aria-label="Refresh local weather" hidden><span aria-hidden="true">👣</span><small>Active all day<br>in your area</small></button>
+            <button class="btn secondary" id="weatherButton">Enable</button>
+          </div>
         </div>
         <div class="garden-panel">
           <div class="garden-heading">
@@ -1412,15 +1417,19 @@
       function renderWeather(){
         const weather=weatherBonus(),active=state.weather?.date===todayKey();
         $("#weatherIcon").innerHTML=`<img src="assets/farm/ui-v3/weather-partly-sunny-64.png" alt="${weather.label}">`;
-        $("#weatherTitle").textContent=active?`${weather.label} · ${weather.temperature}°C`:"Local weather";
+        $("#weatherTitle").textContent=active?weather.label:"Local weather";
         $("#weatherDetail").textContent=active
-          ? `Today: +${weather.growth}% growth${weather.quality?` · +${weather.quality}% quality`:""}`
-          : "Tap Enable, then Allow on the location prompt.";
-        $("#weatherButton").textContent=active?"Refresh":"Enable";
+          ? `Walk bonus +${weather.growth}%${weather.quality?` · Quality +${weather.quality}%`:""}`
+          : "Enable local crop bonuses.";
+        $("#weatherStatus").hidden=!active;
+        $("#weatherButton").hidden=active;
+        $("#weatherButton").textContent="Enable";
+        $("#weatherButton").disabled=false;
+        $("#weatherStatus").disabled=false;
       }
       function requestLocalWeatherPermission(){
         if(!navigator.geolocation)return toast("Location is unavailable on this device");
-        $("#weatherButton").disabled=true;$("#weatherButton").textContent="Finding…";
+        $("#weatherButton").disabled=true;$("#weatherButton").textContent="Finding…";$("#weatherStatus").disabled=true;
         navigator.geolocation.getCurrentPosition(async position=>{
           try{
             const latitude=position.coords.latitude.toFixed(3),longitude=position.coords.longitude.toFixed(3);
@@ -1463,15 +1472,20 @@
         $("#plantAll").disabled=!state.beds.slice(0,state.unlockedBeds).some(bed=>!bed);
         $("#replantAll").disabled=!state.beds.slice(0,state.unlockedBeds).some((bed,index)=>!bed&&state.bedPlans[index]);
       }
+      const PLANTER_ART="assets/farm/planter-bed-ground-192x144.png";
+      function planterArt(layer="planter-back"){
+        const front=layer==="planter-front";
+        return `<img class="bed-art ${layer} pixel-sprite auto-centered-sprite" data-center-src="${PLANTER_ART}" src="${PLANTER_ART}" alt="" draggable="false"${front?' aria-hidden="true"':""}>`;
+      }
       function renderBed(index){
         if(index>=state.unlockedBeds){
           const next=index===state.unlockedBeds;
           if(!next)return "";
           const requirement=BED_REQUIREMENTS[index];
-          return `<article class="bed locked next-unlock"><button class="bed-scene bed-action" data-unlock-bed="${index}"><img class="bed-art pixel-sprite auto-centered-sprite" data-center-src="assets/farm/planter-bed-128x96.png" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><span class="bed-plaque"><strong>Plot ${index+1}</strong></span><span class="bed-unlock-banner"><b>Unlock</b>${farmCurrencyMarkup("gold",BED_COSTS[index])}${requirement?`<small>${cropRequirementText(requirement)}</small>`:""}</span></button></article>`;
+          return `<article class="bed locked next-unlock"><button class="bed-scene bed-action" data-unlock-bed="${index}">${planterArt()}<span class="bed-plaque"><strong>Plot ${index+1}</strong></span><span class="bed-unlock-banner"><b>Unlock</b>${farmCurrencyMarkup("gold",BED_COSTS[index])}${requirement?`<small>${cropRequirementText(requirement)}</small>`:""}</span></button></article>`;
         }
         const bed=state.beds[index];
-        if(!bed)return `<article class="bed empty"><button class="bed-scene bed-action" data-plant-bed="${index}" aria-label="Plant crop"><img class="bed-art pixel-sprite auto-centered-sprite" data-center-src="assets/farm/planter-bed-128x96.png" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><span class="bed-plaque"><strong>Empty</strong></span><span class="bed-empty-callout">＋ Plant crop</span></button></article>`;
+        if(!bed)return `<article class="bed empty"><button class="bed-scene bed-action" data-plant-bed="${index}" aria-label="Plant crop">${planterArt()}<span class="bed-plaque"><strong>Empty</strong></span><span class="bed-empty-callout">＋ Plant crop</span></button></article>`;
         const crop=cropById(bed.cropId);
         const status=bedState(bed);
         const progress=clamp(bed.growth/crop.steps*100,0,100);
@@ -1479,7 +1493,7 @@
         const footer=status==="ready"
           ? `<span class="bed-ready-banner">Ready to harvest!</span>`
           : `<span class="bed-progress"><i style="width:${progress}%"></i><b>${fmt(Math.floor(bed.growth))} / ${fmt(crop.steps)}</b></span>`;
-        const content=`<img class="bed-art pixel-sprite auto-centered-sprite" data-center-src="assets/farm/planter-bed-128x96.png" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><div class="crop-visual" style="${cropPlacementStyle(crop.id,stage)}">${cropStageMarkup(crop,stage)}</div><span class="bed-plaque"><strong>${crop.name}</strong><span class="bed-state">${status==="ready"?"Ready":`${Math.floor(progress)}%`}</span></span>${footer}`;
+        const content=`${planterArt()}<div class="crop-visual" style="${cropPlacementStyle(crop.id,stage)}">${cropStageMarkup(crop,stage)}</div>${planterArt("planter-front")}<span class="bed-plaque"><strong>${crop.name}</strong><span class="bed-state">${status==="ready"?"Ready":`${Math.floor(progress)}%`}</span></span>${footer}`;
         const scene=status==="ready"
           ? `<button class="bed-scene harvest-target" data-harvest-bed="${index}" aria-label="Harvest ${crop.name}">${content}</button>`
           : `<div class="bed-scene">${content}</div>`;
@@ -1884,7 +1898,7 @@
       }
       function imageCenterAssets(){
         const assets=[
-          {label:"Planter bed",src:"assets/farm/planter-bed-128x96.png"},
+          {label:"Planter bed",src:PLANTER_ART},
           ...CROPS.flatMap(crop=>[
             {label:`${crop.name} · seed`,src:crop.seedImage},
             {label:`${crop.name} · planted`,src:crop.stages?.planted},
@@ -1986,7 +2000,7 @@
         };
         add("Header","Farmer avatar","assets/farm/ui-v3/avatar-96.png");
         [["farm","Farm"],["shop","Shop"],["quests","Quests"],["barn","Silo"],["upgrades","Upgrade"]].forEach(([id,label])=>add(`Navigation · ${id}`,`${label} navigation icon`,`assets/farm/ui-v3/nav-${id==="barn"?"silo":id==="upgrades"?"upgrade":id}-64.png`));
-        add("Farm","Planter bed","assets/farm/planter-bed-128x96.png");
+        add("Farm","Planter bed",PLANTER_ART);
         add("Farm","Weather icon","assets/farm/ui-v3/weather-partly-sunny-64.png");
         CROPS.forEach(crop=>{
           add("Farm",`${crop.name} · planted`,crop.stages?.planted);
@@ -2187,7 +2201,7 @@
         const seedStage=placementStage==="seed";
         const scene=seedStage
           ? `<div class="seed-placement-scene">${cropIconMarkup(crop,true,"editing",placementDraft)}</div>`
-          : `<div class="placement-bed-scene"><img class="bed-art pixel-sprite auto-centered-sprite" data-center-src="assets/farm/planter-bed-128x96.png" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><div class="crop-visual editing" style="${cropPlacementStyle(crop.id,placementStage,placementDraft)}">${cropStageMarkup(crop,placementStage)}</div></div>`;
+          : `<div class="placement-bed-scene">${planterArt()}<div class="crop-visual editing" style="${cropPlacementStyle(crop.id,placementStage,placementDraft)}">${cropStageMarkup(crop,placementStage)}</div>${planterArt("planter-front")}</div>`;
         $("#placementPreview").innerHTML=`<span class="drag-hint">DRAG ${seedStage?"SEED":"CROP"}</span>${scene}`;
         const preview=$("#placementPreview");
         let drag=null;
@@ -2330,6 +2344,7 @@
       $("#plantAll").onclick=openPlantAll;
       $("#replantAll").onclick=replantAll;
       $("#weatherButton").onclick=requestLocalWeatherPermission;
+      $("#weatherStatus").onclick=requestLocalWeatherPermission;
       $("#enableAdmin").onclick=enableAdmin;
       $("#adminCode").onkeydown=event=>{if(event.key==="Enter")enableAdmin()};
       $("#adminGrowAll").onclick=adminGrowAll;
