@@ -1,5 +1,5 @@
 /* Ironbound service worker — farming app shell for offline + home-screen install */
-const CACHE = 'ironbound-farm-v28';
+const CACHE = 'ironbound-farm-v29';
 const CROP_IDS = [
   'radish','lettuce','spinach','carrot','onion','beetroot','blueberry','peas','potato','strawberry','pepper',
   'tomato','corn','eggplant','cabbage','broccoli','pumpkin','grapes','melon','dragonfruit','starfruit','ancient-root'
@@ -33,6 +33,8 @@ const UI_V3_ART = [
   './assets/farm/ui-v3/nav-silo-64.png',
   './assets/farm/ui-v3/nav-upgrade-64.png',
   './assets/farm/ui-v3/weather-partly-sunny-64.png',
+  './assets/farm/ui-v3/step-currency-v2-96.png',
+  './assets/farm/ui-v3/gold-currency-v2-96.png',
   ...['garden-paths','rain-barrel','seed-ledger','compost-bin','deep-beds','glass-cloche','market-cart','pollinator-garden','moon-irrigation','ancient-greenhouse']
     .map((id) => `./assets/farm/upgrades-v3/${id}-192.png`)
 ];

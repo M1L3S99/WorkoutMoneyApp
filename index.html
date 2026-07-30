@@ -613,15 +613,29 @@
   <link rel="stylesheet" href="assets/farm/ui-v3/theme-v3.css">
 </head>
 <body>
-  <div class="app">
+  <div class="app farm-view">
     <header class="topbar">
       <div class="account-summary" aria-label="Account">
         <span class="account-avatar"><img src="assets/farm/ui-v3/avatar-96.png" alt="" draggable="false"></span>
         <span class="account-copy"><b id="accountName">Farmer</b><small>LV <span id="accountLevel">1</span></small><span class="account-level-track" aria-hidden="true"><i id="accountLevelProgress"></i></span></span>
       </div>
       <div class="wallet" aria-label="Steps and gold">
-        <div class="wallet-pill"><span class="wallet-value"><img class="currency-icon" src="assets/farm/ui/step-token-64.png" alt="Steps"><b id="stepsBalance">0</b></span></div>
-        <div class="wallet-pill"><span class="wallet-value"><img class="currency-icon" src="assets/farm/ui/gold-coin-64.png" alt="Gold"><b id="goldBalance">120</b></span></div>
+        <div class="wallet-pill">
+          <span class="wallet-value">
+            <img class="currency-icon currency-icon-default" src="assets/farm/ui/step-token-64.png" alt="">
+            <img class="currency-icon currency-icon-farm" src="assets/farm/ui-v3/step-currency-v2-96.png" alt="">
+            <b id="stepsBalance">0</b>
+          </span>
+          <small class="wallet-label">Steps</small>
+        </div>
+        <div class="wallet-pill">
+          <span class="wallet-value">
+            <img class="currency-icon currency-icon-default" src="assets/farm/ui/gold-coin-64.png" alt="">
+            <img class="currency-icon currency-icon-farm" src="assets/farm/ui-v3/gold-currency-v2-96.png" alt="">
+            <b id="goldBalance">120</b>
+          </span>
+          <small class="wallet-label">Gold</small>
+        </div>
       </div>
     </header>
 
@@ -630,7 +644,11 @@
         <div class="farm-hero">
           <div class="step-card">
             <div class="step-ring" id="stepRing">
-              <div class="step-ring-copy"><span>STEPS TODAY</span><b id="todaySteps">0</b><small id="dailyGoalLabel">/ 8,000</small></div>
+              <div class="step-ring-copy">
+                <img class="step-ring-icon pixel-sprite" src="assets/farm/ui-v3/step-currency-v2-96.png" alt="">
+                <div class="step-total"><b id="todaySteps">0</b><small id="dailyGoalLabel">/ 8,000</small></div>
+                <span>STEPS TODAY</span>
+              </div>
             </div>
           </div>
         </div>
@@ -905,6 +923,11 @@
       };
       const number = value => Math.max(0,Math.floor(Number(value)||0));
       const fmt = value => number(value).toLocaleString();
+      const compactFmt = value => {
+        const safe=number(value);
+        if(safe<100000)return fmt(safe);
+        return new Intl.NumberFormat(undefined,{notation:"compact",maximumFractionDigits:1}).format(safe);
+      };
       const clamp = (value,min,max) => Math.min(max,Math.max(min,value));
 
       const CROPS = [
@@ -1113,10 +1136,16 @@
       function cropById(id){return CROPS.find(c=>c.id===id)}
       function itemById(id){return ITEMS.find(i=>i.id===id)}
       const CURRENCY_ICONS={gold:"assets/farm/ui/gold-coin-64.png",steps:"assets/farm/ui/step-token-64.png"};
+      const FARM_CURRENCY_ICONS={gold:"assets/farm/ui-v3/gold-currency-v2-96.png",steps:"assets/farm/ui-v3/step-currency-v2-96.png"};
       function currencyMarkup(type,amount){
         const value=amount===Infinity?"∞":fmt(amount);
         const label=type==="gold"?"Gold":"Steps";
         return `<span class="currency"><img class="currency-icon" src="${CURRENCY_ICONS[type]}" alt="${label}">${value}</span>`;
+      }
+      function farmCurrencyMarkup(type,amount){
+        const value=amount===Infinity?"∞":fmt(amount);
+        const label=type==="gold"?"Gold":"Steps";
+        return `<span class="currency farm-currency"><img class="currency-icon" src="${FARM_CURRENCY_ICONS[type]}" alt="${label}">${value}</span>`;
       }
       function cropIconMarkup(crop,seed=false,className="pixel-sprite",placement){
         const image=seed?crop?.seedImage:crop?.image;
@@ -1361,8 +1390,12 @@
         $("#accountName").textContent=accountName;
         $("#accountLevel").textContent=String(level.level);
         $("#accountLevelProgress").style.width=`${clamp(level.current/Math.max(1,level.next)*100,0,100)}%`;
-        $("#stepsBalance").textContent=state.adminMode?"∞":fmt(state.stepBalance);
-        $("#goldBalance").textContent=state.adminMode?"∞":fmt(state.gold);
+        const stepsText=state.adminMode?"∞":activeScreen==="farm"?compactFmt(state.stepBalance):fmt(state.stepBalance);
+        const goldText=state.adminMode?"∞":activeScreen==="farm"?compactFmt(state.gold):fmt(state.gold);
+        $("#stepsBalance").textContent=stepsText;
+        $("#goldBalance").textContent=goldText;
+        $("#stepsBalance").setAttribute("aria-label",state.adminMode?"Unlimited steps":`${fmt(state.stepBalance)} steps`);
+        $("#goldBalance").setAttribute("aria-label",state.adminMode?"Unlimited gold":`${fmt(state.gold)} gold`);
       }
       function weatherFromCurrent(current={}){
         const code=number(current.weather_code),temperature=Number(current.temperature_2m)||0,precipitation=Number(current.precipitation)||0;
@@ -1415,7 +1448,8 @@
         const activeBeds=state.beds.slice(0,state.unlockedBeds);
         const growingBeds=activeBeds.filter(bed=>bed&&bedState(bed)==="growing");
         const readyBeds=activeBeds.filter(bed=>bed&&bedState(bed)==="ready");
-        $("#todaySteps").textContent=fmt(state.todaySteps);
+        $("#todaySteps").textContent=compactFmt(state.todaySteps);
+        $("#todaySteps").setAttribute("aria-label",`${fmt(state.todaySteps)} steps today`);
         $("#stepRing").style.setProperty("--progress",`${percent*3.6}deg`);
         $("#dailyGoalLabel").textContent=`/ ${fmt(goal)}`;
         $("#bedCount").textContent=`${state.unlockedBeds} / ${MAX_BEDS} plots`;
@@ -1434,18 +1468,22 @@
           const next=index===state.unlockedBeds;
           if(!next)return "";
           const requirement=BED_REQUIREMENTS[index];
-          return `<article class="bed locked next-unlock"><button class="bed-action" data-unlock-bed="${index}"><strong>＋</strong><small>Unlock plot ${index+1}</small><span class="unlock-cost">${currencyMarkup("gold",BED_COSTS[index])}</span>${requirement?`<span class="unlock-requirement">+ ${cropRequirementText(requirement)}</span>`:""}</button></article>`;
+          return `<article class="bed locked next-unlock"><button class="bed-scene bed-action" data-unlock-bed="${index}"><img class="bed-art pixel-sprite auto-centered-sprite" data-center-src="assets/farm/planter-bed-128x96.png" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><span class="bed-plaque"><strong>Plot ${index+1}</strong></span><span class="bed-unlock-banner"><b>Unlock</b>${farmCurrencyMarkup("gold",BED_COSTS[index])}${requirement?`<small>${cropRequirementText(requirement)}</small>`:""}</span></button></article>`;
         }
         const bed=state.beds[index];
-        if(!bed)return `<article class="bed empty"><button class="bed-action" data-plant-bed="${index}"><span class="empty-head-spacer" aria-hidden="true"></span><span class="bed-scene"><img class="bed-art pixel-sprite auto-centered-sprite" data-center-src="assets/farm/planter-bed-128x96.png" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"></span><small>＋ Plant crop</small></button></article>`;
+        if(!bed)return `<article class="bed empty"><button class="bed-scene bed-action" data-plant-bed="${index}" aria-label="Plant crop"><img class="bed-art pixel-sprite auto-centered-sprite" data-center-src="assets/farm/planter-bed-128x96.png" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><span class="bed-plaque"><strong>Empty</strong></span><span class="bed-empty-callout">＋ Plant crop</span></button></article>`;
         const crop=cropById(bed.cropId);
         const status=bedState(bed);
         const progress=clamp(bed.growth/crop.steps*100,0,100);
         const stage=status==="ready"?"grown":"planted";
+        const footer=status==="ready"
+          ? `<span class="bed-ready-banner">Ready to harvest!</span>`
+          : `<span class="bed-progress"><i style="width:${progress}%"></i><b>${fmt(Math.floor(bed.growth))} / ${fmt(crop.steps)}</b></span>`;
+        const content=`<img class="bed-art pixel-sprite auto-centered-sprite" data-center-src="assets/farm/planter-bed-128x96.png" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><div class="crop-visual" style="${cropPlacementStyle(crop.id,stage)}">${cropStageMarkup(crop,stage)}</div><span class="bed-plaque"><strong>${crop.name}</strong><span class="bed-state">${status==="ready"?"Ready":`${Math.floor(progress)}%`}</span></span>${footer}`;
         const scene=status==="ready"
-          ? `<button class="bed-scene harvest-target" data-harvest-bed="${index}" aria-label="Harvest ${crop.name}"><img class="bed-art pixel-sprite auto-centered-sprite" data-center-src="assets/farm/planter-bed-128x96.png" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><div class="crop-visual" style="${cropPlacementStyle(crop.id,stage)}">${cropStageMarkup(crop,stage)}</div></button>`
-          : `<div class="bed-scene"><img class="bed-art pixel-sprite auto-centered-sprite" data-center-src="assets/farm/planter-bed-128x96.png" src="assets/farm/planter-bed-128x96.png" alt="" draggable="false"><div class="crop-visual" style="${cropPlacementStyle(crop.id,stage)}">${cropStageMarkup(crop,stage)}</div></div>`;
-        return `<article class="bed ${status}"><div class="bed-head"><strong>${crop.name}</strong><span class="bed-state">${status==="ready"?"Ready":`${Math.floor(progress)}%`}</span></div>${scene}<div class="bed-progress"><i style="width:${progress}%"></i></div><div class="bed-foot"><span>${status==="ready"?"Ready to harvest":`${Math.floor(progress)}% grown`}</span></div></article>`;
+          ? `<button class="bed-scene harvest-target" data-harvest-bed="${index}" aria-label="Harvest ${crop.name}">${content}</button>`
+          : `<div class="bed-scene">${content}</div>`;
+        return `<article class="bed ${status}">${scene}</article>`;
       }
       function unlockBed(index){
         const cost=BED_COSTS[index],requirement=BED_REQUIREMENTS[index];
@@ -2233,6 +2271,8 @@
       }
       function navigate(screen){
         activeScreen=screen;
+        $(".app").classList.toggle("farm-view",screen==="farm");
+        renderHeader();
         $$(".screen").forEach(el=>el.classList.toggle("active",el.id===screen));
         $$(".nav-btn").forEach(button=>button.classList.toggle("active",button.dataset.screen===screen));
         window.scrollTo({top:0,behavior:"smooth"});
