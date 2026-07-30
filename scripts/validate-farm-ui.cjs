@@ -97,7 +97,7 @@ for (const asset of ["assets/farm/crops/radish-seeds-96.png", "assets/farm/ui/go
 }
 const backgroundAsset = "assets/farm/ui/farm-background-v2.webp";
 const backgroundSize = fs.statSync(backgroundAsset).size;
-if (backgroundSize < 50000 || backgroundSize > 150000 || !html.includes(backgroundAsset) || !serviceWorker.includes(`./${backgroundAsset}`) || !serviceWorker.includes("ironbound-farm-v26")) {
+if (backgroundSize < 50000 || backgroundSize > 150000 || !html.includes(backgroundAsset) || !serviceWorker.includes(`./${backgroundAsset}`) || !serviceWorker.includes("ironbound-farm-v27")) {
   throw new Error(`The compressed offline Farm background is missing or too heavy (${backgroundSize} bytes)`);
 }
 const uiV3Assets = [
@@ -109,7 +109,7 @@ const uiV3Assets = [
   "assets/farm/ui-v3/nav-silo-64.png",
   "assets/farm/ui-v3/nav-upgrade-64.png",
   "assets/farm/ui-v3/weather-partly-sunny-64.png",
-  ...["garden-paths","rain-barrel","deep-beds","glass-cloche","market-cart","pollinator-garden","moon-irrigation","ancient-greenhouse"]
+  ...["garden-paths","rain-barrel","seed-ledger","compost-bin","deep-beds","glass-cloche","market-cart","pollinator-garden","moon-irrigation","ancient-greenhouse"]
     .map((id) => `assets/farm/upgrades-v3/${id}-192.png`)
 ];
 for (const asset of uiV3Assets) {

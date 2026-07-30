@@ -45,6 +45,8 @@ ASSETS = {
         192,
         8,
     ),
+    "seed-ledger.png": (UPGRADE_DIR / "seed-ledger-192.png", 192, 8),
+    "compost-bin.png": (UPGRADE_DIR / "compost-bin-192.png", 192, 8),
 }
 
 
