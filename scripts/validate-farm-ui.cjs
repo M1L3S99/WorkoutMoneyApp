@@ -96,10 +96,28 @@ for (const asset of ["assets/farm/crops/radish-seeds-96.png", "assets/farm/ui/go
   const size = fs.statSync(asset).size;
   if (size < 100 || size > 20000) throw new Error(`Generated pixel asset has an unexpected size: ${asset} (${size} bytes)`);
 }
-const backgroundAsset = "assets/farm/ui/farm-background-v2.webp";
-const backgroundSize = fs.statSync(backgroundAsset).size;
-if (backgroundSize < 50000 || backgroundSize > 150000 || !html.includes(backgroundAsset) || !serviceWorker.includes(`./${backgroundAsset}`) || !serviceWorker.includes("ironbound-farm-v29")) {
-  throw new Error(`The compressed offline Farm background is missing or too heavy (${backgroundSize} bytes)`);
+const backgroundAssets = [
+  ["assets/farm/ui/farm-background-v2.webp", 50000, 150000],
+  ["assets/farm/ui/farm-background-orchard-v3.webp", 150000, 350000]
+];
+for (const [backgroundAsset, minSize, maxSize] of backgroundAssets) {
+  const backgroundSize = fs.statSync(backgroundAsset).size;
+  if (backgroundSize < minSize || backgroundSize > maxSize ||
+      !serviceWorker.includes(`./${backgroundAsset}`)) {
+    throw new Error(`A compressed offline Farm background is missing or too heavy: ${backgroundAsset} (${backgroundSize} bytes)`);
+  }
+}
+if (!html.includes(backgroundAssets[0][0]) ||
+    !theme.includes("../ui/farm-background-orchard-v3.webp") ||
+    !serviceWorker.includes("ironbound-farm-v30")) {
+  throw new Error("The Farm backgrounds or v30 offline cache are not fully integrated");
+}
+const planterAsset = "assets/farm/planter-bed-ground-192x144.png";
+const planterSize = fs.statSync(planterAsset).size;
+if (planterSize < 20000 || planterSize > 90000 ||
+    !html.includes(planterAsset) ||
+    !serviceWorker.includes(`./${planterAsset}`)) {
+  throw new Error(`The grounded planter asset is missing or too heavy (${planterSize} bytes)`);
 }
 const uiV3Assets = [
   "assets/farm/ui-v3/theme-v3.css",
@@ -126,14 +144,14 @@ for (const asset of uiV3Assets) {
 for (const hook of ["assetTransforms", "layoutAssetSelect", "prepareAssetLayouts", "upgradeSettings"]) {
   if (!html.includes(hook)) throw new Error(`Missing Meadowstep v3 layout hook: ${hook}`);
 }
-for (const farmHook of ["FARM_CURRENCY_ICONS", "farm-view", "compactFmt", "step-ring-icon", "bed-plaque", "bed-ready-banner"]) {
+for (const farmHook of ["FARM_CURRENCY_ICONS", "farm-view", "compactFmt", "step-ring-icon", "weather-status", "planter-front", "bed-plaque", "bed-ready-banner"]) {
   if (!html.includes(farmHook) && !theme.includes(farmHook)) {
     throw new Error(`Missing Farm reference redesign hook: ${farmHook}`);
   }
 }
 if (!theme.includes("#farm:before") ||
-    !theme.includes("url(\"../ui/farm-background-v2.webp\")") ||
-    !theme.includes("auto 910px") ||
+    !theme.includes("url(\"../ui/farm-background-orchard-v3.webp\")") ||
+    !theme.includes("auto 1020px") ||
     !theme.includes("#farm .garden-panel") ||
     !theme.includes("background:transparent") ||
     !theme.includes("#farm .bed-plaque")) {
@@ -238,7 +256,8 @@ if (!html.includes('id="moveAllCrops"') ||
 if (!html.includes('class="bed empty"') ||
     !html.includes('class="bed-scene bed-action"') ||
     !html.includes('class="bed-plaque"><strong>Empty</strong>') ||
-    !html.includes('src="assets/farm/planter-bed-128x96.png"')) {
+    !html.includes('assets/farm/planter-bed-ground-192x144.png') ||
+    !html.includes('planterArt("planter-front")')) {
   throw new Error("Empty planters must preserve the occupied bed geometry after harvesting");
 }
 if (!html.includes("background:linear-gradient(180deg,#fff,#f7f3e9)") || !html.includes('id="detailQualityLine"') || !html.includes("Quality · ${QUALITY_LABELS[selectedItem.quality]||\"Standard\"}")) {
