@@ -610,11 +610,15 @@
       #farm .step-copy .mini-progress i,#farm .bed-progress i{transition:none}
     }
   </style>
+  <link rel="stylesheet" href="assets/farm/ui-v3/theme-v3.css">
 </head>
 <body>
   <div class="app">
     <header class="topbar">
-      <div class="account-summary" aria-label="Account"><b id="accountName">Farmer</b><small>LV <span id="accountLevel">1</span></small></div>
+      <div class="account-summary" aria-label="Account">
+        <span class="account-avatar"><img src="assets/farm/ui-v3/avatar-96.png" alt="" draggable="false"></span>
+        <span class="account-copy"><b id="accountName">Farmer</b><small>LV <span id="accountLevel">1</span></small><span class="account-level-track" aria-hidden="true"><i id="accountLevelProgress"></i></span></span>
+      </div>
       <div class="wallet" aria-label="Steps and gold">
         <div class="wallet-pill"><span class="wallet-value"><img class="currency-icon" src="assets/farm/ui/step-token-64.png" alt="Steps"><b id="stepsBalance">0</b></span></div>
         <div class="wallet-pill"><span class="wallet-value"><img class="currency-icon" src="assets/farm/ui/gold-coin-64.png" alt="Gold"><b id="goldBalance">120</b></span></div>
@@ -650,6 +654,10 @@
       </section>
 
       <section class="screen" id="shop">
+        <div class="screen-title-row">
+          <div><span class="screen-kicker">Village market</span><h1>Shop</h1></div>
+          <span class="screen-meta" id="shopRefreshLabel">Fresh stock today</span>
+        </div>
         <div class="tabs" id="shopTabs">
           <button class="tab active" data-shop-tab="seeds">Seeds</button>
           <button class="tab" data-shop-tab="gear">Gear</button>
@@ -669,23 +677,65 @@
       </section>
 
       <section class="screen" id="quests">
-        <div class="section-head"><h1>Quests</h1><small>Refreshes daily</small></div>
+        <div class="screen-title-row">
+          <div><span class="screen-kicker">Village ledger</span><h1>Quests</h1></div>
+          <span class="screen-meta" id="questRefreshLabel">Refreshes daily</span>
+        </div>
+        <div class="quest-tabs" aria-label="Quest period">
+          <button class="active" type="button" data-quest-period="daily">Daily</button>
+          <button type="button" data-quest-period="weekly">Weekly</button>
+        </div>
         <div class="quest-list" id="questList"></div>
       </section>
 
       <section class="screen" id="barn">
-        <div class="section-head"><h1>Silo</h1></div>
+        <div class="screen-title-row">
+          <div><span class="screen-kicker">Your collection</span><h1>Silo</h1></div>
+          <span class="screen-meta" id="siloItemCount">0 items</span>
+        </div>
         <div class="loadout" id="loadout"></div>
-        <div class="section-head"><h2>Gear</h2><small id="gearCount">0 items</small></div>
-        <div class="owned-gear-grid" id="ownedGearGrid"></div>
-        <div class="section-head"><h2>Fertiliser</h2><small id="fertiliserCount">0 items</small></div>
-        <div class="inventory-list" id="fertiliserList"></div>
-        <div class="section-head"><h2>Crops</h2><small id="cropCount">0 crops</small></div>
-        <div class="inventory-list" id="inventoryList"></div>
+        <div class="silo-tabs" aria-label="Silo category">
+          <button class="active" type="button" data-silo-tab="gear">Gear</button>
+          <button type="button" data-silo-tab="crops">Crops</button>
+          <button type="button" data-silo-tab="fertiliser">Fertiliser</button>
+        </div>
+        <div class="silo-panel active" data-silo-panel="gear">
+          <div class="section-head"><h2>Gear</h2><small id="gearCount">0 items</small></div>
+          <div class="owned-gear-grid" id="ownedGearGrid"></div>
+        </div>
+        <div class="silo-panel" data-silo-panel="fertiliser">
+          <div class="section-head"><h2>Fertiliser</h2><small id="fertiliserCount">0 items</small></div>
+          <div class="inventory-list" id="fertiliserList"></div>
+        </div>
+        <div class="silo-panel" data-silo-panel="crops">
+          <div class="section-head"><h2>Crops</h2><small id="cropCount">0 crops</small></div>
+          <div class="inventory-list" id="inventoryList"></div>
+        </div>
       </section>
 
       <section class="screen" id="upgrades">
+        <div class="screen-title-row">
+          <div><span class="screen-kicker">Grow your homestead</span><h1>Upgrades</h1></div>
+          <button class="round-settings-button" id="toggleUpgradeSettings" type="button" aria-expanded="false" aria-controls="upgradeSettings">⚙</button>
+        </div>
+        <div class="upgrade-progress-card">
+          <span>Farm level <b id="upgradeLevel">1</b></span>
+          <span><b id="upgradeXp">0</b> / <span id="upgradeXpNext">100</span> XP</span>
+          <i><span id="upgradeXpBar"></span></i>
+        </div>
         <div id="upgradeList"></div>
+        <div id="upgradeSettings" hidden>
+        <div class="settings-card card asset-layout-card">
+          <div class="section-head"><h2>Asset studio</h2><small>Move and resize each screen asset</small></div>
+          <label class="image-centre-select">Asset<select id="layoutAssetSelect"></select></label>
+          <div class="asset-layout-preview" id="layoutAssetPreview"></div>
+          <div class="asset-layout-controls">
+            <label><span>Horizontal</span><input type="range" id="layoutAssetX" min="-80" max="80" step="1"><output id="layoutAssetXValue">0px</output></label>
+            <label><span>Vertical</span><input type="range" id="layoutAssetY" min="-80" max="80" step="1"><output id="layoutAssetYValue">0px</output></label>
+            <label><span>Size</span><input type="range" id="layoutAssetScale" min="40" max="220" step="2"><output id="layoutAssetScaleValue">100%</output></label>
+          </div>
+          <div class="placement-actions"><button class="btn secondary" id="resetAssetLayout" type="button">Reset</button><button class="btn" id="saveAssetLayout" type="button">Save position</button></div>
+        </div>
         <div class="placement-card card">
           <div class="section-head"><h2>Crop placement</h2></div>
           <div class="placement-scope" aria-label="Crop placement scope">
@@ -763,15 +813,16 @@
             <button class="btn danger" id="resetButton">Reset</button>
           </div>
         </div>
+        </div>
       </section>
     </main>
 
     <nav class="bottom-nav" aria-label="Main navigation">
-      <button class="nav-btn active" data-screen="farm"><i>🌿</i><span>Farm</span></button>
-      <button class="nav-btn" data-screen="shop"><i>🏡</i><span>Shop</span></button>
-      <button class="nav-btn" data-screen="quests"><i>📜</i><span>Quests</span></button>
-      <button class="nav-btn" data-screen="barn"><i>🧺</i><span>Silo</span></button>
-      <button class="nav-btn" data-screen="upgrades"><i>🛠️</i><span>Upgrade</span></button>
+      <button class="nav-btn active" data-screen="farm"><i><img src="assets/farm/ui-v3/nav-farm-64.png" alt="" draggable="false"></i><span>Farm</span></button>
+      <button class="nav-btn" data-screen="shop"><i><img src="assets/farm/ui-v3/nav-shop-64.png" alt="" draggable="false"></i><span>Shop</span></button>
+      <button class="nav-btn" data-screen="quests"><i><img src="assets/farm/ui-v3/nav-quests-64.png" alt="" draggable="false"></i><span>Quests</span></button>
+      <button class="nav-btn" data-screen="barn"><i><img src="assets/farm/ui-v3/nav-silo-64.png" alt="" draggable="false"></i><span>Silo</span></button>
+      <button class="nav-btn" data-screen="upgrades"><i><img src="assets/farm/ui-v3/nav-upgrade-64.png" alt="" draggable="false"></i><span>Upgrade</span></button>
     </nav>
   </div>
 
@@ -844,6 +895,12 @@
       const $$ = selector => [...document.querySelectorAll(selector)];
       const todayKey = () => {
         const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+      };
+      const weekKey = () => {
+        const d=new Date();
+        d.setHours(12,0,0,0);
+        d.setDate(d.getDate()-((d.getDay()+6)%7));
         return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
       };
       const number = value => Math.max(0,Math.floor(Number(value)||0));
@@ -949,6 +1006,16 @@
         {id:"moon-irrigation",level:28,icon:"🌙",name:"Moon Irrigation",gold:6000,requirement:{cropId:"pumpkin",quality:"gold",amount:1},effect:{growth:15},description:"+15% crop growth"},
         {id:"ancient-greenhouse",level:42,icon:"🏡",name:"Ancient Greenhouse",gold:12000,requirement:{cropId:"ancient-root",quality:"iridium",amount:1},effect:{growth:15,sale:10},description:"+15% crop growth · +10% crop sale value"}
       ];
+      const FARM_UPGRADE_ART = {
+        "garden-paths":"assets/farm/upgrades-v3/garden-paths-192.png",
+        "rain-barrel":"assets/farm/upgrades-v3/rain-barrel-192.png",
+        "deep-beds":"assets/farm/upgrades-v3/deep-beds-192.png",
+        "glass-cloche":"assets/farm/upgrades-v3/glass-cloche-192.png",
+        "market-cart":"assets/farm/upgrades-v3/market-cart-192.png",
+        "pollinator-garden":"assets/farm/upgrades-v3/pollinator-garden-192.png",
+        "moon-irrigation":"assets/farm/upgrades-v3/moon-irrigation-192.png",
+        "ancient-greenhouse":"assets/farm/upgrades-v3/ancient-greenhouse-192.png"
+      };
 
       function freshState(){
         return {
@@ -956,8 +1023,8 @@
           nativeDate:todayKey(),lastNativeToday:0,nativeLifetime:0,xp:0,unlockedBeds:1,
           beds:Array.from({length:MAX_BEDS},()=>null),inventory:{},seeds:{radish:4},ownedItems:[],itemUpgrades:{},
           equipment:{boots:null,gloves:null,tools:null},fertilisers:{},
-          cropRateLevel:0,qualityLevel:0,saleLevel:0,farmUpgrades:[],cropPlacements:{},globalCropPlacement:{x:0,y:0,scale:1},imageCenterY:{},trackingStatus:"checking",
-          bedPlans:Array.from({length:MAX_BEDS},()=>null),questDate:todayKey(),completedQuests:[],
+          cropRateLevel:0,qualityLevel:0,saleLevel:0,farmUpgrades:[],cropPlacements:{},globalCropPlacement:{x:0,y:0,scale:1},imageCenterY:{},assetTransforms:{},trackingStatus:"checking",
+          bedPlans:Array.from({length:MAX_BEDS},()=>null),questDate:todayKey(),completedQuests:[],weeklyQuestKey:"",completedWeeklyQuests:[],
           weather:null,weatherLocation:null,adminMode:false,profileName:"Farmer",seedShopSize:40,shopLayoutVersion:6,farmArtVersion:1,perkDate:todayKey(),doubleStepUsed:0,doubleGoldSalesUsed:0
         };
       }
@@ -987,6 +1054,7 @@
             merged.fertilisers[target]=(merged.fertilisers[target]||0)+count;
           });
           merged.imageCenterY=saved.imageCenterY&&typeof saved.imageCenterY==="object"?{...saved.imageCenterY}:{};
+          merged.assetTransforms=saved.assetTransforms&&typeof saved.assetTransforms==="object"?{...saved.assetTransforms}:{};
           merged.cropPlacements=saved.farmArtVersion===1?(saved.cropPlacements||{}):{};
           merged.farmArtVersion=1;
           merged.farmUpgrades=[...new Set(saved.farmUpgrades||[])];
@@ -1000,6 +1068,9 @@
       let activeScreen="farm";
       let activeShopTab="seeds";
       let activeGearView="daily";
+      let activeQuestPeriod="daily";
+      let activeSiloTab="gear";
+      let upgradeSettingsOpen=false;
       let selectedFertiliserTier="bronze";
       let renderedStockDate=todayKey();
       let plantingBed=0;
@@ -1021,6 +1092,8 @@
       let selectedCenterAsset=null;
       let imageCenterDraft=0;
       const imageCenterCache=new Map();
+      let selectedLayoutAsset=null;
+      let assetLayoutDraft={x:0,y:0,scale:1};
 
       function save(){
         clearTimeout(saveTimer);
@@ -1132,6 +1205,19 @@
           {id:"nia",npc:"Nia",portrait:"🧙‍♀️",image:"assets/farm/npcs/nia-96.png",crop:crop("nia"),quality:level>=10?"silver":"bronze",amount:1,reward:{type:"steps",amount:Math.max(700,level*110)},copy:"A well-grown specimen will help with my field notes."}
         ];
       }
+      function weeklyQuests(){
+        return dailyQuests().map((quest,index)=>({
+          ...quest,
+          id:`weekly-${weekKey()}-${quest.id}`,
+          amount:Math.max(3,quest.amount*(index===0?4:3)),
+          reward:quest.reward.type==="steps"
+            ? {...quest.reward,amount:quest.reward.amount*4}
+            : {...quest.reward},
+          copy:["Stock the village pantry for the week.","Complete a larger workshop order.","Bring enough samples for a full week of field notes."][index]
+        }));
+      }
+      function visibleQuests(){return activeQuestPeriod==="weekly"?weeklyQuests():dailyQuests()}
+      function completedQuestIds(){return activeQuestPeriod==="weekly"?state.completedWeeklyQuests:state.completedQuests}
       function questRewardText(quest){
         if(quest.reward.type==="gear")return state.ownedItems.includes(quest.reward.item)?currencyMarkup("steps",Math.round(itemById(quest.reward.item).cost*.35)):`${itemById(quest.reward.item).name}`;
         return currencyMarkup("steps",quest.reward.amount);
@@ -1269,8 +1355,10 @@
       function renderHeader(){
         const account=window.WMB?.user;
         const accountName=account?.displayName||account?.email?.split("@")[0]||state.profileName||"Farmer";
+        const level=levelInfo();
         $("#accountName").textContent=accountName;
-        $("#accountLevel").textContent=String(levelInfo().level);
+        $("#accountLevel").textContent=String(level.level);
+        $("#accountLevelProgress").style.width=`${clamp(level.current/Math.max(1,level.next)*100,0,100)}%`;
         $("#stepsBalance").textContent=state.adminMode?"∞":fmt(state.stepBalance);
         $("#goldBalance").textContent=state.adminMode?"∞":fmt(state.gold);
       }
@@ -1288,7 +1376,7 @@
       }
       function renderWeather(){
         const weather=weatherBonus(),active=state.weather?.date===todayKey();
-        $("#weatherIcon").textContent=weather.icon;
+        $("#weatherIcon").innerHTML=`<img src="assets/farm/ui-v3/weather-partly-sunny-64.png" alt="${weather.label}">`;
         $("#weatherTitle").textContent=active?`${weather.label} · ${weather.temperature}°C`:"Local weather";
         $("#weatherDetail").textContent=active
           ? `Today: +${weather.growth}% growth${weather.quality?` · +${weather.quality}% quality`:""}`
@@ -1428,6 +1516,12 @@
         }
         save();renderAll();toast(planted?`${planted} bed${planted===1?"":"s"} replanted`:"Seeds or fertiliser needed");
       }
+      function stockRefreshText(){
+        const now=new Date(),midnight=new Date(now);
+        midnight.setHours(24,0,0,0);
+        const minutes=Math.max(0,Math.ceil((midnight-now)/60000));
+        return `New stock in ${Math.floor(minutes/60)}h ${minutes%60}m`;
+      }
       function harvestBed(index){
         const bed=state.beds[index],crop=bed&&cropById(bed.cropId);
         if(!bed||!crop||bedState(bed)!=="ready")return;
@@ -1441,6 +1535,7 @@
         toast(`${QUALITY_LABELS[quality]?QUALITY_LABELS[quality]+" ":""}${crop.name}`);
       }
       function renderShop(){
+        if($("#shopRefreshLabel"))$("#shopRefreshLabel").textContent=stockRefreshText();
         $$("#shopTabs .tab").forEach(tab=>tab.classList.toggle("active",tab.dataset.shopTab===activeShopTab));
         $("#gearViewTabs").hidden=activeShopTab!=="gear";
         $("#fertTierTabs").hidden=activeShopTab!=="fertiliser";
@@ -1506,6 +1601,7 @@
         placementStage="seed";
         placementAllCrops=false;
         placementDraft=null;
+        upgradeSettingsOpen=true;
         closeModals();
         navigate("upgrades");
         renderPlacementEditor();
@@ -1630,16 +1726,21 @@
 
       function renderQuests(){
         if(state.questDate!==todayKey()){state.questDate=todayKey();state.completedQuests=[];save()}
-        $("#questList").innerHTML=dailyQuests().map(quest=>{
-          const completed=state.completedQuests.includes(quest.id),key=`${quest.crop.id}:${quest.quality}`,owned=state.inventory[key]||0;
+        if(state.weeklyQuestKey!==weekKey()){state.weeklyQuestKey=weekKey();state.completedWeeklyQuests=[];save()}
+        $("#questRefreshLabel").textContent=activeQuestPeriod==="weekly"?"Refreshes Monday":"Refreshes daily";
+        $$("[data-quest-period]").forEach(button=>button.classList.toggle("active",button.dataset.questPeriod===activeQuestPeriod));
+        const completedIds=completedQuestIds();
+        $("#questList").innerHTML=visibleQuests().map(quest=>{
+          const completed=completedIds.includes(quest.id),key=`${quest.crop.id}:${quest.quality}`,owned=state.inventory[key]||0;
           const quality=QUALITY_LABELS[quest.quality];
           return `<article class="quest-card ${completed?"complete":""}"><div class="npc-portrait">${spriteMarkup(quest,"npc-sprite")}</div><div class="quest-copy"><b>${quest.npc}</b><small>${quest.copy}</small><small class="crop-inline">${cropIconMarkup(quest.crop)} Bring ${quest.amount} ${quality?quality+" ":""}${quest.crop.name} · owned ${owned}</small><small class="quest-reward">Reward: ${questRewardText(quest)}</small></div><button class="btn ${completed?"secondary":""}" data-claim-quest="${quest.id}" ${completed||(!state.adminMode&&owned<quest.amount)?"disabled":""}>${completed?"Done":"Trade"}</button></article>`;
         }).join("");
         $$("[data-claim-quest]").forEach(button=>button.onclick=()=>completeQuest(button.dataset.claimQuest));
       }
       function completeQuest(id){
-        const quest=dailyQuests().find(entry=>entry.id===id);
-        if(!quest||state.completedQuests.includes(id))return;
+        const quest=visibleQuests().find(entry=>entry.id===id);
+        const completedIds=completedQuestIds();
+        if(!quest||completedIds.includes(id))return;
         const key=`${quest.crop.id}:${quest.quality}`;
         if(!state.adminMode&&(state.inventory[key]||0)<quest.amount)return toast("Required crop missing");
         if(!state.adminMode)state.inventory[key]-=quest.amount;
@@ -1653,10 +1754,18 @@
         }else{
           state.stepBalance+=quest.reward.amount;toast(`${fmt(quest.reward.amount)} steps received`);
         }
-        state.completedQuests.push(id);save();renderAll();
+        completedIds.push(id);
+        if(activeQuestPeriod==="weekly")state.completedWeeklyQuests=completedIds;
+        else state.completedQuests=completedIds;
+        save();renderAll();
       }
 
+      function renderSiloTabs(){
+        $$("[data-silo-tab]").forEach(button=>button.classList.toggle("active",button.dataset.siloTab===activeSiloTab));
+        $$("[data-silo-panel]").forEach(panel=>panel.classList.toggle("active",panel.dataset.siloPanel===activeSiloTab));
+      }
       function renderBarn(){
+        renderSiloTabs();
         const slots=[["boots","Boots","🥾"],["gloves","Gloves","🧤"],["tools","Tool","🚿"]];
         $("#loadout").innerHTML=slots.map(([type,label,icon])=>{
           const item=itemById(state.equipment[type]);
@@ -1674,6 +1783,7 @@
         $$("[data-sell-fertiliser]").forEach(button=>button.onclick=()=>sellFertiliser(button.dataset.sellFertiliser));
         const entries=Object.entries(state.inventory).filter(([,count])=>count>0);
         const count=entries.reduce((sum,[,amount])=>sum+amount,0);
+        $("#siloItemCount").textContent=`${fmt(ownedGear.length+fertiliserCount+count)} items`;
         $("#cropCount").textContent=`${fmt(count)} crop${count===1?"":"s"}`;
         if(!entries.length){
           $("#inventoryList").innerHTML=`<div class="empty-state">Harvested crops will be stored here until you sell them.</div>`;
@@ -1709,12 +1819,21 @@
         save();renderAll();toast(`${fertiliser.name} sold for ${fmt(value)} steps`);
       }
       function renderUpgrades(){
-        const level=levelInfo().level,available=FARM_UPGRADES.filter(upgrade=>upgrade.level<=level);
-        $("#upgradeList").innerHTML=available.length?available.map(upgrade=>{
-          const purchased=state.farmUpgrades.includes(upgrade.id),requirement=upgrade.requirement;
+        const progress=levelInfo(),level=progress.level;
+        $("#upgradeLevel").textContent=String(level);
+        $("#upgradeXp").textContent=fmt(progress.current);
+        $("#upgradeXpNext").textContent=fmt(progress.next);
+        $("#upgradeXpBar").style.width=`${clamp(progress.current/Math.max(1,progress.next)*100,0,100)}%`;
+        $("#upgradeSettings").hidden=!upgradeSettingsOpen;
+        $("#toggleUpgradeSettings").setAttribute("aria-expanded",String(upgradeSettingsOpen));
+        $("#upgradeList").innerHTML=FARM_UPGRADES.map(upgrade=>{
+          const purchased=state.farmUpgrades.includes(upgrade.id),locked=upgrade.level>level,requirement=upgrade.requirement;
           const cost=`${currencyMarkup("gold",upgrade.gold)}${requirement?` + ${cropRequirementText(requirement)}`:""}`;
-          return `<article class="upgrade-card card"><div class="upgrade-top"><div class="upgrade-icon">${upgrade.icon}</div><div class="upgrade-copy"><h3>${upgrade.name}</h3><p>${upgrade.description}</p></div><span class="upgrade-level">LV ${upgrade.level}</span></div><button class="btn wide ${purchased?"secondary":""}" data-upgrade="${upgrade.id}" ${purchased||!canSpendGold(upgrade.gold)||!hasCropRequirement(requirement)?"disabled":""}>${purchased?"Purchased":`Buy · ${cost}`}</button></article>`;
-        }).join(""):`<div class="empty-state">Your first upgrade unlocks at level 2.</div>`;
+          const art=FARM_UPGRADE_ART[upgrade.id];
+          const icon=art?`<img class="pixel-sprite auto-centered-sprite" data-center-src="${art}" src="${art}" alt="" draggable="false">`:upgrade.icon;
+          const label=purchased?"Purchased":locked?`Unlocks at LV ${upgrade.level}`:`Buy · ${cost}`;
+          return `<article class="upgrade-card card ${purchased?"purchased":""} ${locked?"locked":""}"><div class="upgrade-top"><div class="upgrade-icon">${icon}</div><div class="upgrade-copy"><h3>${upgrade.name}</h3><p>${upgrade.description}</p></div><span class="upgrade-level">LV ${upgrade.level}</span></div><button class="btn wide ${purchased?"secondary":""}" data-upgrade="${upgrade.id}" ${purchased||locked||!canSpendGold(upgrade.gold)||!hasCropRequirement(requirement)?"disabled":""}>${label}</button></article>`;
+        }).join("");
         $$("[data-upgrade]").forEach(button=>button.onclick=()=>buyUpgrade(button.dataset.upgrade));
         $("#goalSelect").value=String(state.dailyGoal);
         renderPlacementEditor();
@@ -1802,6 +1921,142 @@
           if(image.complete&&image.naturalWidth)calculate();
           else image.addEventListener("load",calculate,{once:true});
         });
+      }
+      function assetLabel(src){
+        const file=(src||"asset").split("/").pop().replace(/\.[^.]+$/,"").replace(/-\d+x\d+$/,"");
+        return file.replace(/[-_]+/g," ").replace(/\b\w/g,letter=>letter.toUpperCase());
+      }
+      function assetContextFor(image){
+        if(image.closest(".account-avatar"))return "Header";
+        const nav=image.closest(".nav-btn");
+        if(nav)return `Navigation · ${nav.dataset.screen}`;
+        const modal=image.closest(".modal");
+        if(modal)return `Detail · ${modal.id.replace(/Modal$/,"")}`;
+        const screen=image.closest(".screen");
+        if(screen?.id==="barn")return "Silo";
+        return screen?screen.id[0].toUpperCase()+screen.id.slice(1):"Interface";
+      }
+      function assetKey(context,src){return `${context}|${src}`}
+      function assetLayoutDefinitions(){
+        const definitions=[];
+        const add=(context,label,src)=>{
+          if(!src)return;
+          const key=assetKey(context,src);
+          if(!definitions.some(entry=>entry.key===key))definitions.push({key,context,label,src});
+        };
+        add("Header","Farmer avatar","assets/farm/ui-v3/avatar-96.png");
+        [["farm","Farm"],["shop","Shop"],["quests","Quests"],["barn","Silo"],["upgrades","Upgrade"]].forEach(([id,label])=>add(`Navigation · ${id}`,`${label} navigation icon`,`assets/farm/ui-v3/nav-${id==="barn"?"silo":id==="upgrades"?"upgrade":id}-64.png`));
+        add("Farm","Planter bed","assets/farm/planter-bed-128x96.png");
+        add("Farm","Weather icon","assets/farm/ui-v3/weather-partly-sunny-64.png");
+        CROPS.forEach(crop=>{
+          add("Farm",`${crop.name} · planted`,crop.stages?.planted);
+          add("Farm",`${crop.name} · ready`,crop.stages?.grown);
+          add("Shop",`${crop.name} · seeds`,crop.seedImage);
+          add("Silo",`${crop.name} · crop`,crop.image);
+          add("Detail · seed",`${crop.name} · seed detail`,crop.seedImage);
+          add("Detail · plant",`${crop.name} · planting`,crop.seedImage);
+        });
+        ITEMS.forEach(item=>{
+          add("Shop",`${item.name} · shop`,item.image);
+          add("Silo",`${item.name} · silo`,item.image);
+          add("Detail · item",`${item.name} · detail`,item.image);
+        });
+        FERTILISERS.forEach(fertiliser=>{
+          add("Shop",`${fertiliser.name} ${fertiliser.tier} · shop`,fertiliser.image);
+          add("Silo",`${fertiliser.name} ${fertiliser.tier} · silo`,fertiliser.image);
+          add("Detail · fert",`${fertiliser.name} ${fertiliser.tier} · detail`,fertiliser.image);
+          add("Detail · plant",`${fertiliser.name} ${fertiliser.tier} · planting`,fertiliser.image);
+        });
+        dailyQuests().forEach(quest=>add("Quests",`${quest.npc} · portrait`,quest.image));
+        FARM_UPGRADES.forEach(upgrade=>add("Upgrades",`${upgrade.name} · upgrade`,FARM_UPGRADE_ART[upgrade.id]));
+        $$("img").forEach(image=>{
+          if(image.classList.contains("currency-icon")||image.closest(".asset-layout-card,.placement-card,.image-centre-card,.asset-preview-panel"))return;
+          const src=image.getAttribute("src");
+          if(src)add(assetContextFor(image),assetLabel(src),src);
+        });
+        return definitions.sort((a,b)=>a.context.localeCompare(b.context)||a.label.localeCompare(b.label));
+      }
+      function assetLayoutValue(key){
+        const saved=state.assetTransforms?.[key]||{};
+        return {
+          x:clamp(Number(saved.x)||0,-80,80),
+          y:clamp(Number(saved.y)||0,-80,80),
+          scale:clamp(Number(saved.scale)||1,.4,2.2)
+        };
+      }
+      function prepareAssetLayouts(){
+        $$("img").forEach(image=>{
+          if(image.classList.contains("currency-icon")||image.closest(".asset-layout-card,.placement-card,.image-centre-card,.asset-preview-panel"))return;
+          const src=image.getAttribute("src");
+          if(!src)return;
+          const context=assetContextFor(image),key=assetKey(context,src),layout=assetLayoutValue(key);
+          image.dataset.layoutKey=key;
+          image.classList.add("layout-adjustable");
+          image.style.setProperty("--layout-x",`${layout.x}px`);
+          image.style.setProperty("--layout-y",`${layout.y}px`);
+          image.style.setProperty("--layout-scale",String(layout.scale));
+        });
+      }
+      function loadAssetLayoutDraft(){
+        if(!selectedLayoutAsset)return;
+        assetLayoutDraft={...assetLayoutValue(selectedLayoutAsset)};
+      }
+      function updateAssetLayoutEditor(){
+        const definition=assetLayoutDefinitions().find(entry=>entry.key===selectedLayoutAsset);
+        if(!definition)return;
+        const preview=$("#layoutAssetPreview");
+        preview.innerHTML=`<img src="${definition.src}" alt="">`;
+        const image=preview.querySelector("img");
+        image.style.transform=`translate(${assetLayoutDraft.x}px,${assetLayoutDraft.y}px) scale(${assetLayoutDraft.scale})`;
+        $("#layoutAssetX").value=String(assetLayoutDraft.x);
+        $("#layoutAssetY").value=String(assetLayoutDraft.y);
+        $("#layoutAssetScale").value=String(Math.round(assetLayoutDraft.scale*100));
+        $("#layoutAssetXValue").textContent=`${assetLayoutDraft.x}px`;
+        $("#layoutAssetYValue").textContent=`${assetLayoutDraft.y}px`;
+        $("#layoutAssetScaleValue").textContent=`${Math.round(assetLayoutDraft.scale*100)}%`;
+      }
+      function renderAssetLayoutEditor(){
+        const select=$("#layoutAssetSelect");
+        if(!select)return;
+        const definitions=assetLayoutDefinitions();
+        if(!definitions.length)return;
+        if(!selectedLayoutAsset||!definitions.some(entry=>entry.key===selectedLayoutAsset))selectedLayoutAsset=definitions[0].key;
+        select.innerHTML=definitions.map(entry=>`<option value="${entry.key}">${entry.context} · ${entry.label}</option>`).join("");
+        select.value=selectedLayoutAsset;
+        loadAssetLayoutDraft();
+        select.onchange=()=>{
+          selectedLayoutAsset=select.value;
+          loadAssetLayoutDraft();
+          updateAssetLayoutEditor();
+        };
+        const update=(field,value)=>{
+          assetLayoutDraft[field]=field==="scale"?clamp(value/100,.4,2.2):clamp(value,-80,80);
+          updateAssetLayoutEditor();
+        };
+        $("#layoutAssetX").oninput=event=>update("x",Number(event.target.value)||0);
+        $("#layoutAssetY").oninput=event=>update("y",Number(event.target.value)||0);
+        $("#layoutAssetScale").oninput=event=>update("scale",Number(event.target.value)||100);
+        $("#resetAssetLayout").onclick=()=>{assetLayoutDraft={x:0,y:0,scale:1};updateAssetLayoutEditor()};
+        $("#saveAssetLayout").onclick=()=>{
+          state.assetTransforms={...(state.assetTransforms||{}),[selectedLayoutAsset]:{...assetLayoutDraft}};
+          saveNow();prepareAssetLayouts();toast("Asset position saved");
+        };
+        let drag=null;
+        const preview=$("#layoutAssetPreview");
+        preview.onpointerdown=event=>{
+          drag={id:event.pointerId,x:event.clientX,y:event.clientY,startX:assetLayoutDraft.x,startY:assetLayoutDraft.y};
+          preview.setPointerCapture(event.pointerId);
+        };
+        preview.onpointermove=event=>{
+          if(!drag||drag.id!==event.pointerId)return;
+          assetLayoutDraft.x=clamp(Math.round(drag.startX+event.clientX-drag.x),-80,80);
+          assetLayoutDraft.y=clamp(Math.round(drag.startY+event.clientY-drag.y),-80,80);
+          updateAssetLayoutEditor();
+        };
+        preview.onpointerup=preview.onpointercancel=event=>{
+          if(drag?.id===event.pointerId)drag=null;
+        };
+        updateAssetLayoutEditor();
       }
       function renderAdminPanel(){
         $("#adminEntry").hidden=state.adminMode;
@@ -1971,7 +2226,8 @@
       }
       function renderAll(){
         renderHeader();renderFarm();renderShop();renderQuests();renderBarn();renderUpgrades();
-        requestAnimationFrame(applyImageCentering);
+        prepareAssetLayouts();renderAssetLayoutEditor();
+        requestAnimationFrame(()=>{applyImageCentering();prepareAssetLayouts()});
       }
       function navigate(screen){
         activeScreen=screen;
@@ -1983,7 +2239,9 @@
         if(screen==="quests")renderQuests();
         if(screen==="barn")renderBarn();
         if(screen==="upgrades")renderUpgrades();
-        requestAnimationFrame(applyImageCentering);
+        prepareAssetLayouts();
+        if(screen==="upgrades")renderAssetLayoutEditor();
+        requestAnimationFrame(()=>{applyImageCentering();prepareAssetLayouts()});
       }
       function closeModals(){$$(".modal").forEach(modal=>modal.classList.remove("show"))}
       function toast(message){
@@ -2007,6 +2265,14 @@
       $$("#shopTabs .tab").forEach(tab=>tab.onclick=()=>{activeShopTab=tab.dataset.shopTab;renderShop()});
       $$("#gearViewTabs .tab").forEach(tab=>tab.onclick=()=>{activeGearView=tab.dataset.gearView;renderShop()});
       $$("#fertTierTabs .tab").forEach(tab=>tab.onclick=()=>{selectedFertiliserTier=tab.dataset.fertTier;renderShop()});
+      $$("[data-quest-period]").forEach(button=>button.onclick=()=>{activeQuestPeriod=button.dataset.questPeriod;renderQuests();prepareAssetLayouts()});
+      $$("[data-silo-tab]").forEach(button=>button.onclick=()=>{activeSiloTab=button.dataset.siloTab;renderSiloTabs()});
+      $("#toggleUpgradeSettings").onclick=()=>{
+        upgradeSettingsOpen=!upgradeSettingsOpen;
+        $("#upgradeSettings").hidden=!upgradeSettingsOpen;
+        $("#toggleUpgradeSettings").setAttribute("aria-expanded",String(upgradeSettingsOpen));
+        if(upgradeSettingsOpen){renderAssetLayoutEditor();requestAnimationFrame(()=>$("#upgradeSettings").scrollIntoView({behavior:"smooth",block:"start"}))}
+      };
       $("#seedShopSize").oninput=event=>{state.seedShopSize=clamp(Number(event.target.value)||40,24,48);save();renderShop()};
       $("#seedSizeDown").onclick=()=>{state.seedShopSize=clamp((Number(state.seedShopSize)||40)-2,24,48);save();renderShop()};
       $("#seedSizeUp").onclick=()=>{state.seedShopSize=clamp((Number(state.seedShopSize)||40)+2,24,48);save();renderShop()};
@@ -2041,6 +2307,7 @@
       });
       document.addEventListener("visibilitychange",()=>{if(!document.hidden){postNative({type:"pedometerReady"});renderAll()}});
       setInterval(()=>{
+        if($("#shopRefreshLabel"))$("#shopRefreshLabel").textContent=stockRefreshText();
         if(renderedStockDate!==todayKey()){
           renderedStockDate=todayKey();resetDailyPerks();state.questDate=todayKey();state.completedQuests=[];save();
           if(activeScreen==="shop")renderShop();
@@ -2048,7 +2315,7 @@
         }
       },60000);
       if("serviceWorker" in navigator)navigator.serviceWorker.register("./sw.js").catch(()=>{});
-      new MutationObserver(()=>requestAnimationFrame(applyImageCentering)).observe(document.querySelector(".app"),{childList:true,subtree:true});
+      new MutationObserver(()=>requestAnimationFrame(()=>{applyImageCentering();prepareAssetLayouts()})).observe(document.body,{childList:true,subtree:true});
       renderAll();
       if(assetPreviewRequested)navigate("upgrades");
       postNative({type:"pedometerReady"});
