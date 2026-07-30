@@ -26,6 +26,8 @@ palette without dithering, and saves optimized RGBA PNGs.
 | `../upgrades-v3/pollinator-garden-192.png` | 192×192 | `call_TlmepxsFZIuY9InuqeVR9ANh.png` |
 | `../upgrades-v3/moon-irrigation-192.png` | 192×192 | `call_7abkDSS5R9nmDLmj5HB3noJj.png` |
 | `../upgrades-v3/ancient-greenhouse-192.png` | 192×192 | `call_FGaMj3bufpoUVzOqbntEmvXv.png` |
+| `../upgrades-v3/seed-ledger-192.png` | 192×192 | `call_5KHNEzEHOUY3q2DQdgep6908.png` |
+| `../upgrades-v3/compost-bin-192.png` | 192×192 | `call_yOkXLmJdNLhptEbaV02OAQJd.png` |
 
 ## Shared visual specification
 
@@ -116,4 +118,25 @@ added to complete the production pack are recorded below.
 > 16-bit / early-32-bit farming-fantasy pixel art with crisp square pixel
 > clusters. Show one centered, fully visible greenhouse on a perfectly flat
 > solid `#ff00ff` chroma-key background. No text, UI frame, shadow, or
+> watermark.
+
+## Seed Ledger prompt
+
+> Create one standalone “Seed Ledger” upgrade illustration: a rustic open farm
+> ledger with warm cream pages, a worn honey-brown leather cover, decorative
+> handwritten line marks, three colorful seed packets, a pressed green leaf,
+> brass clasp, and simple page tabs. Use polished detailed 16-bit /
+> early-32-bit farming-game pixel art with crisp square pixel clusters. Center
+> the fully visible arrangement on a perfectly flat solid `#ff00ff` chroma-key
+> background. No readable words or numbers, UI frame, shadow, or watermark.
+
+## Compost Bin prompt
+
+> Create one standalone “Compost Bin” upgrade illustration: a tidy square
+> slatted wooden compost bin with warm honey-brown boards, dark iron corner
+> brackets, rich finished compost, a few dry golden leaves, two small green
+> clippings, and a simple wooden lid propped behind it. Use polished detailed
+> 16-bit / early-32-bit farming-game pixel art with crisp square pixel
+> clusters. Center the fully visible bin on a perfectly flat solid `#ff00ff`
+> chroma-key background. No worms as a main focus, text, UI frame, shadow, or
 > watermark.

@@ -421,6 +421,20 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
   min-height:128px;
   padding:8px 5px;
 }
+.shop-item:after{
+  height:42%;
+  background:linear-gradient(transparent,rgba(24,55,38,.88));
+}
+.shop-item .item-name{
+  display:block;
+  min-height:0;
+  color:#fff;
+  font-family:"DM Sans",sans-serif;
+  font-size:8px;
+  line-height:1.14;
+  text-shadow:0 1px 3px rgba(0,0,0,.9);
+  -webkit-line-clamp:unset;
+}
 .item-art{
   display:grid;
   place-items:center;
