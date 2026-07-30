@@ -1472,7 +1472,7 @@
         $("#plantAll").disabled=!state.beds.slice(0,state.unlockedBeds).some(bed=>!bed);
         $("#replantAll").disabled=!state.beds.slice(0,state.unlockedBeds).some((bed,index)=>!bed&&state.bedPlans[index]);
       }
-      const PLANTER_ART="assets/farm/planter-bed-ground-192x144.png";
+      const PLANTER_ART="assets/farm/planter-bed-grounded-v2-256x232.png";
       function planterArt(layer="planter-back"){
         const front=layer==="planter-front";
         return `<img class="bed-art ${layer} pixel-sprite auto-centered-sprite" data-center-src="${PLANTER_ART}" src="${PLANTER_ART}" alt="" draggable="false"${front?' aria-hidden="true"':""}>`;
@@ -1482,10 +1482,10 @@
           const next=index===state.unlockedBeds;
           if(!next)return "";
           const requirement=BED_REQUIREMENTS[index];
-          return `<article class="bed locked next-unlock"><button class="bed-scene bed-action" data-unlock-bed="${index}">${planterArt()}<span class="bed-plaque"><strong>Plot ${index+1}</strong></span><span class="bed-unlock-banner"><b>Unlock</b>${farmCurrencyMarkup("gold",BED_COSTS[index])}${requirement?`<small>${cropRequirementText(requirement)}</small>`:""}</span></button></article>`;
+          return `<article class="bed locked next-unlock" data-bed-index="${index}"><button class="bed-scene bed-action" data-unlock-bed="${index}">${planterArt()}<span class="bed-plaque"><strong>Plot ${index+1}</strong></span><span class="bed-unlock-banner"><b>Unlock</b>${farmCurrencyMarkup("gold",BED_COSTS[index])}${requirement?`<small>${cropRequirementText(requirement)}</small>`:""}</span></button></article>`;
         }
         const bed=state.beds[index];
-        if(!bed)return `<article class="bed empty"><button class="bed-scene bed-action" data-plant-bed="${index}" aria-label="Plant crop">${planterArt()}<span class="bed-plaque"><strong>Empty</strong></span><span class="bed-empty-callout">＋ Plant crop</span></button></article>`;
+        if(!bed)return `<article class="bed empty" data-bed-index="${index}"><button class="bed-scene bed-action" data-plant-bed="${index}" aria-label="Plant crop">${planterArt()}<span class="bed-plaque"><strong>Empty</strong></span></button></article>`;
         const crop=cropById(bed.cropId);
         const status=bedState(bed);
         const progress=clamp(bed.growth/crop.steps*100,0,100);
@@ -1497,7 +1497,7 @@
         const scene=status==="ready"
           ? `<button class="bed-scene harvest-target" data-harvest-bed="${index}" aria-label="Harvest ${crop.name}">${content}</button>`
           : `<div class="bed-scene">${content}</div>`;
-        return `<article class="bed ${status}">${scene}</article>`;
+        return `<article class="bed ${status}" data-bed-index="${index}">${scene}</article>`;
       }
       function unlockBed(index){
         const cost=BED_COSTS[index],requirement=BED_REQUIREMENTS[index];
