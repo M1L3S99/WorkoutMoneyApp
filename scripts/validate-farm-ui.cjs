@@ -97,8 +97,31 @@ for (const asset of ["assets/farm/crops/radish-seeds-96.png", "assets/farm/ui/go
 }
 const backgroundAsset = "assets/farm/ui/farm-background-v2.webp";
 const backgroundSize = fs.statSync(backgroundAsset).size;
-if (backgroundSize < 50000 || backgroundSize > 150000 || !html.includes(backgroundAsset) || !serviceWorker.includes(`./${backgroundAsset}`) || !serviceWorker.includes("ironbound-farm-v25")) {
+if (backgroundSize < 50000 || backgroundSize > 150000 || !html.includes(backgroundAsset) || !serviceWorker.includes(`./${backgroundAsset}`) || !serviceWorker.includes("ironbound-farm-v26")) {
   throw new Error(`The compressed offline Farm background is missing or too heavy (${backgroundSize} bytes)`);
+}
+const uiV3Assets = [
+  "assets/farm/ui-v3/theme-v3.css",
+  "assets/farm/ui-v3/avatar-96.png",
+  "assets/farm/ui-v3/nav-farm-64.png",
+  "assets/farm/ui-v3/nav-shop-64.png",
+  "assets/farm/ui-v3/nav-quests-64.png",
+  "assets/farm/ui-v3/nav-silo-64.png",
+  "assets/farm/ui-v3/nav-upgrade-64.png",
+  "assets/farm/ui-v3/weather-partly-sunny-64.png",
+  ...["garden-paths","rain-barrel","deep-beds","glass-cloche","market-cart","pollinator-garden","moon-irrigation","ancient-greenhouse"]
+    .map((id) => `assets/farm/upgrades-v3/${id}-192.png`)
+];
+for (const asset of uiV3Assets) {
+  if (!fs.existsSync(asset)) throw new Error(`Missing Meadowstep v3 asset: ${asset}`);
+  const size = fs.statSync(asset).size;
+  if (size < 100 || size > 120000) throw new Error(`Meadowstep v3 asset has an unexpected size: ${asset} (${size} bytes)`);
+  if (!html.includes(asset) && !serviceWorker.includes(`./${asset}`)) {
+    throw new Error(`Meadowstep v3 asset is not integrated: ${asset}`);
+  }
+}
+for (const hook of ["assetTransforms", "layoutAssetSelect", "prepareAssetLayouts", "upgradeSettings"]) {
+  if (!html.includes(hook)) throw new Error(`Missing Meadowstep v3 layout hook: ${hook}`);
 }
 if (!html.includes('background-attachment:fixed,fixed') ||
     !html.includes('linear-gradient(rgba(255,255,255,.58),rgba(255,255,255,.68))') ||

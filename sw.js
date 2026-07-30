@@ -1,5 +1,5 @@
 /* Ironbound service worker — farming app shell for offline + home-screen install */
-const CACHE = 'ironbound-farm-v25';
+const CACHE = 'ironbound-farm-v26';
 const CROP_IDS = [
   'radish','lettuce','spinach','carrot','onion','beetroot','blueberry','peas','potato','strawberry','pepper',
   'tomato','corn','eggplant','cabbage','broccoli','pumpkin','grapes','melon','dragonfruit','starfruit','ancient-root'
@@ -24,6 +24,18 @@ const GENERATED_ART = [
   ...FERTILISER_ART_IDS.map((id) => `./assets/farm/fertilisers/${id}-96.png`),
   ...['tilda','bram','nia'].map((id) => `./assets/farm/npcs/${id}-96.png`)
 ];
+const UI_V3_ART = [
+  './assets/farm/ui-v3/theme-v3.css',
+  './assets/farm/ui-v3/avatar-96.png',
+  './assets/farm/ui-v3/nav-farm-64.png',
+  './assets/farm/ui-v3/nav-shop-64.png',
+  './assets/farm/ui-v3/nav-quests-64.png',
+  './assets/farm/ui-v3/nav-silo-64.png',
+  './assets/farm/ui-v3/nav-upgrade-64.png',
+  './assets/farm/ui-v3/weather-partly-sunny-64.png',
+  ...['garden-paths','rain-barrel','deep-beds','glass-cloche','market-cart','pollinator-garden','moon-irrigation','ancient-greenhouse']
+    .map((id) => `./assets/farm/upgrades-v3/${id}-192.png`)
+];
 const ASSETS = [
   './',
   './index.html',
@@ -35,6 +47,7 @@ const ASSETS = [
   './assets/farm/ui/farm-background-v2.webp',
   './assets/farm/ui/gold-coin-64.png',
   './assets/farm/ui/step-token-64.png',
+  ...UI_V3_ART,
   ...GENERATED_ART
 ];
 
