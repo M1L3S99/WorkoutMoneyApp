@@ -217,117 +217,450 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
 }
 .btn:disabled{opacity:.42;filter:saturate(.55);box-shadow:none}
 
-/* Farm */
+/* Farm — full-bleed orchard redesign. Everything stays scoped to the Farm view. */
+.currency-icon-farm,.wallet-label{display:none}
+.app.farm-view{background:transparent}
+.app.farm-view .topbar{
+  min-height:86px;
+  padding:calc(9px + env(safe-area-inset-top)) 12px 9px;
+  border:2px solid #c9aa70;
+  border-top:0;
+  border-radius:0 0 22px 22px;
+  color:#31271b;
+  background:
+    repeating-linear-gradient(103deg,rgba(111,77,35,.025) 0 1px,transparent 1px 6px),
+    linear-gradient(145deg,#fff4d5,#eddbb3);
+  box-shadow:0 8px 0 rgba(105,72,35,.18),0 12px 24px rgba(47,66,38,.18),inset 0 1px 0 #fff;
+}
+.app.farm-view .account-avatar{
+  border-color:#fff8df;
+  background:#4b813e;
+  box-shadow:0 0 0 2px #7ca45b,0 4px 10px rgba(64,48,26,.2);
+}
+.app.farm-view .account-summary b{color:#30281e}
+.app.farm-view .account-summary small{color:#3f6f33}
+.app.farm-view .account-level-track{height:6px;background:#d7c498;box-shadow:inset 0 1px 2px rgba(74,50,24,.2)}
+.app.farm-view .account-level-track i{background:linear-gradient(90deg,#4f9b32,#9fca3f)}
+.app.farm-view .wallet{gap:7px}
+.app.farm-view .wallet-pill{
+  flex:0 0 74px;
+  width:74px;
+  min-width:0;
+  min-height:57px;
+  padding:5px 7px 4px;
+  border:2px solid #d0b67e;
+  border-radius:16px;
+  background:linear-gradient(160deg,#fff9e7,#f2e3bf);
+  box-shadow:inset 0 1px 0 #fff,0 3px 7px rgba(94,67,34,.1);
+}
+.app.farm-view .wallet-value{width:100%;min-width:0;gap:3px}
+.app.farm-view .wallet-pill b{
+  min-width:0;
+  overflow:hidden;
+  color:#352719;
+  font-size:13px;
+  font-variant-numeric:tabular-nums;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.app.farm-view .currency-icon-default{display:none}
+.app.farm-view .currency-icon-farm{
+  display:block;
+  width:29px;
+  height:29px;
+  object-fit:contain;
+  image-rendering:pixelated;
+}
+.app.farm-view .wallet-label{
+  display:block;
+  margin-top:1px;
+  color:#477238;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.07em;
+  line-height:1;
+  text-transform:uppercase;
+}
+
 #farm{
-  min-height:auto;
+  position:relative;
+  isolation:isolate;
+  min-height:calc(100dvh - 72px);
   margin:-14px -13px 0;
-  padding:13px 13px 20px;
-  background:
-    linear-gradient(180deg,rgba(239,246,226,.2),rgba(255,250,237,.08)),
-    radial-gradient(circle at 50% 0,rgba(190,220,139,.16),transparent 35%);
+  padding:10px 13px 44px;
+  overflow:hidden;
+  background:#c2a66d;
 }
-#farm:before{display:none}
+#farm:before{
+  content:"";
+  position:absolute;
+  z-index:0;
+  inset:0;
+  display:block;
+  pointer-events:none;
+  background-image:
+    linear-gradient(180deg,rgba(255,249,213,.02) 0 650px,rgba(216,196,135,.18) 720px,rgba(194,166,109,.94) 895px,rgba(178,145,86,.76) 100%),
+    url("../ui/farm-background-v2.webp"),
+    radial-gradient(circle at 18% 18%,rgba(91,118,42,.2) 0 2px,transparent 3px),
+    radial-gradient(circle at 74% 58%,rgba(255,239,166,.2) 0 1px,transparent 2px),
+    linear-gradient(180deg,#d8c185,#b99a5e);
+  background-position:center,center top,0 0,8px 10px,center;
+  background-size:100% 100%,auto 910px,28px 28px,25px 25px,100% 100%;
+  background-repeat:no-repeat,no-repeat,repeat,repeat,no-repeat;
+  filter:saturate(1.08) contrast(1.02);
+}
+#farm:after{
+  content:"";
+  position:absolute;
+  z-index:0;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(90deg,rgba(38,63,27,.09),transparent 13%,transparent 87%,rgba(38,63,27,.09));
+}
+#farm>*{position:relative;z-index:1}
 #farm .farm-hero{
-  min-height:172px;
-  padding:14px;
-  border:1px solid rgba(205,184,136,.92);
-  border-radius:28px;
-  background:
-    radial-gradient(circle at 50% 46%,rgba(157,196,112,.26),transparent 54%),
-    repeating-linear-gradient(103deg,rgba(104,76,38,.02) 0 1px,transparent 1px 6px),
-    linear-gradient(148deg,rgba(255,250,226,.91),rgba(237,225,194,.88));
-  box-shadow:var(--surface-shadow);
+  display:grid;
+  place-items:center;
+  min-height:284px;
+  padding:12px 0 4px;
+  overflow:visible;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  backdrop-filter:none;
 }
-#farm .step-card{min-height:142px}
+#farm .farm-hero:after{display:none}
+#farm .step-card{min-height:260px}
 #farm .step-ring{
-  width:142px;
-  height:142px;
-  background:conic-gradient(#6b9f59 var(--progress),#dfe7d3 0);
-  box-shadow:0 12px 26px rgba(45,76,45,.16);
+  width:clamp(218px,66vw,274px);
+  height:auto;
+  aspect-ratio:1;
+  border:7px solid rgba(255,242,208,.96);
+  background:conic-gradient(#66ad32 var(--progress),rgba(224,194,134,.52) 0);
+  box-shadow:
+    0 10px 0 rgba(103,73,33,.18),
+    0 18px 34px rgba(46,66,30,.22),
+    inset 0 0 0 2px rgba(95,62,27,.16);
 }
 #farm .step-ring:before{
-  inset:10px;
-  border:1px solid #e2e8d8;
-  background:linear-gradient(180deg,#fffef9,#f8faef);
+  inset:15px;
+  border:3px solid #d7bd85;
+  background:
+    radial-gradient(circle at 40% 28%,rgba(255,255,255,.72),transparent 34%),
+    linear-gradient(150deg,#fff8e8,#f4e4bb);
+  box-shadow:inset 0 5px 13px rgba(86,60,27,.08);
 }
-#farm .step-ring-copy b{
-  color:var(--meadow-950);
-  font-size:31px;
+#farm .step-ring-copy{
+  z-index:1;
+  display:grid;
+  place-items:center;
+  gap:2px;
+  color:#392918;
 }
-#farm .step-ring-copy span{color:#71816d;font-size:8px}
-#farm .step-ring-copy small{margin-top:4px;color:#6c9859;font-size:10px}
+#farm .step-ring-icon{
+  width:47px;
+  height:47px;
+  margin-bottom:1px;
+  object-fit:contain;
+  filter:drop-shadow(0 3px 2px rgba(72,53,26,.18));
+}
+#farm .step-total{
+  display:flex;
+  align-items:baseline;
+  justify-content:center;
+  gap:6px;
+}
+#farm .step-ring-copy .step-total b{
+  margin:0;
+  color:#342313;
+  font-family:"DM Sans",sans-serif;
+  font-size:clamp(34px,11vw,43px);
+  font-weight:900;
+  letter-spacing:-.055em;
+  line-height:.95;
+}
+#farm .step-ring-copy .step-total small{
+  margin:0;
+  color:#745534;
+  font-size:16px;
+  font-weight:800;
+}
+#farm .step-ring-copy>span{
+  margin-top:3px;
+  color:#326d2d;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.1em;
+}
 #farm .weather-card{
-  grid-template-columns:40px minmax(0,1fr) auto;
-  min-height:62px;
-  margin-top:10px;
-  padding:8px 10px;
-  border:1px solid #bdcba9;
+  grid-template-columns:48px minmax(0,1fr) auto;
+  gap:10px;
+  width:min(100%,410px);
+  min-height:72px;
+  margin:0 auto 10px;
+  padding:9px 10px;
+  border:2px solid #c8a66c;
   border-radius:18px;
-  background:var(--moss-surface);
-  box-shadow:0 8px 18px rgba(48,72,42,.11),inset 0 1px 0 rgba(255,255,255,.9);
+  background:
+    repeating-linear-gradient(103deg,rgba(111,77,35,.022) 0 1px,transparent 1px 6px),
+    linear-gradient(145deg,#fff3d2,#edd7a8);
+  box-shadow:0 7px 0 rgba(103,73,33,.16),0 12px 22px rgba(57,66,33,.15),inset 0 1px 0 #fff;
 }
 #farm .weather-icon{
-  width:40px;
-  height:40px;
-  overflow:hidden;
+  width:48px;
+  height:48px;
+  overflow:visible;
   border:0;
-  border-radius:13px;
-  background:#e9f0da;
-  font-size:21px;
+  border-radius:0;
+  background:transparent;
 }
-#farm .weather-icon img{width:42px;height:42px;object-fit:contain;image-rendering:pixelated}
-#farm .weather-copy b{font-size:11px}
-#farm .weather-copy small{font-size:8px}
+#farm .weather-icon img{
+  width:50px;
+  height:50px;
+  object-fit:contain;
+  image-rendering:pixelated;
+  filter:drop-shadow(0 3px 2px rgba(77,57,27,.16));
+}
+#farm .weather-copy b{
+  overflow:visible;
+  color:#3d3020;
+  font-size:12px;
+  text-overflow:clip;
+  white-space:normal;
+}
+#farm .weather-copy small{color:#745b3a;font-size:8px;line-height:1.3}
 #farm .weather-copy small:last-child{display:none}
-#farm .weather-card .btn{min-width:64px;min-height:40px}
+#farm .weather-card .btn{
+  min-width:61px;
+  min-height:43px;
+  border:1px solid #86a267;
+  border-radius:13px;
+  background:linear-gradient(180deg,#eff4d8,#dce8bf);
+  color:#315d2c;
+  box-shadow:inset 0 1px 0 #fff;
+}
 #farm .garden-panel{
-  margin-top:12px;
-  padding:15px 11px 17px;
-  border:1px solid var(--paper-edge);
-  border-radius:26px;
-  background:var(--paper-surface);
-  box-shadow:var(--surface-shadow);
-}
-#farm .garden-heading{margin-bottom:7px}
-#farm .garden-heading p{font-size:8px}
-#farm .garden-heading h1{font-size:25px}
-#farm .garden-count{
-  min-height:29px;
-  border-color:#cfdbc0;
-  background:#eef3e4;
-}
-#farm .garden-status{margin-bottom:10px}
-#farm .farm-actions{gap:8px;margin-bottom:10px}
-#farm .farm-actions .btn{min-height:43px;border-radius:14px}
-#farm .beds-grid{gap:10px 9px}
-#farm .bed{
-  height:177px;
-  min-height:177px;
-  padding:3px 0 6px;
-}
-#farm .bed-head{min-height:23px;padding:0 3px}
-#farm .bed-head strong{font-size:11px}
-#farm .bed-state{font-size:7px}
-#farm .bed-scene,.placement-bed-scene{height:108px}
-#farm .bed-art,.placement-bed-scene .bed-art{width:min(106%,176px)}
-#farm .crop-visual,.placement-bed-scene .crop-visual{top:-8px}
-#farm .bed-progress{
-  width:min(100%,172px);
-  height:9px;
   margin-top:0;
-  border-color:#714626;
-  background:#b77a42;
+  padding:10px 2px 18px;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
 }
-#farm .bed-progress i{background:linear-gradient(90deg,#77a653,#a8cf62)}
-#farm .bed-foot{font-size:7px}
-#farm .bed-action small{bottom:1px;color:#5d7257;font-size:9px}
-#farm .bed.locked{
-  height:177px;
-  min-height:177px;
-  border:1px dashed #aab59d;
-  border-radius:20px;
-  background:rgba(232,232,217,.8);
+#farm .garden-heading{
+  align-items:center;
+  margin:0 4px 7px;
 }
+#farm .garden-heading p{
+  margin-bottom:1px;
+  color:#315e30;
+  font-size:7px;
+  text-shadow:0 1px 0 rgba(255,247,213,.75);
+}
+#farm .garden-heading h1{
+  color:#214828;
+  font-size:24px;
+  text-shadow:0 2px 0 rgba(255,241,194,.74);
+}
+#farm .garden-count{
+  min-height:28px;
+  border:1px solid #cfb170;
+  background:linear-gradient(180deg,#fff0c2,#e3c789);
+  color:#4d3a20;
+  box-shadow:0 3px 0 rgba(91,63,29,.13);
+}
+#farm .garden-status{gap:6px;margin:0 4px 8px}
+#farm .garden-status span{
+  padding:5px 8px;
+  border:1px solid rgba(255,244,203,.48);
+  background:rgba(35,87,42,.88);
+  color:#f8f2d8;
+  box-shadow:0 3px 8px rgba(47,55,27,.12);
+}
+#farm .garden-status b{color:#fff}
+#farm .farm-actions{gap:8px;margin:0 3px 8px}
+#farm .farm-actions .btn{
+  min-height:42px;
+  border:2px solid #385f2c;
+  border-radius:13px;
+  color:#fff9dc;
+  background:linear-gradient(180deg,#559d3c,#2e6d31);
+  box-shadow:0 4px 0 rgba(51,68,27,.2),inset 0 1px 0 rgba(255,255,255,.2);
+}
+#farm .farm-actions .btn:last-child{
+  border-color:#80552a;
+  color:#fff4d8;
+  background:linear-gradient(180deg,#a26d38,#744625);
+}
+#farm .beds-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px 8px;
+}
+#farm .bed,
+#farm .bed.empty,
+#farm .bed.locked,
+#farm .bed.ready{
+  position:relative;
+  width:100%;
+  height:auto;
+  min-height:0;
+  aspect-ratio:.88;
+  padding:0;
+  overflow:visible;
+  border:0;
+  border-radius:0;
+  color:#fff4d8;
+  background:transparent;
+  box-shadow:none;
+  text-align:center;
+}
+#farm .bed-scene,
+#farm .bed-action{
+  position:relative;
+  display:block;
+  width:100%;
+  height:100%;
+  min-height:0;
+  margin:0;
+  padding:0;
+  overflow:visible;
+  border:0;
+  background:transparent;
+  color:inherit;
+}
+#farm .bed-scene .bed-art,
+#farm .bed.empty .bed-art{
+  position:absolute;
+  top:28px;
+  left:50%;
+  width:min(104%,194px);
+  max-width:none;
+  height:auto;
+  transform:translateX(-50%) translate(var(--sprite-auto-x,0%),calc(var(--sprite-auto-y,0%) + var(--sprite-center-y,0px)));
+  filter:drop-shadow(0 7px 4px rgba(45,27,10,.35));
+}
+#farm .crop-visual{
+  position:absolute;
+  z-index:2;
+  top:-2px;
+  left:50%;
+  display:grid;
+  place-items:center;
+  width:72px;
+  height:72px;
+  transform:translateX(-50%) translate(var(--crop-x,0px),var(--crop-y,0px)) scale(var(--crop-scale,1));
+  transform-origin:50% 100%;
+  filter:drop-shadow(0 4px 3px rgba(45,27,10,.34));
+}
+#farm .crop-stage-sprite{width:72px;height:72px}
+#farm .bed-plaque{
+  position:absolute;
+  z-index:4;
+  right:7%;
+  bottom:41px;
+  left:7%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:27px;
+  padding:4px 7px;
+  border:2px solid #5a3218;
+  border-radius:5px;
+  color:#fff4d7;
+  background:
+    repeating-linear-gradient(90deg,rgba(255,255,255,.04) 0 2px,transparent 2px 9px),
+    linear-gradient(180deg,#a56a31,#75441f);
+  box-shadow:inset 0 1px 0 rgba(255,220,155,.4),0 3px 0 rgba(70,39,17,.26);
+  text-shadow:0 1px 1px rgba(45,24,9,.7);
+}
+#farm .bed-plaque strong{
+  max-width:100%;
+  overflow:hidden;
+  font-size:10px;
+  line-height:1;
+  letter-spacing:.02em;
+  text-overflow:ellipsis;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+#farm .bed-state{display:none}
+#farm .bed-progress,
+#farm .bed-ready-banner,
+#farm .bed-empty-callout,
+#farm .bed-unlock-banner{
+  position:absolute;
+  z-index:4;
+  right:5%;
+  bottom:4px;
+  left:5%;
+  min-height:29px;
+  overflow:hidden;
+  border:3px solid #5a351b;
+  border-radius:10px;
+  background:#3d2b1d;
+  box-shadow:inset 0 2px 3px rgba(0,0,0,.32),0 3px 0 rgba(68,40,18,.23);
+}
+#farm .bed-progress i{
+  position:absolute;
+  inset:0 auto 0 0;
+  display:block;
+  height:100%;
+  border-radius:6px;
+  background:linear-gradient(180deg,#8fd242,#4f9d2d);
+  transition:width .25s;
+}
+#farm .bed-progress b{
+  position:relative;
+  z-index:1;
+  display:grid;
+  place-items:center;
+  min-height:23px;
+  color:#fff9dc;
+  font-size:8px;
+  line-height:1;
+  text-shadow:0 1px 2px #274418;
+}
+#farm .bed-ready-banner,
+#farm .bed-empty-callout,
+#farm .bed-unlock-banner{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:3px 6px;
+  border-color:#315c22;
+  color:#fffbe0;
+  background:linear-gradient(180deg,#67b53b,#31852f);
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.02em;
+  text-transform:uppercase;
+}
+#farm .bed-empty-callout{border-color:#76502a;background:linear-gradient(180deg,#b47939,#7b4a25)}
+#farm .bed-unlock-banner{
+  flex-wrap:wrap;
+  gap:2px 5px;
+  min-height:33px;
+  border-color:#71502e;
+  background:linear-gradient(180deg,#957048,#67492d);
+}
+#farm .bed-unlock-banner b{font-size:8px}
+#farm .bed-unlock-banner .farm-currency{gap:2px;font-size:8px}
+#farm .bed-unlock-banner .currency-icon{width:15px;height:15px}
+#farm .bed-unlock-banner small{
+  flex:1 0 100%;
+  overflow:hidden;
+  font-size:6px;
+  line-height:1;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+#farm .bed.locked .bed-art{filter:grayscale(.42) brightness(.78) drop-shadow(0 7px 4px rgba(45,27,10,.3))}
+#farm .bed.ready .bed-art{
+  filter:drop-shadow(0 7px 4px rgba(45,27,10,.35)) drop-shadow(0 0 8px rgba(255,221,92,.45));
+}
+#farm .harvest-target{cursor:pointer;touch-action:manipulation}
+#farm .bed-head,#farm .bed-foot,#farm .empty-head-spacer{display:none}
 
 /* Shared segmented controls */
 .tabs,.quest-tabs,.silo-tabs{
@@ -895,12 +1228,28 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
   .account-avatar img{width:44px;height:44px}
   .account-summary b{max-width:87px;font-size:12px}
   .wallet-pill{min-width:56px;padding-inline:6px}
+  .app.farm-view .topbar{gap:6px;padding-inline:7px}
+  .app.farm-view .account-summary{grid-template-columns:38px minmax(0,1fr);gap:6px}
+  .app.farm-view .account-avatar{width:38px;height:38px}
+  .app.farm-view .account-avatar img{width:42px;height:42px}
+  .app.farm-view .account-summary b{max-width:68px;font-size:11px}
+  .app.farm-view .wallet{gap:4px}
+  .app.farm-view .wallet-pill{flex-basis:65px;width:65px;min-height:52px;padding-inline:5px}
+  .app.farm-view .currency-icon-farm{width:25px;height:25px}
+  .app.farm-view .wallet-pill b{font-size:11px}
+  .app.farm-view .wallet-label{font-size:6px}
   main{padding-inline:10px}
   #farm{margin-inline:-10px;padding-inline:10px}
-  #farm .garden-panel{padding-inline:8px}
-  #farm .beds-grid{gap:7px}
-  #farm .bed{height:169px;min-height:169px}
-  #farm .bed.locked{height:169px;min-height:169px}
+  #farm .farm-hero{min-height:250px;padding-top:7px}
+  #farm .step-card{min-height:232px}
+  #farm .step-ring{width:clamp(208px,70vw,226px)}
+  #farm .weather-card{grid-template-columns:44px minmax(0,1fr) auto;gap:7px;padding-inline:8px}
+  #farm .weather-icon,#farm .weather-icon img{width:44px;height:44px}
+  #farm .garden-panel{padding-inline:1px}
+  #farm .beds-grid{gap:7px 6px}
+  #farm .bed,#farm .bed.locked{height:auto;min-height:0;aspect-ratio:.86}
+  #farm .bed-plaque strong{font-size:9px}
+  #farm .bed-progress b,#farm .bed-ready-banner,#farm .bed-empty-callout{font-size:7px}
   .shop-grid,.shop-grid.seed-grid{gap:6px}
   .seed-shop-row,.shop-item{min-height:117px;padding-inline:3px}
   .seed-row-icon{
