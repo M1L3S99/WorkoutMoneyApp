@@ -8,6 +8,20 @@ if (!script) throw new Error("Embedded script missing");
 new Function(script[1]);
 console.log("Embedded JavaScript syntax OK");
 
+function functionSource(name) {
+  const marker = `function ${name}`;
+  const start = script[1].indexOf(marker);
+  if (start < 0) return "";
+  const opening = script[1].indexOf("{", start + marker.length);
+  if (opening < 0) return "";
+  let depth = 0;
+  for (let index = opening; index < script[1].length; index++) {
+    if (script[1][index] === "{") depth++;
+    if (script[1][index] === "}" && --depth === 0) return script[1].slice(start, index + 1);
+  }
+  return "";
+}
+
 const ids = [...html.matchAll(/id="([^"]+)"/g)].map((match) => match[1]);
 const duplicates = [...new Set(ids.filter((id, index) => ids.indexOf(id) !== index))];
 if (duplicates.length) throw new Error(`Duplicate IDs: ${duplicates.join(", ")}`);
@@ -61,6 +75,11 @@ if (farm.MAX_BEDS !== 20 || farm.BED_COSTS.length !== 20 || farm.BED_REQUIREMENT
 if (farm.freshState().unlockedBeds !== 1) {
   throw new Error("A new farm must start with one unlocked bed");
 }
+const freshPlotLayouts = farm.freshState().plotLayouts;
+if (!Array.isArray(freshPlotLayouts) || freshPlotLayouts.length !== farm.MAX_BEDS ||
+    freshPlotLayouts.some((layout) => !layout || layout.x !== 0 || layout.y !== 0 || layout.scale !== 1)) {
+  throw new Error("A new farm must create one neutral, independently persisted layout for each of its twenty plots");
+}
 if ((farm.freshState().seeds?.radish || 0) < 1) {
   throw new Error("A new farm must start with radish seeds");
 }
@@ -96,6 +115,22 @@ for (const id of [
 ]) {
   if (!ids.includes(id)) throw new Error(`Missing modern Farm control: ${id}`);
 }
+for (const id of [
+  "openPlotLayout",
+  "plotLayoutEditor",
+  "plotLayoutSelect",
+  "plotLayoutX",
+  "plotLayoutXValue",
+  "plotLayoutY",
+  "plotLayoutYValue",
+  "plotLayoutScale",
+  "plotLayoutScaleValue",
+  "resetPlotLayout",
+  "resetAllPlotLayouts",
+  "savePlotLayout",
+]) {
+  if (!ids.includes(id)) throw new Error(`Missing per-planter layout control: ${id}`);
+}
 for (const removedId of ["dailyPercent", "stepStatus", "dailyProgress"]) {
   if (ids.includes(removedId)) throw new Error(`The simplified step hero must not retain ${removedId}`);
 }
@@ -130,7 +165,7 @@ if (!html.includes(backgroundAssets[0][0]) ||
     !theme.includes("../ui/farm-overview-scene-v1.webp") ||
     !theme.includes("../ui/crop-area-scene-v1.webp") ||
     !theme.includes("../ui/crop-area-ground-v1.webp") ||
-    !serviceWorker.includes("ironbound-farm-v37")) {
+    !serviceWorker.includes("ironbound-farm-v38")) {
   throw new Error("The Farm backgrounds or v37 offline cache are not fully integrated");
 }
 if (!html.includes('id="farmOverview"') ||
@@ -144,6 +179,34 @@ if (!html.includes('id="farmOverview"') ||
     !theme.includes("#farm .farm-subview[hidden]") ||
     !theme.includes("#farm.crop-area-open:before")) {
   throw new Error("Farm Overview and Crop Area must remain separate interactive views");
+}
+const renderBedSource = functionSource("renderBed");
+if (!script[1].includes('Array.from({length:MAX_BEDS},(_,index)=>renderBed(index)).join("")') ||
+    !renderBedSource.includes("locked-future") ||
+    renderBedSource.includes('return ""')) {
+  throw new Error("The Crop Area must render all twenty plots, including visible future locked plots");
+}
+for (const hook of [
+  "plotLayoutValue",
+  "plotLayoutStyle",
+  "renderPlotLayoutEditor",
+  "selectPlotLayout",
+  "updatePlotLayoutDraft",
+  "setPlotLayoutEditor",
+  "resetSelectedPlotLayout",
+  "resetAllPlotLayouts",
+  "savePlotLayoutEditor",
+  "bindPlotLayoutEditor",
+]) {
+  if (!script[1].includes(`function ${hook}`)) throw new Error(`Missing per-planter layout implementation: ${hook}`);
+}
+const savePlotLayoutSource = functionSource("savePlotLayoutEditor");
+if (!/plotLayouts\s*:\s*Array\.from\(\{\s*length\s*:\s*MAX_BEDS\s*\}/s.test(script[1]) ||
+    !/merged\.plotLayouts\s*=\s*Array\.from\(\{\s*length\s*:\s*MAX_BEDS\s*\}/s.test(script[1]) ||
+    !script[1].includes("plotLayoutStyle(index)") ||
+    !savePlotLayoutSource.includes("state.plotLayouts") ||
+    !savePlotLayoutSource.includes("saveNow()")) {
+  throw new Error("Per-planter position and size adjustments must be normalised to twenty plots, applied to rendering, and saved permanently");
 }
 const planterAsset = "assets/farm/planter-bed-complete-v7-256x232.webp";
 const planterSize = fs.statSync(planterAsset).size;
@@ -272,7 +335,7 @@ if (!html.includes("height:189px;min-height:189px") ||
     !html.includes("width:min(104%,180px);height:10px")) {
   throw new Error("Empty, growing, and ready planters must keep identical fixed geometry");
 }
-if (!html.includes('class="farm-hero"') || !html.includes('class="garden-panel"') || !html.includes("#farm .farm-hero") || !html.includes('if(!next)return ""') || !html.includes('class="bed ${status}"') ||
+if (!html.includes('class="farm-hero"') || !html.includes('class="garden-panel"') || !html.includes("#farm .farm-hero") || !html.includes('class="bed ${status}"') ||
     html.includes("WALK-POWERED FARM") || html.includes("MOVE TO GROW") || html.includes("Walk. Grow. Harvest.")) {
   throw new Error("The Farm must use the clean step-ring-only hero and condensed plot board");
 }

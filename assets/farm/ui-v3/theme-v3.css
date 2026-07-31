@@ -1621,3 +1621,381 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
 @media(prefers-reduced-motion:reduce){
   #cropArea,.crop-area-entry{animation:none;transition:none}
 }
+
+/* Crop Area: 20-plot mobile field and per-plot layout editor. */
+#cropArea{
+  --crop-area-inline:clamp(8px,2.8vw,14px);
+  --crop-row-gap:clamp(28px,8vw,40px);
+  --crop-column-gap:clamp(8px,2.8vw,14px);
+  --plot-editor-reserve:0px;
+  position:relative;
+  width:100%;
+  padding-right:var(--crop-area-inline);
+  padding-bottom:calc(var(--farm-nav) + env(safe-area-inset-bottom) + 28px + var(--plot-editor-reserve));
+  padding-left:var(--crop-area-inline);
+  overflow:visible;
+  scroll-padding-top:74px;
+  scroll-padding-bottom:calc(var(--farm-nav) + env(safe-area-inset-bottom) + 22px + var(--plot-editor-reserve));
+  isolation:isolate;
+}
+#cropArea .crop-area-toolbar,
+#cropArea .garden-panel{
+  width:100%;
+  max-width:430px;
+  margin-inline:auto;
+}
+#cropArea .crop-area-toolbar{z-index:20}
+#cropArea .crop-area-controls{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 94px;
+  align-items:center;
+  gap:8px;
+  width:min(calc(100% - 18px),360px);
+  margin:12px auto 16px;
+}
+#cropArea .crop-area-controls .farm-actions{
+  width:auto;
+  min-width:0;
+  margin:0;
+}
+#cropArea #openPlotLayout{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  min-width:92px;
+  min-height:46px;
+  padding:7px 9px;
+  border:2px solid #80552a;
+  border-radius:14px;
+  color:#fff7df;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.1),transparent 44%),
+    linear-gradient(180deg,#a36f39,#704321);
+  box-shadow:0 4px 0 rgba(68,40,18,.2),inset 0 1px 0 rgba(255,255,255,.18);
+  font-size:8px;
+  font-weight:900;
+  line-height:1;
+  text-transform:uppercase;
+  white-space:nowrap;
+  cursor:pointer;
+  touch-action:manipulation;
+}
+#cropArea #openPlotLayout span{font-size:14px;line-height:1}
+#cropArea #openPlotLayout:active{
+  transform:translateY(2px);
+  box-shadow:0 2px 0 rgba(68,40,18,.2),inset 0 1px 0 rgba(255,255,255,.18);
+}
+#cropArea .garden-panel{
+  padding:0 1px clamp(30px,9vw,46px);
+  overflow:visible;
+}
+#cropArea .beds-grid{
+  counter-reset:crop-plot;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  grid-auto-flow:row;
+  grid-auto-rows:auto;
+  align-items:start;
+  gap:var(--crop-row-gap) var(--crop-column-gap);
+  width:100%;
+  min-width:0;
+  padding:2px clamp(1px,.8vw,4px) 12px;
+  overflow:visible;
+}
+#cropArea .bed,
+#cropArea .bed.empty,
+#cropArea .bed.locked,
+#cropArea .bed.ready{
+  counter-increment:crop-plot;
+  position:relative;
+  z-index:1;
+  align-self:start;
+  justify-self:stretch;
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  height:auto;
+  min-height:0;
+  aspect-ratio:1.04;
+}
+#cropArea .bed>.bed-scene{
+  transform:
+    translate(
+      var(--plot-x,var(--bed-x,0px)),
+      var(--plot-y,var(--bed-y,0px))
+    )
+    scale(var(--plot-scale,var(--bed-scale,1)));
+  transform-origin:50% 50%;
+  transition:transform .16s ease;
+}
+#cropArea.plot-layout-editing{
+  --plot-editor-reserve:218px;
+}
+#cropArea.plot-layout-editing .beds-grid{
+  padding-top:24px;
+  padding-bottom:34px;
+}
+#cropArea.plot-layout-editing .bed{
+  z-index:2;
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+}
+#cropArea.plot-layout-editing .bed.plot-layout-selected{
+  z-index:14;
+  filter:drop-shadow(0 8px 10px rgba(35,52,21,.26));
+}
+#cropArea.plot-layout-editing .bed>.bed-scene{
+  pointer-events:none;
+  transition:none;
+}
+#cropArea .plot-layout-target{display:none}
+#cropArea.plot-layout-editing .bed .plot-layout-target{
+  position:absolute;
+  z-index:20;
+  inset:-5px;
+  display:block;
+  width:calc(100% + 10px);
+  height:calc(100% + 10px);
+  padding:0;
+  transform:
+    translate(
+      var(--plot-x,var(--bed-x,0px)),
+      var(--plot-y,var(--bed-y,0px))
+    )
+    scale(var(--plot-scale,var(--bed-scale,1)));
+  transform-origin:50% 50%;
+  border:2px dashed rgba(255,248,216,.82);
+  border-radius:18px;
+  background:rgba(34,89,39,.07);
+  cursor:grab;
+  touch-action:none;
+}
+#cropArea.plot-layout-editing .bed .plot-layout-target span{
+  position:absolute;
+  top:5px;
+  left:5px;
+  display:grid;
+  place-items:center;
+  min-width:31px;
+  height:31px;
+  padding:0 7px;
+  border:2px solid #fff4cf;
+  border-radius:10px;
+  color:#fff;
+  background:#385f2c;
+  box-shadow:0 3px 0 rgba(47,69,29,.28),0 5px 10px rgba(31,44,21,.2);
+  font-size:9px;
+  font-weight:900;
+  line-height:1;
+}
+#cropArea.plot-layout-editing .bed.plot-layout-selected .plot-layout-target{
+  border:4px solid #ffe071;
+  background:rgba(255,224,113,.12);
+  box-shadow:0 0 0 3px rgba(54,101,44,.72),0 0 20px rgba(255,224,113,.35);
+}
+#cropArea.plot-layout-editing .bed.plot-layout-selected .plot-layout-target span{
+  color:#4d3516;
+  background:#ffe071;
+}
+#cropArea.plot-layout-editing .plot-layout-target:active{cursor:grabbing}
+#cropArea.plot-layout-editing .plot-layout-target:focus-visible{
+  outline:3px solid #fff9d9;
+  outline-offset:3px;
+}
+
+/* The editor floats above the persistent navigation and never hides the last row. */
+#cropArea #plotLayoutEditor{
+  position:fixed;
+  z-index:90;
+  top:auto;
+  right:auto;
+  bottom:calc(var(--farm-nav) + env(safe-area-inset-bottom) + 8px);
+  left:50%;
+  display:block;
+  width:min(calc(100% - 16px),430px);
+  max-height:calc(100dvh - var(--farm-head) - var(--farm-nav) - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 24px);
+  margin:0;
+  padding:10px;
+  overflow-x:hidden;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  transform:translateX(-50%);
+  border:3px solid #8b5b2d;
+  border-radius:18px;
+  color:#3b2a19;
+  background:
+    repeating-linear-gradient(103deg,rgba(111,77,35,.025) 0 1px,transparent 1px 6px),
+    linear-gradient(145deg,rgba(255,247,218,.99),rgba(230,205,157,.99));
+  box-shadow:0 9px 25px rgba(50,36,18,.28),inset 0 1px 0 #fff;
+  -webkit-backdrop-filter:blur(8px);
+  backdrop-filter:blur(8px);
+}
+#cropArea #plotLayoutEditor[hidden]{display:none!important}
+#cropArea #plotLayoutEditor .plot-layout-editor-head{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:start;
+  gap:8px;
+  margin-bottom:7px;
+}
+#cropArea #plotLayoutEditor .plot-layout-editor-head b{
+  font-size:12px;
+  line-height:1;
+}
+#cropArea #plotLayoutEditor .plot-layout-editor-head small{
+  display:block;
+  margin-top:3px;
+  overflow:visible;
+  color:#735d42;
+  font-size:7px;
+  line-height:1.25;
+  text-overflow:clip;
+  white-space:normal;
+}
+#cropArea #plotLayoutEditor .plot-layout-picker{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  align-items:center;
+  gap:5px;
+  font-size:8px;
+  white-space:nowrap;
+}
+#cropArea #plotLayoutEditor .plot-layout-picker select{
+  width:100%;
+  min-width:0;
+  min-height:36px;
+  padding:6px 25px 6px 8px;
+  border-radius:10px;
+}
+#cropArea #plotLayoutEditor .plot-layout-sliders{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:4px;
+}
+#cropArea #plotLayoutEditor .plot-layout-control{
+  display:grid;
+  grid-template-columns:58px minmax(0,1fr) 42px;
+  align-items:center;
+  gap:6px;
+  min-height:27px;
+}
+#cropArea #plotLayoutEditor .plot-layout-control label{
+  font-size:7px;
+  line-height:1.1;
+}
+#cropArea #plotLayoutEditor .plot-layout-control input[type="range"]{
+  -webkit-appearance:none;
+  appearance:none;
+  width:100%;
+  min-height:26px;
+  margin:0;
+  accent-color:#4f8c36;
+  background:transparent;
+  cursor:ew-resize;
+  touch-action:pan-x;
+}
+#cropArea #plotLayoutEditor .plot-layout-control input[type="range"]::-webkit-slider-runnable-track{
+  height:7px;
+  border:1px solid #b58a50;
+  border-radius:999px;
+  background:#fff4d5;
+  box-shadow:inset 0 1px 2px rgba(92,63,31,.18);
+}
+#cropArea #plotLayoutEditor .plot-layout-control input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:22px;
+  height:22px;
+  margin-top:-8px;
+  border:2px solid #fff5c8;
+  border-radius:8px;
+  background:linear-gradient(180deg,#71ae4b,#3d7936);
+  box-shadow:0 2px 0 #315b2d,0 3px 7px rgba(55,61,31,.22);
+}
+#cropArea #plotLayoutEditor .plot-layout-control input[type="range"]::-moz-range-track{
+  height:7px;
+  border:1px solid #b58a50;
+  border-radius:999px;
+  background:#fff4d5;
+  box-shadow:inset 0 1px 2px rgba(92,63,31,.18);
+}
+#cropArea #plotLayoutEditor .plot-layout-control input[type="range"]::-moz-range-thumb{
+  width:18px;
+  height:18px;
+  border:2px solid #fff5c8;
+  border-radius:8px;
+  background:linear-gradient(180deg,#71ae4b,#3d7936);
+  box-shadow:0 2px 0 #315b2d,0 3px 7px rgba(55,61,31,.22);
+}
+#cropArea #plotLayoutEditor .plot-layout-control output{
+  font-size:8px;
+  font-variant-numeric:tabular-nums;
+}
+#cropArea #plotLayoutEditor .plot-layout-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr 1.35fr;
+  gap:6px;
+  margin-top:7px;
+}
+#cropArea #plotLayoutEditor .plot-layout-actions button{
+  min-width:0;
+  min-height:40px;
+  padding:6px 5px;
+  border-radius:11px;
+  font-size:7px;
+  line-height:1.1;
+  white-space:normal;
+  touch-action:manipulation;
+}
+#cropArea #plotLayoutEditor .plot-layout-actions button:focus-visible,
+#cropArea #openPlotLayout:focus-visible{
+  outline:3px solid #fff9d9;
+  outline-offset:2px;
+}
+
+@media(max-width:370px){
+  #cropArea{
+    --crop-area-inline:8px;
+    --crop-row-gap:clamp(24px,7.7vw,30px);
+    --crop-column-gap:6px;
+  }
+  #cropArea .crop-area-toolbar{padding-inline:6px}
+  #cropArea .crop-area-toolbar h1{max-width:43%;font-size:17px}
+  #cropArea .crop-area-count{max-width:31%;font-size:8px}
+  #cropArea .crop-area-controls{
+    width:min(calc(100% - 8px),330px);
+    gap:6px;
+  }
+  #cropArea #openPlotLayout{
+    min-width:82px;
+    padding-inline:7px;
+    font-size:8px;
+  }
+  #cropArea .garden-panel,
+  #cropArea .beds-grid{padding-inline:0}
+  #cropArea .bed,
+  #cropArea .bed.empty,
+  #cropArea .bed.locked,
+  #cropArea .bed.ready{aspect-ratio:1.01}
+  #cropArea #plotLayoutEditor{
+    width:calc(100% - 16px);
+    padding:8px;
+  }
+  #cropArea #plotLayoutEditor .plot-layout-editor-head{grid-template-columns:minmax(0,1fr) 104px}
+  #cropArea #plotLayoutEditor .plot-layout-editor-head small{max-width:145px}
+  #cropArea #plotLayoutEditor .plot-layout-control{grid-template-columns:52px minmax(0,1fr) 38px}
+  #cropArea #plotLayoutEditor .plot-layout-actions{grid-template-columns:1fr 1fr 1.25fr}
+}
+
+@media(min-width:431px){
+  #cropArea{
+    --crop-area-inline:14px;
+    --crop-row-gap:38px;
+    --crop-column-gap:15px;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  #cropArea .bed>.bed-scene{transition:none}
+}
