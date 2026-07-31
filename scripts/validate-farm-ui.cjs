@@ -99,7 +99,7 @@ for (const asset of ["assets/farm/crops/radish-seeds-96.png", "assets/farm/ui/go
 const backgroundAssets = [
   ["assets/farm/ui/farm-background-v2.webp", 50000, 150000],
   ["assets/farm/ui/farm-background-meadow-v4.webp", 150000, 350000],
-  ["assets/farm/ui/farm-ground-grass-v3.webp", 40000, 120000]
+  ["assets/farm/ui/farm-ground-planter-v4.webp", 40000, 120000]
 ];
 for (const [backgroundAsset, minSize, maxSize] of backgroundAssets) {
   const backgroundSize = fs.statSync(backgroundAsset).size;
@@ -110,11 +110,11 @@ for (const [backgroundAsset, minSize, maxSize] of backgroundAssets) {
 }
 if (!html.includes(backgroundAssets[0][0]) ||
     !theme.includes("../ui/farm-background-meadow-v4.webp") ||
-    !theme.includes("../ui/farm-ground-grass-v3.webp") ||
-    !serviceWorker.includes("ironbound-farm-v32")) {
-  throw new Error("The Farm backgrounds or v32 offline cache are not fully integrated");
+    !theme.includes("../ui/farm-ground-planter-v4.webp") ||
+    !serviceWorker.includes("ironbound-farm-v33")) {
+  throw new Error("The Farm backgrounds or v33 offline cache are not fully integrated");
 }
-const planterAsset = "assets/farm/planter-bed-grounded-v3-256x232.png";
+const planterAsset = "assets/farm/planter-bed-terrain-v4-256x232.png";
 const planterSize = fs.statSync(planterAsset).size;
 if (planterSize < 40000 || planterSize > 110000 ||
     !html.includes(planterAsset) ||
@@ -155,7 +155,7 @@ if (!theme.includes("#farm:before") ||
     !theme.includes("url(\"../ui/farm-background-meadow-v4.webp\")") ||
     !theme.includes("background-size:100% 100%,100% auto") ||
     !theme.includes("#farm .garden-panel:before") ||
-    !theme.includes("background-size:50% auto") ||
+    !theme.includes("background-size:35% auto") ||
     !theme.includes("#farm .garden-panel") ||
     !theme.includes("background:transparent") ||
     !theme.includes("#farm .bed-plaque")) {
@@ -260,7 +260,7 @@ if (!html.includes('id="moveAllCrops"') ||
 if (!html.includes('class="bed empty"') ||
     !html.includes('class="bed-scene bed-action"') ||
     !html.includes('class="bed-plaque"><strong>Empty</strong>') ||
-    !html.includes('assets/farm/planter-bed-grounded-v3-256x232.png') ||
+    !html.includes('assets/farm/planter-bed-terrain-v4-256x232.png') ||
     !html.includes('planterArt("planter-front")')) {
   throw new Error("Empty planters must preserve the occupied bed geometry after harvesting");
 }
