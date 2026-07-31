@@ -1472,7 +1472,7 @@
         $("#plantAll").disabled=!state.beds.slice(0,state.unlockedBeds).some(bed=>!bed);
         $("#replantAll").disabled=!state.beds.slice(0,state.unlockedBeds).some((bed,index)=>!bed&&state.bedPlans[index]);
       }
-      const PLANTER_ART="assets/farm/planter-bed-terrain-v4-256x232.png";
+      const PLANTER_ART="assets/farm/planter-bed-terrain-v5-256x232.png";
       function planterArt(layer="planter-back"){
         const front=layer==="planter-front";
         return `<img class="bed-art ${layer} pixel-sprite auto-centered-sprite" data-center-src="${PLANTER_ART}" src="${PLANTER_ART}" alt="" draggable="false"${front?' aria-hidden="true"':""}>`;

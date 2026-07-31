@@ -289,7 +289,7 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
   margin:-14px -13px 0;
   padding:10px 13px 44px;
   overflow:hidden;
-  background:#78a943;
+  background:#789853;
 }
 #farm:before{
   content:"";
@@ -299,15 +299,13 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
   display:block;
   pointer-events:none;
   background-image:
-    linear-gradient(180deg,rgba(255,255,255,0) 0 720px,rgba(91,145,54,.04) 850px,rgba(65,119,43,.14) 100%),
-    url("../ui/farm-background-meadow-v4.webp"),
-    radial-gradient(circle at 18% 18%,rgba(91,118,42,.2) 0 2px,transparent 3px),
-    radial-gradient(circle at 74% 58%,rgba(255,239,166,.2) 0 1px,transparent 2px),
-    linear-gradient(180deg,#94bd52,#6d9d3e);
-  background-position:center,center top,0 0,8px 10px,center;
-  background-size:100% 100%,100% auto,28px 28px,25px 25px,100% 100%;
-  background-repeat:no-repeat,no-repeat,repeat,repeat,no-repeat;
-  filter:saturate(1.04) contrast(1.01);
+    linear-gradient(180deg,rgba(255,250,229,.09),rgba(56,88,43,.12)),
+    url("../ui/farm-background-three-quarter-v5.webp"),
+    linear-gradient(180deg,#94b874,#719452);
+  background-position:center,center top,center;
+  background-size:100% 100%,100% auto,100% 100%;
+  background-repeat:no-repeat;
+  filter:saturate(.86) brightness(1.01) contrast(.93);
 }
 #farm:after{
   content:"";
@@ -315,7 +313,7 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
   z-index:0;
   inset:0;
   pointer-events:none;
-  background:linear-gradient(90deg,rgba(38,63,27,.09),transparent 13%,transparent 87%,rgba(38,63,27,.09));
+  background:linear-gradient(90deg,rgba(38,63,27,.045),transparent 11%,transparent 89%,rgba(38,63,27,.045));
 }
 #farm>*{position:relative;z-index:1}
 #farm .farm-hero{
@@ -475,15 +473,16 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
   content:"";
   position:absolute;
   z-index:0;
-  inset:-72px -15px -46px;
+  inset:-46px -15px -46px;
   pointer-events:none;
-  background-image:url("../ui/farm-ground-planter-v4.webp");
+  background-image:url("../ui/farm-ground-perspective-v5.webp");
   background-position:center top;
-  background-size:35% auto;
-  background-repeat:repeat;
-  filter:none;
-  -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 82px,#000 100%);
-  mask-image:linear-gradient(180deg,transparent 0,#000 82px,#000 100%);
+  background-size:100% 100%;
+  background-repeat:no-repeat;
+  opacity:.28;
+  filter:saturate(.78) brightness(.99) contrast(.82);
+  -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 92px,#000 100%);
+  mask-image:linear-gradient(180deg,transparent 0,#000 92px,#000 100%);
 }
 #farm .garden-panel>*{position:relative;z-index:1}
 #farm .garden-heading{display:none}
