@@ -477,11 +477,11 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
   z-index:0;
   inset:-72px -15px -46px;
   pointer-events:none;
-  background-image:url("../ui/farm-ground-grass-v3.webp");
+  background-image:url("../ui/farm-ground-planter-v4.webp");
   background-position:center top;
-  background-size:50% auto;
+  background-size:35% auto;
   background-repeat:repeat;
-  filter:saturate(.92) brightness(.96);
+  filter:none;
   -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 82px,#000 100%);
   mask-image:linear-gradient(180deg,transparent 0,#000 82px,#000 100%);
 }
@@ -586,7 +586,7 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
   max-width:none;
   height:auto;
   transform:translateX(-50%) translate(var(--sprite-auto-x,0%),calc(var(--sprite-auto-y,0%) + var(--sprite-center-y,0px)));
-  filter:drop-shadow(0 1px 0 rgba(45,27,10,.18));
+  filter:none;
   pointer-events:none;
   transform-origin:50% 100%;
 }
@@ -714,8 +714,8 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
   text-overflow:ellipsis;
   white-space:nowrap;
 }
-#farm .bed.locked .bed-art{filter:grayscale(.42) brightness(.78) drop-shadow(0 1px 0 rgba(45,27,10,.18))}
-#farm .bed.ready .planter-back{filter:drop-shadow(0 1px 0 rgba(45,27,10,.18))}
+#farm .bed.locked .bed-art,
+#farm .bed.ready .planter-back{filter:none}
 #farm .harvest-target{cursor:pointer;touch-action:manipulation}
 #farm .bed-head,#farm .bed-foot,#farm .empty-head-spacer{display:none}
 
@@ -1203,7 +1203,7 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
   width:100%;
   max-width:none;
   height:auto;
-  filter:drop-shadow(0 1px 0 rgba(45,27,10,.18));
+  filter:none;
   transform:translateX(-50%) translate(var(--sprite-auto-x,0%),calc(var(--sprite-auto-y,0%) + var(--sprite-center-y,0px)));
   transform-origin:50% 100%;
 }
