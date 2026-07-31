@@ -289,7 +289,7 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
   margin:-14px -13px 0;
   padding:10px 13px 44px;
   overflow:hidden;
-  background:#c2a66d;
+  background:#78a943;
 }
 #farm:before{
   content:"";
@@ -299,11 +299,11 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
   display:block;
   pointer-events:none;
   background-image:
-    linear-gradient(180deg,rgba(255,255,255,0) 0 800px,rgba(196,166,98,.2) 875px,rgba(185,150,79,.9) 1010px,rgba(171,137,73,.72) 100%),
-    url("../ui/farm-background-orchard-v3.webp"),
+    linear-gradient(180deg,rgba(255,255,255,0) 0 720px,rgba(91,145,54,.04) 850px,rgba(65,119,43,.14) 100%),
+    url("../ui/farm-background-meadow-v4.webp"),
     radial-gradient(circle at 18% 18%,rgba(91,118,42,.2) 0 2px,transparent 3px),
     radial-gradient(circle at 74% 58%,rgba(255,239,166,.2) 0 1px,transparent 2px),
-    linear-gradient(180deg,#d8c185,#b99a5e);
+    linear-gradient(180deg,#94bd52,#6d9d3e);
   background-position:center,center top,0 0,8px 10px,center;
   background-size:100% 100%,100% auto,28px 28px,25px 25px,100% 100%;
   background-repeat:no-repeat,no-repeat,repeat,repeat,no-repeat;
@@ -477,11 +477,11 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
   z-index:0;
   inset:-72px -15px -46px;
   pointer-events:none;
-  background-image:url("../ui/farm-ground-continuation-v2.webp");
+  background-image:url("../ui/farm-ground-grass-v3.webp");
   background-position:center top;
-  background-size:100% auto;
-  background-repeat:repeat-y;
-  filter:saturate(.98) brightness(1.01);
+  background-size:50% auto;
+  background-repeat:repeat;
+  filter:saturate(.92) brightness(.96);
   -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 82px,#000 100%);
   mask-image:linear-gradient(180deg,transparent 0,#000 82px,#000 100%);
 }
