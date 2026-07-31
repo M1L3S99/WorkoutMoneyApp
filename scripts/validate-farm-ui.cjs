@@ -80,7 +80,20 @@ if (html.includes("TAP TO HARVEST") || html.includes("harvest-ready 1.5s") || ht
 for (const id of ["seedModal", "seedDetailName", "seedDetailInfo", "seedDetailBuy", "seedDetailAdjust", "seedSizeControl", "seedShopSize", "seedSizeDown", "seedSizeUp", "seedShopSizeValue"]) {
   if (!ids.includes(id)) throw new Error(`Missing seed detail control: ${id}`);
 }
-for (const id of ["stepRing", "todaySteps", "dailyGoalLabel", "accountName", "accountLevel", "growingCount", "readyCount", "bedsGrid"]) {
+for (const id of [
+  "stepRing",
+  "todaySteps",
+  "dailyGoalLabel",
+  "accountName",
+  "accountLevel",
+  "growingCount",
+  "readyCount",
+  "bedsGrid",
+  "farmOverview",
+  "cropArea",
+  "openCropArea",
+  "closeCropArea",
+]) {
   if (!ids.includes(id)) throw new Error(`Missing modern Farm control: ${id}`);
 }
 for (const removedId of ["dailyPercent", "stepStatus", "dailyProgress"]) {
@@ -99,7 +112,10 @@ for (const asset of ["assets/farm/crops/radish-seeds-96.png", "assets/farm/ui/go
 const backgroundAssets = [
   ["assets/farm/ui/farm-background-v2.webp", 50000, 150000],
   ["assets/farm/ui/farm-background-master-v6.webp", 70000, 220000],
-  ["assets/farm/ui/farm-ground-sand-v6.webp", 25000, 120000]
+  ["assets/farm/ui/farm-ground-sand-v6.webp", 25000, 120000],
+  ["assets/farm/ui/farm-overview-scene-v1.webp", 80000, 180000],
+  ["assets/farm/ui/crop-area-scene-v1.webp", 80000, 180000],
+  ["assets/farm/ui/crop-area-ground-v1.webp", 50000, 130000]
 ];
 for (const [backgroundAsset, minSize, maxSize] of backgroundAssets) {
   const backgroundSize = fs.statSync(backgroundAsset).size;
@@ -111,8 +127,23 @@ for (const [backgroundAsset, minSize, maxSize] of backgroundAssets) {
 if (!html.includes(backgroundAssets[0][0]) ||
     !theme.includes("../ui/farm-background-master-v6.webp") ||
     !theme.includes("../ui/farm-ground-sand-v6.webp") ||
-    !serviceWorker.includes("ironbound-farm-v36")) {
-  throw new Error("The Farm backgrounds or v36 offline cache are not fully integrated");
+    !theme.includes("../ui/farm-overview-scene-v1.webp") ||
+    !theme.includes("../ui/crop-area-scene-v1.webp") ||
+    !theme.includes("../ui/crop-area-ground-v1.webp") ||
+    !serviceWorker.includes("ironbound-farm-v37")) {
+  throw new Error("The Farm backgrounds or v37 offline cache are not fully integrated");
+}
+if (!html.includes('id="farmOverview"') ||
+    !html.includes('id="cropArea"') ||
+    !html.includes('aria-labelledby="cropAreaTitle" hidden') ||
+    !html.includes('aria-controls="cropArea"') ||
+    !script[1].includes('let farmSubview="overview"') ||
+    !script[1].includes("function setFarmSubview(view)") ||
+    !script[1].includes('$("#openCropArea").onclick') ||
+    !script[1].includes('$("#closeCropArea").onclick') ||
+    !theme.includes("#farm .farm-subview[hidden]") ||
+    !theme.includes("#farm.crop-area-open:before")) {
+  throw new Error("Farm Overview and Crop Area must remain separate interactive views");
 }
 const planterAsset = "assets/farm/planter-bed-complete-v7-256x232.webp";
 const planterSize = fs.statSync(planterAsset).size;

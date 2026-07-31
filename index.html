@@ -643,36 +643,48 @@
 
     <main>
       <section class="screen active" id="farm">
-        <div class="farm-hero">
-          <div class="step-card">
-            <div class="step-ring" id="stepRing">
-              <div class="step-ring-copy">
-                <img class="step-ring-icon pixel-sprite" src="assets/farm/ui-v3/step-currency-v2-96.png" alt="">
-                <div class="step-total"><b id="todaySteps">0</b><small id="dailyGoalLabel">/ 8,000</small></div>
-                <span>STEPS TODAY</span>
+        <div class="farm-subview farm-overview" id="farmOverview">
+          <div class="farm-hero">
+            <div class="step-card">
+              <div class="step-ring" id="stepRing">
+                <div class="step-ring-copy">
+                  <img class="step-ring-icon pixel-sprite" src="assets/farm/ui-v3/step-currency-v2-96.png" alt="">
+                  <div class="step-total"><b id="todaySteps">0</b><small id="dailyGoalLabel">/ 8,000</small></div>
+                  <span>STEPS TODAY</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="weather-card" id="weatherCard">
-          <div class="weather-icon" id="weatherIcon">🌤️</div>
-          <div class="weather-copy"><b id="weatherTitle">Local weather</b><small id="weatherDetail">Use your location for today’s crop bonus.</small><small><a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data: Open-Meteo</a></small></div>
-          <div class="weather-side">
-            <button class="weather-status" id="weatherStatus" aria-label="Refresh local weather" hidden><span aria-hidden="true">👣</span><small>Active all day<br>in your area</small></button>
-            <button class="btn secondary" id="weatherButton">Enable</button>
+          <div class="weather-card" id="weatherCard">
+            <div class="weather-icon" id="weatherIcon">🌤️</div>
+            <div class="weather-copy"><b id="weatherTitle">Local weather</b><small id="weatherDetail">Use your location for today’s crop bonus.</small><small><a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data: Open-Meteo</a></small></div>
+            <div class="weather-side">
+              <button class="weather-status" id="weatherStatus" aria-label="Refresh local weather" hidden><span aria-hidden="true">👣</span><small>Active all day<br>in your area</small></button>
+              <button class="btn secondary" id="weatherButton">Enable</button>
+            </div>
           </div>
+          <div class="farm-overview-landmark" aria-hidden="true"></div>
+          <button class="crop-area-entry" id="openCropArea" type="button" aria-controls="cropArea" aria-expanded="false">
+            <img class="pixel-sprite" src="assets/farm/ui-v3/nav-farm-64.png" alt="" draggable="false">
+            <span>Enter Crop Area</span>
+            <b aria-hidden="true">›</b>
+          </button>
         </div>
-        <div class="garden-panel">
-          <div class="garden-heading">
-            <div><p>YOUR FARM</p><h1>Garden</h1></div>
-            <span class="garden-count" id="bedCount">1 / 20 plots</span>
-          </div>
-          <div class="garden-status" aria-label="Garden status">
-            <span><i></i><b id="growingCount">0</b> growing</span>
-            <span class="ready"><i></i><b id="readyCount">0</b> ready</span>
+
+        <div class="farm-subview crop-area" id="cropArea" role="region" aria-labelledby="cropAreaTitle" hidden>
+          <div class="crop-area-toolbar">
+            <button class="crop-area-back" id="closeCropArea" type="button" aria-label="Back to Farm"><span aria-hidden="true">←</span></button>
+            <h1 id="cropAreaTitle" tabindex="-1">Crop Area</h1>
+            <span class="crop-area-count" id="bedCount">1 / 20 plots</span>
           </div>
           <div class="farm-actions"><button class="btn secondary" id="plantAll">Plant all</button><button class="btn secondary" id="replantAll">Replant all</button></div>
-          <div class="beds-grid" id="bedsGrid"></div>
+          <div class="garden-panel">
+            <div class="garden-status" aria-label="Garden status" hidden>
+              <span><i></i><b id="growingCount">0</b> growing</span>
+              <span class="ready"><i></i><b id="readyCount">0</b> ready</span>
+            </div>
+            <div class="beds-grid" id="bedsGrid"></div>
+          </div>
         </div>
       </section>
 
@@ -1096,6 +1108,7 @@
       }
       let state=loadState();
       let activeScreen="farm";
+      let farmSubview="overview";
       let activeShopTab="seeds";
       let activeGearView="daily";
       let activeQuestPeriod="daily";
@@ -1461,7 +1474,7 @@
         $("#todaySteps").setAttribute("aria-label",`${fmt(state.todaySteps)} steps today`);
         $("#stepRing").style.setProperty("--progress",`${percent*3.6}deg`);
         $("#dailyGoalLabel").textContent=`/ ${fmt(goal)}`;
-        $("#bedCount").textContent=`${state.unlockedBeds} / ${MAX_BEDS} plots`;
+        $("#bedCount").textContent=`${state.unlockedBeds} / ${MAX_BEDS} PLOTS`;
         $("#growingCount").textContent=String(growingBeds.length);
         $("#readyCount").textContent=String(readyBeds.length);
         renderWeather();
@@ -2294,17 +2307,41 @@
         button.textContent=status==="granted"?"Connected":"Enable";
         button.disabled=status==="granted";
       }
+      function syncFarmSubview(){
+        const overview=$("#farmOverview"),cropArea=$("#cropArea"),farm=$("#farm");
+        if(!overview||!cropArea||!farm)return;
+        const cropsOpen=farmSubview==="crops";
+        overview.hidden=cropsOpen;
+        cropArea.hidden=!cropsOpen;
+        farm.classList.toggle("crop-area-open",cropsOpen);
+        $("#openCropArea")?.setAttribute("aria-expanded",String(cropsOpen));
+      }
+      function setFarmSubview(view){
+        farmSubview=view==="crops"?"crops":"overview";
+        syncFarmSubview();
+        requestAnimationFrame(()=>$(farmSubview==="crops"?"#closeCropArea":"#openCropArea")?.focus({preventScroll:true}));
+        if(activeScreen==="farm"){
+          renderFarm();
+          prepareAssetLayouts();
+          requestAnimationFrame(()=>{applyImageCentering();prepareAssetLayouts()});
+        }
+        const reducedMotion=globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+        window.scrollTo({top:0,behavior:reducedMotion?"auto":"smooth"});
+      }
       function renderAll(){
+        syncFarmSubview();
         renderHeader();renderFarm();renderShop();renderQuests();renderBarn();renderUpgrades();
         prepareAssetLayouts();renderAssetLayoutEditor();
         requestAnimationFrame(()=>{applyImageCentering();prepareAssetLayouts()});
       }
       function navigate(screen){
+        if(screen==="farm")farmSubview="overview";
         activeScreen=screen;
         $(".app").classList.toggle("farm-view",screen==="farm");
         renderHeader();
         $$(".screen").forEach(el=>el.classList.toggle("active",el.id===screen));
         $$(".nav-btn").forEach(button=>button.classList.toggle("active",button.dataset.screen===screen));
+        syncFarmSubview();
         window.scrollTo({top:0,behavior:"smooth"});
         if(screen==="farm")renderFarm();
         if(screen==="shop")renderShop();
@@ -2334,6 +2371,8 @@
       }
 
       $$(".nav-btn").forEach(button=>button.onclick=()=>navigate(button.dataset.screen));
+      $("#openCropArea").onclick=()=>setFarmSubview("crops");
+      $("#closeCropArea").onclick=()=>setFarmSubview("overview");
       $$("#shopTabs .tab").forEach(tab=>tab.onclick=()=>{activeShopTab=tab.dataset.shopTab;renderShop()});
       $$("#gearViewTabs .tab").forEach(tab=>tab.onclick=()=>{activeGearView=tab.dataset.gearView;renderShop()});
       $$("#fertTierTabs .tab").forEach(tab=>tab.onclick=()=>{selectedFertiliserTier=tab.dataset.fertTier;renderShop()});
