@@ -1472,7 +1472,23 @@
         $("#plantAll").disabled=!state.beds.slice(0,state.unlockedBeds).some(bed=>!bed);
         $("#replantAll").disabled=!state.beds.slice(0,state.unlockedBeds).some((bed,index)=>!bed&&state.bedPlans[index]);
       }
-      const PLANTER_ART="assets/farm/planter-bed-terrain-v6-256x232.png";
+      const PREVIOUS_PLANTER_ART="assets/farm/planter-bed-terrain-v6-256x232.png";
+      const PLANTER_ART="assets/farm/planter-bed-complete-v7-256x232.webp";
+      function migratePlanterAssetSettings(){
+        let changed=false;
+        if(state.imageCenterY?.[PLANTER_ART]===undefined&&state.imageCenterY?.[PREVIOUS_PLANTER_ART]!==undefined){
+          state.imageCenterY={...(state.imageCenterY||{}),[PLANTER_ART]:state.imageCenterY[PREVIOUS_PLANTER_ART]};
+          changed=true;
+        }
+        const previousLayoutKey=`Farm|${PREVIOUS_PLANTER_ART}`;
+        const nextLayoutKey=`Farm|${PLANTER_ART}`;
+        if(state.assetTransforms?.[nextLayoutKey]===undefined&&state.assetTransforms?.[previousLayoutKey]!==undefined){
+          state.assetTransforms={...(state.assetTransforms||{}),[nextLayoutKey]:{...state.assetTransforms[previousLayoutKey]}};
+          changed=true;
+        }
+        if(changed)saveNow();
+      }
+      migratePlanterAssetSettings();
       function planterArt(layer="planter-back"){
         const front=layer==="planter-front";
         return `<img class="bed-art ${layer} pixel-sprite auto-centered-sprite" data-center-src="${PLANTER_ART}" src="${PLANTER_ART}" alt="" draggable="false"${front?' aria-hidden="true"':""}>`;

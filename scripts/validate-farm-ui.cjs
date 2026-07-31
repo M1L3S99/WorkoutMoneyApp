@@ -111,10 +111,10 @@ for (const [backgroundAsset, minSize, maxSize] of backgroundAssets) {
 if (!html.includes(backgroundAssets[0][0]) ||
     !theme.includes("../ui/farm-background-master-v6.webp") ||
     !theme.includes("../ui/farm-ground-sand-v6.webp") ||
-    !serviceWorker.includes("ironbound-farm-v35")) {
-  throw new Error("The Farm backgrounds or v35 offline cache are not fully integrated");
+    !serviceWorker.includes("ironbound-farm-v36")) {
+  throw new Error("The Farm backgrounds or v36 offline cache are not fully integrated");
 }
-const planterAsset = "assets/farm/planter-bed-terrain-v6-256x232.png";
+const planterAsset = "assets/farm/planter-bed-complete-v7-256x232.webp";
 const planterSize = fs.statSync(planterAsset).size;
 if (planterSize < 15000 || planterSize > 70000 ||
     !html.includes(planterAsset) ||
@@ -233,6 +233,9 @@ if (html.includes("discountedCrop") || html.includes("data-discount") || html.in
 if (!html.includes("width:min(104%,180px);height:10px;margin:1px auto 0;border:2px solid #804615") || !html.includes("background:linear-gradient(90deg,#a7b86b,#60753a)")) {
   throw new Error("The thicker garden crop-progress bar must be preserved");
 }
+if (!/#farm \.bed-progress\s*\{[^}]*transform:\s*translateY\(4px\)/s.test(theme)) {
+  throw new Error("The crop step counter must remain slightly lowered");
+}
 if (!html.includes("height:189px;min-height:189px") ||
     !html.includes("height:181px;min-height:181px") ||
     !html.includes("width:min(104%,180px);height:10px")) {
@@ -262,7 +265,7 @@ if (!html.includes('id="moveAllCrops"') ||
 if (!html.includes('class="bed empty"') ||
     !html.includes('class="bed-scene bed-action"') ||
     !html.includes('class="bed-plaque"><strong>Empty</strong>') ||
-    !html.includes('assets/farm/planter-bed-terrain-v6-256x232.png') ||
+    !html.includes('assets/farm/planter-bed-complete-v7-256x232.webp') ||
     !html.includes('planterArt("planter-front")')) {
   throw new Error("Empty planters must preserve the occupied bed geometry after harvesting");
 }
