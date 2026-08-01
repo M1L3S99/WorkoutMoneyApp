@@ -4,13 +4,14 @@ Ironbound is a mobile-first step farming game. Walking produces spendable steps 
 
 ## Farming loop
 
-- Start with one planting bed and unlock up to ten with gold.
-- Plant level-gated crops with different step requirements, experience rewards, sale values and expiry windows.
+- Start with one planting plot and unlock up to twenty with gold.
+- View the step ring, local weather and all farm plots together on one continuous meadow screen.
+- Plant level-gated crops with different step requirements, experience rewards and sale values.
 - Every walked step advances all active beds. The Android app keeps a native lifetime ledger so steps collected in the background remain available across day changes.
 - Harvest crops in standard, Bronze, Silver, Gold or Iridium quality. Iridium has a 1% base chance.
-- Sell harvested crops for gold. Riskier two-hour crops receive twice the time-value multiplier of equivalent eight-hour crops.
+- Sell harvested crops for gold; crop values scale from their walking requirements and progression level.
 - Spend gold on permanent irrigation, soil-quality and market-value improvements.
-- Spend steps on Boots, Gloves, Tools and single-use Fertiliser. Equipment improves crop growth, quality, expiry time or sale value.
+- Spend steps on Boots, Gloves, Tools and single-use Fertiliser. Equipment improves crop growth, quality or sale value.
 
 ## Currency and progression
 
