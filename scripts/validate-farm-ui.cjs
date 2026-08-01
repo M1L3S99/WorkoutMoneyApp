@@ -98,7 +98,7 @@ const hook = '      $$(".nav-btn").forEach(button=>button.onclick';
 if (!script[1].includes(hook)) throw new Error("Could not locate runtime test hook");
 const instrumented = script[1].replace(
   hook,
-  `      globalThis.__farmTest = { CROPS, ITEMS, FERTILISERS, BED_COSTS, BED_REQUIREMENTS, MAX_BEDS, FARM_UPGRADES, FARM_UPGRADE_ART, qualityOdds, bedState, freshState, dailyStock, dailyQuests, weatherFromCurrent, upgradeRecipe, ITEM_UPGRADE_MAX };
+  `      globalThis.__farmTest = { CROPS, ITEMS, FERTILISERS, BED_COSTS, BED_REQUIREMENTS, MAX_BEDS, FARM_UPGRADES, FARM_UPGRADE_ART, CHARACTER_PROFILES, qualityOdds, bedState, freshState, dailyStock, dailyQuests, weatherFromCurrent, upgradeRecipe, ITEM_UPGRADE_MAX };
       return;
 ${hook}`
 );
@@ -153,10 +153,8 @@ if (!/saved\.cropArtVersion\s*!==\s*3/.test(loadStateSource) ||
     cropPlacementDeletes.join("|") !== "radish:grown|radish:planted") {
   throw new Error("Crop art v3 migration must reset only radish:planted and radish:grown placement overrides exactly once");
 }
-const freshPlotLayouts = farm.freshState().plotLayouts;
-if (!Array.isArray(freshPlotLayouts) || freshPlotLayouts.length !== farm.MAX_BEDS ||
-    freshPlotLayouts.some((layout) => !layout || layout.x !== 0 || layout.y !== 0 || layout.scale !== 1)) {
-  throw new Error("A new farm must create one neutral, independently persisted layout for each of its twenty plots");
+if (Object.hasOwn(farm.freshState(), "plotLayouts") || !loadStateSource.includes("delete merged.plotLayouts")) {
+  throw new Error("Per-plot Arrange state must be retired so every planter keeps the same geometry");
 }
 if ((farm.freshState().seeds?.radish || 0) < 1) {
   throw new Error("A new farm must start with radish seeds");
@@ -190,6 +188,10 @@ for (const id of [
   "cropArea",
   "plantAll",
   "replantAll",
+  "profileButton",
+  "accountAvatar",
+  "profileModal",
+  "profileChoices",
 ]) {
   if (!ids.includes(id)) throw new Error(`Missing modern Farm control: ${id}`);
 }
@@ -207,7 +209,7 @@ for (const id of [
   "resetAllPlotLayouts",
   "savePlotLayout",
 ]) {
-  if (!ids.includes(id)) throw new Error(`Missing per-planter layout control: ${id}`);
+  if (ids.includes(id)) throw new Error(`Removed Arrange control must not remain: ${id}`);
 }
 for (const removedId of ["dailyPercent", "stepStatus", "dailyProgress"]) {
   if (ids.includes(removedId)) throw new Error(`The simplified step hero must not retain ${removedId}`);
@@ -253,8 +255,8 @@ if (!html.includes(backgroundAssets[0][0]) ||
     !theme.includes("../ui/crop-area-ground-v1.webp") ||
     theme.includes("crop-area-scene-v2-432x864.webp") ||
     serviceWorker.includes("crop-area-scene-v2-432x864.webp") ||
-    !serviceWorker.includes("ironbound-farm-v43")) {
-  throw new Error("The top-down Farm backgrounds or v43 offline cache are not fully integrated");
+    !serviceWorker.includes("ironbound-farm-v44")) {
+  throw new Error("The top-down Farm backgrounds or v44 offline cache are not fully integrated");
 }
 const farmOverviewStart = html.indexOf('<div class="farm-overview" id="farmOverview">');
 const farmPlotsStart = html.indexOf('<section class="farm-plots" id="cropArea" role="region" aria-label="Farm plots">');
@@ -279,27 +281,10 @@ if (!script[1].includes('Array.from({length:MAX_BEDS},(_,index)=>renderBed(index
     renderBedSource.includes('return ""')) {
   throw new Error("The Crop Area must render all twenty plots, including visible future locked plots");
 }
-for (const hook of [
-  "plotLayoutValue",
-  "plotLayoutStyle",
-  "renderPlotLayoutEditor",
-  "selectPlotLayout",
-  "updatePlotLayoutDraft",
-  "setPlotLayoutEditor",
-  "resetSelectedPlotLayout",
-  "resetAllPlotLayouts",
-  "savePlotLayoutEditor",
-  "bindPlotLayoutEditor",
-]) {
-  if (!script[1].includes(`function ${hook}`)) throw new Error(`Missing per-planter layout implementation: ${hook}`);
-}
-const savePlotLayoutSource = functionSource("savePlotLayoutEditor");
-if (!/plotLayouts\s*:\s*Array\.from\(\{\s*length\s*:\s*MAX_BEDS\s*\}/s.test(script[1]) ||
-    !/merged\.plotLayouts\s*=\s*Array\.from\(\{\s*length\s*:\s*MAX_BEDS\s*\}/s.test(script[1]) ||
-    !script[1].includes("plotLayoutStyle(index)") ||
-    !savePlotLayoutSource.includes("state.plotLayouts") ||
-    !savePlotLayoutSource.includes("saveNow()")) {
-  throw new Error("Per-planter position and size adjustments must be normalised to twenty plots, applied to rendering, and saved permanently");
+if (renderBedSource.includes("plotLayout") || renderBedSource.includes("--plot-x") ||
+    renderBedSource.includes("--plot-y") || renderBedSource.includes("--plot-scale") ||
+    /<article class="bed[^`]*style="\$\{style\}"/.test(renderBedSource)) {
+  throw new Error("Farm rendering must not apply any individual position or scale to a planter");
 }
 const soilPlotAsset = TOPDOWN_ASSETS.soil;
 const obsoleteOfflineArt = [
@@ -315,7 +300,7 @@ const obsoleteOfflineArt = [
 if (!html.includes(soilPlotAsset) ||
     Object.values(TOPDOWN_ASSETS).some((asset) => offlineAssets.filter((cached) => cached === `./${asset}`).length !== 1) ||
     obsoleteOfflineArt.some((asset) => offlineAssets.includes(asset))) {
-  throw new Error("The v43 cache must contain each approved Farm asset exactly once and exclude superseded radish and perspective art");
+  throw new Error("The v44 cache must contain each approved Farm asset exactly once and exclude superseded radish and perspective art");
 }
 const uiV3Assets = [
   "assets/farm/ui-v3/theme-v3.css",
@@ -337,6 +322,25 @@ for (const asset of uiV3Assets) {
   if (size < 100 || size > 120000) throw new Error(`Meadowstep v3 asset has an unexpected size: ${asset} (${size} bytes)`);
   if (!html.includes(asset) && !serviceWorker.includes(`./${asset}`)) {
     throw new Error(`Meadowstep v3 asset is not integrated: ${asset}`);
+  }
+}
+const profileIds = farm.CHARACTER_PROFILES.map((profile) => profile.id);
+const profileImages = farm.CHARACTER_PROFILES.map((profile) => profile.image);
+if (farm.CHARACTER_PROFILES.length < 4 || new Set(profileIds).size !== farm.CHARACTER_PROFILES.length ||
+    new Set(profileImages).size !== farm.CHARACTER_PROFILES.length ||
+    !profileIds.includes(farm.freshState().characterProfile) ||
+    !functionSource("renderHeader").includes('$("#accountAvatar").src=profile.image') ||
+    !functionSource("openProfilePicker").includes('$("#profileModal").classList.add("show")') ||
+    !functionSource("selectCharacterProfile").includes("state.characterProfile=profile.id")) {
+  throw new Error("The header must provide at least four unique, persistent character profile choices");
+}
+for (const asset of profileImages) {
+  if (!fs.existsSync(asset) || offlineAssets.filter((cached) => cached === `./${asset}`).length !== 1) {
+    throw new Error(`Character profile asset must exist and be cached exactly once: ${asset}`);
+  }
+  const metadata=pngMetadata(asset);
+  if (metadata.width < 96 || metadata.height < 96 || !metadata.hasAlpha) {
+    throw new Error(`Character profile asset must be a transparent portrait: ${asset}`);
   }
 }
 for (const hook of ["assetTransforms", "layoutAssetSelect", "prepareAssetLayouts", "upgradeSettings"]) {
@@ -432,10 +436,21 @@ if (!html.includes("width:min(104%,180px);height:10px;margin:1px auto 0;border:2
 if (!/#farm \.bed-progress\s*\{[^}]*transform:\s*translateY\(4px\)/s.test(theme)) {
   throw new Error("The crop step counter must remain slightly lowered");
 }
-if (!html.includes("height:189px;min-height:189px") ||
-    !html.includes("height:181px;min-height:181px") ||
-    !html.includes("width:min(104%,180px);height:10px")) {
-  throw new Error("Empty, growing, and ready planters must keep identical fixed geometry");
+if (!theme.includes("--plot-aspect:1.04") ||
+    !/#cropArea \.bed,\s*#cropArea \.bed\.empty,\s*#cropArea \.bed\.locked,\s*#cropArea \.bed\.ready\s*\{[^}]*width:100%;[^}]*height:auto;[^}]*aspect-ratio:var\(--plot-aspect\)/s.test(theme) ||
+    !/#cropArea \.bed>\.bed-scene\s*\{[^}]*width:100%;[^}]*height:100%;[^}]*transform:none!important/s.test(theme)) {
+  throw new Error("Every empty, growing, ready, and locked planter must share one responsive geometry");
+}
+if (!theme.includes("--hero-weather-gap:28px") ||
+    !/#farmOverview \.weather-card\s*\{[^}]*margin:var\(--hero-weather-gap\) auto 0/s.test(theme)) {
+  throw new Error("The local weather card must keep an explicit visual gap below the step ring");
+}
+if (!/\.app img,\s*\.modal img\s*\{[^}]*image-rendering:auto!important/s.test(theme)) {
+  throw new Error("Foreground icons, crops, and character portraits must use smooth browser scaling");
+}
+if (ids.includes("plantBedNumber") || /Plant bed\s/i.test(html) || script[1].includes('$("#plantBedNumber")') ||
+    !html.includes('<h2 id="plantModalTitle">Choose seeds</h2>')) {
+  throw new Error("The seed picker must use a generic Choose seeds heading without a plot number");
 }
 if (!html.includes('class="farm-hero"') || !html.includes('class="garden-panel"') || !html.includes("#farm .farm-hero") || !html.includes('class="bed ${status}"') ||
     html.includes("WALK-POWERED FARM") || html.includes("MOVE TO GROW") || html.includes("Walk. Grow. Harvest.")) {
