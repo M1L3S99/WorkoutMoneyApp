@@ -146,9 +146,10 @@ global.localStorage = { getItem() { return null; }, setItem() {} };
 new Function(instrumented)();
 
 const farm = global.__farmTest;
-for (const [value, expected] of [[0,"0"],[999,"999"],[1000,"1K"],[1050,"1.1K"],[1600,"1.6K"],[10000,"10K"],[15500,"15.5K"],[99999,"100K"],[999499,"999K"],[999500,"1M"],[1000000,"1M"],[1250000,"1.3M"]]) {
+for (const [value, expected] of [[0,"0"],[999,"999"],[1000,"1K"],[1050,"1.1K"],[1600,"1.6K"],[10000,"10K"],[15500,"15.5K"],[99999,"100K"],[999499,"999K"],[999500,"1M"],[1000000,"1M"],[1250000,"1.3M"],[999499999,"999M"],[999500000,"1B"],[1250000000,"1.3B"],[999500000000,"1T"],[1250000000000,"1.3T"],[999500000000000,"999T"]]) {
   const actual = farm.compactFmt(value);
   if (actual !== expected) throw new Error(`Compact amount mismatch for ${value}: expected ${expected}, got ${actual}`);
+  if (actual.length > 5) throw new Error(`Compact amount exceeds the five-character HUD budget for ${value}: ${actual}`);
 }
 const TOPDOWN_ASSETS = {
   soil:"assets/farm/soil-plot-topdown-v2-256x192.png",
@@ -287,8 +288,8 @@ if (meadowBackground.width !== 768 || meadowBackground.height !== 1152 ||
     meadowBackground.bytes < 100000 || meadowBackground.bytes > 280000 ||
     offlineAssets.filter((asset) => asset === `./${meadowBackgroundAsset}`).length !== 1 ||
     (!theme.includes('../ui/farm-meadow-background-v1.webp') && !html.includes(meadowBackgroundAsset)) ||
-    !serviceWorker.includes("ironbound-farm-v47") || serviceWorker.includes("ironbound-farm-v46")) {
-  throw new Error(`The 768×1152 compressed Farm meadow and v47 offline cache must be fully integrated: ${JSON.stringify(meadowBackground)}`);
+    !serviceWorker.includes("ironbound-farm-v48") || serviceWorker.includes("ironbound-farm-v47")) {
+  throw new Error(`The 768×1152 compressed Farm meadow and v48 offline cache must be fully integrated: ${JSON.stringify(meadowBackground)}`);
 }
 if (theme.includes("crop-area-scene-v2-432x864.webp") || serviceWorker.includes("crop-area-scene-v2-432x864.webp")) {
   throw new Error("Superseded perspective Farm scenery must not return");
@@ -380,7 +381,7 @@ const obsoleteOfflineArt = [
 if (!html.includes(soilPlotAsset) ||
     Object.values(TOPDOWN_ASSETS).some((asset) => offlineAssets.filter((cached) => cached === `./${asset}`).length !== 1) ||
     obsoleteOfflineArt.some((asset) => offlineAssets.includes(asset))) {
-  throw new Error("The v47 cache must contain each approved Farm asset exactly once and exclude superseded radish and perspective art");
+  throw new Error("The v48 cache must contain each approved Farm asset exactly once and exclude superseded radish and perspective art");
 }
 const uiV3Assets = [
   "assets/farm/ui-v3/theme-v3.css",
@@ -414,8 +415,8 @@ if (seedPacketMetadata.width !== 384 || seedPacketMetadata.height !== 384 || !se
     offlineAssets.filter((asset) => asset === `./${seedPacketAsset}`).length !== 1 ||
     offlineAssets.some((asset) => /-seeds-96\.png$/.test(asset)) ||
     !html.includes(`const SEED_PACKET_FRAME="${seedPacketAsset}"`) ||
-    !html.includes('href="assets/farm/ui-v3/theme-v3.css?v=47"') ||
-    offlineAssets.filter((asset) => asset === "./assets/farm/ui-v3/theme-v3.css?v=47").length !== 1 ||
+    !html.includes('href="assets/farm/ui-v3/theme-v3.css?v=48"') ||
+    offlineAssets.filter((asset) => asset === "./assets/farm/ui-v3/theme-v3.css?v=48").length !== 1 ||
     !seedPacketMarkupSource.includes("seed-packet-frame") ||
     !seedPacketMarkupSource.includes('seed-packet-crop auto-centered-sprite') ||
     !seedPacketMarkupSource.includes('data-center-src="${crop.image}"') ||
@@ -482,14 +483,20 @@ const bottomNavRules = cssRuleBodies(combinedStyles, ".bottom-nav");
 if (!bottomNavRules.some((body) => /(?:background|background-color)\s*:[\s\S]*(?:#fff(?:fff)?\b|rgba?\(\s*255\s*,\s*255\s*,\s*255)/i.test(body))) {
   throw new Error("The bottom navigation must use the requested white surface");
 }
-if (html.includes('class="brand"') || !html.includes('class="account-summary" aria-label="Account"') || !html.includes('class="wallet" aria-label="Steps and gold"')) {
+if (html.includes('class="brand"') || !html.includes('class="account-summary" aria-label="Account"') || !html.includes('class="wallet" role="group" aria-label="Steps and gold"')) {
   throw new Error("The top bar must show the account and level on the left with currencies on the right");
 }
 const walletPillMarkup = [...html.matchAll(/<div class="wallet-pill">([\s\S]*?)<\/div>/g)].map((match) => match[1]);
 const walletRules = cssRuleBodies(theme, ".wallet-pill");
 const renderHeaderSource = functionSource("renderHeader");
 if (walletPillMarkup.length !== 2 || walletPillMarkup.some((body) => !body.includes("wallet-accessible") || !body.includes('aria-hidden="true"') || body.indexOf("<b") < 0 || body.indexOf("<b") > body.indexOf("currency-icon-farm")) ||
+    !html.includes('<span class="wallet-divider" aria-hidden="true"></span>') ||
     !walletRules.some((body) => /flex\s*:\s*1\s+1\s+0/.test(body) && /width\s*:\s*auto/.test(body) && /border\s*:\s*0/.test(body) && /background\s*:\s*transparent/.test(body) && /box-shadow\s*:\s*none/.test(body)) ||
+    !/\.wallet\s*\{[^}]*grid-template-columns\s*:\s*minmax\(0,1fr\)\s+18px\s+minmax\(0,1fr\)[^}]*border\s*:\s*2px\s+solid\s+#c9983c[^}]*linear-gradient\(180deg,#427b38/s.test(theme) ||
+    !theme.includes(".wallet-divider:before") || !theme.includes(".wallet-divider:after") ||
+    !theme.includes(".wallet-pill .currency-icon-farm{") ||
+    !/@media\(max-width:420px\)\{[\s\S]*?flex:0 0 112px;[\s\S]*?\.account-level-track[\s\S]*?width:65px[\s\S]*?\.wallet-pill \.currency-icon-farm\{width:28px/s.test(theme) ||
+    !/@media\(max-width:320px\)\{[\s\S]*?flex-basis:92px;[\s\S]*?\.account-level-track[\s\S]*?width:50px[\s\S]*?\.wallet-pill \.currency-icon-farm\{width:25px/s.test(theme) ||
     !theme.includes(".currency-icon-default{display:none}") || !theme.includes(".wallet-label{display:none!important}") || !theme.includes(".wallet-accessible{") ||
     /\.app\.(?:farm|shop)-view \.wallet-pill\s*\{[^}]*?(?:width\s*:\s*(?:74|65)px|flex-basis\s*:\s*(?:74|65)px)/s.test(theme) ||
     !renderHeaderSource.includes('state.adminMode?"∞":compactFmt(state.stepBalance)') ||
@@ -497,7 +504,7 @@ if (walletPillMarkup.length !== 2 || walletPillMarkup.some((body) => !body.inclu
     renderHeaderSource.includes('activeScreen==="farm"') ||
     !renderHeaderSource.includes('$("#stepsBalanceExact").textContent=state.adminMode?"Unlimited steps":`${fmt(state.stepBalance)} steps`') ||
     !renderHeaderSource.includes('$("#goldBalanceExact").textContent=state.adminMode?"Unlimited gold":`${fmt(state.gold)} gold`')) {
-  throw new Error("Top-bar balances must use flexible bubble-free number-first counters with global K/M display and exact accessible labels");
+  throw new Error("Top-bar balances must use one flexible meadow wallet rail with number-first K/M counters, a botanical divider, and exact accessible labels");
 }
 if (!html.includes("border:0;border-radius:0;color:var(--soil);background:transparent;box-shadow:none")) {
   throw new Error("Unlocked soil plots must remain integrated without surrounding plot cards");

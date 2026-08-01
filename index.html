@@ -599,7 +599,7 @@
       #farm .step-copy .mini-progress i,#farm .bed-progress i{transition:none}
     }
   </style>
-  <link rel="stylesheet" href="assets/farm/ui-v3/theme-v3.css?v=47">
+  <link rel="stylesheet" href="assets/farm/ui-v3/theme-v3.css?v=48">
 </head>
 <body>
   <div class="app farm-view">
@@ -610,7 +610,7 @@
         </button>
         <span class="account-copy"><b id="accountName">Farmer</b><small>LV <span id="accountLevel">1</span></small><span class="account-level-track" aria-hidden="true"><i id="accountLevelProgress"></i></span></span>
       </div>
-      <div class="wallet" aria-label="Steps and gold">
+      <div class="wallet" role="group" aria-label="Steps and gold">
         <div class="wallet-pill">
           <span class="wallet-accessible" id="stepsBalanceExact">0 steps</span>
           <span class="wallet-value" aria-hidden="true">
@@ -620,6 +620,7 @@
           </span>
           <small class="wallet-label">Steps</small>
         </div>
+        <span class="wallet-divider" aria-hidden="true"></span>
         <div class="wallet-pill">
           <span class="wallet-accessible" id="goldBalanceExact">120 gold</span>
           <span class="wallet-value" aria-hidden="true">
@@ -986,10 +987,11 @@
       const compactFmt = value => {
         const safe=number(value);
         if(safe<1000)return fmt(safe);
-        const million=safe>=999500;
-        const scaled=safe/(million?1000000:1000);
+        if(safe>=999500000000000)return "999T";
+        const [divisor,suffix]=safe>=999500000000?[1000000000000,"T"]:safe>=999500000?[1000000000,"B"]:safe>=999500?[1000000,"M"]:[1000,"K"];
+        const scaled=safe/divisor;
         const decimals=scaled<100&&!Number.isInteger(scaled)?1:0;
-        return `${scaled.toFixed(decimals).replace(/\.0$/,'')}${million?"M":"K"}`;
+        return `${scaled.toFixed(decimals).replace(/\.0$/,'')}${suffix}`;
       };
       const clamp = (value,min,max) => Math.min(max,Math.max(min,value));
 
