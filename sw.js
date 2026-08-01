@@ -1,5 +1,5 @@
 /* Ironbound service worker — farming app shell for offline + home-screen install */
-const CACHE = 'ironbound-farm-v41';
+const CACHE = 'ironbound-farm-v42';
 const CROP_IDS = [
   'radish','lettuce','spinach','carrot','onion','beetroot','blueberry','peas','potato','strawberry','pepper',
   'tomato','corn','eggplant','cabbage','broccoli','pumpkin','grapes','melon','dragonfruit','starfruit','ancient-root'
@@ -14,7 +14,7 @@ const FERTILISER_ART_IDS = [
   'quality-bronze','quality-silver','quality-gold','quality-iridium'
 ];
 const CROP_STAGE_ART = (id, stage) => id === 'radish'
-  ? `./assets/farm/crops/radish-${stage}-topdown-v2-64.png`
+  ? `./assets/farm/crops/radish-${stage}-meadow-v3-64.png`
   : `./assets/farm/crops/${id}-${stage}-64.png`;
 const GENERATED_ART = [
   ...CROP_IDS.flatMap((id) => [

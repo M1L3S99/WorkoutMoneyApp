@@ -1966,3 +1966,205 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
 @media(prefers-reduced-motion:reduce){
   #cropArea .bed>.bed-scene{transition:none}
 }
+
+/* Crop Area v3: compact meadow board matching the original game language. */
+#cropArea{
+  --crop-row-gap:clamp(20px,5.8vw,27px);
+  --crop-column-gap:clamp(8px,2.6vw,13px);
+  padding-top:6px;
+}
+#cropArea .crop-area-toolbar{
+  display:grid;
+  grid-template-columns:38px minmax(0,1fr) 38px;
+  align-items:center;
+  min-height:64px;
+  padding:4px 5px 5px;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+#cropArea .crop-area-toolbar:after{content:""}
+#cropArea .crop-area-back{
+  width:34px;
+  height:34px;
+  border:1px solid rgba(28,64,26,.72);
+  border-radius:9px;
+  color:#f7ecc6;
+  background:linear-gradient(180deg,#436b2a,#264b25);
+  box-shadow:0 3px 0 rgba(45,55,21,.24),inset 0 1px 0 rgba(255,255,255,.12);
+  font-size:21px;
+}
+#cropArea .crop-area-heading{
+  min-width:0;
+  text-align:center;
+}
+#cropArea .crop-area-toolbar h1{
+  position:static;
+  max-width:none;
+  margin:0;
+  transform:none;
+  overflow:visible;
+  color:#2f3218;
+  font-family:"DM Sans",sans-serif;
+  font-size:clamp(22px,7vw,30px);
+  font-weight:900;
+  letter-spacing:-.045em;
+  line-height:.95;
+  text-shadow:0 2px 0 rgba(255,241,181,.5);
+}
+#cropArea .crop-area-count{
+  display:block;
+  max-width:none;
+  margin:5px 0 0;
+  color:#4f5527;
+  font-size:clamp(7px,2.2vw,9px);
+  font-weight:900;
+  letter-spacing:.08em;
+  line-height:1;
+  text-align:center;
+}
+#cropArea .crop-area-controls{
+  grid-template-columns:minmax(0,2fr) minmax(76px,1fr);
+  gap:6px;
+  width:min(calc(100% - 10px),400px);
+  margin:6px auto 10px;
+}
+#cropArea .crop-area-controls .farm-actions{gap:6px}
+#cropArea .crop-area-controls .btn,
+#cropArea #openPlotLayout{
+  min-width:0;
+  min-height:34px;
+  padding:5px 6px;
+  border-width:1px;
+  border-radius:9px;
+  box-shadow:0 3px 0 rgba(43,54,21,.2),inset 0 1px 0 rgba(255,255,255,.14);
+  font-size:clamp(6px,2vw,8px);
+}
+#cropArea .crop-area-controls .btn:disabled{opacity:.58}
+#cropArea #openPlotLayout{min-width:0}
+#cropArea #openPlotLayout span{font-size:11px}
+#cropArea .crop-composter{
+  width:min(calc(100% - 20px),366px);
+  margin:0 auto 12px;
+}
+#cropArea .crop-composter h2{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  margin:0 0 5px;
+  color:#39431f;
+  font-family:"DM Sans",sans-serif;
+  font-size:clamp(9px,2.8vw,12px);
+  font-weight:900;
+  letter-spacing:.06em;
+  line-height:1;
+  text-transform:uppercase;
+  text-shadow:0 1px 0 rgba(255,244,200,.55);
+}
+#cropArea .crop-composter h2:before,
+#cropArea .crop-composter h2:after{
+  content:"";
+  width:20px;
+  height:2px;
+  border-radius:99px;
+  background:#577126;
+  opacity:.78;
+}
+#cropArea .composter-slots{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:clamp(5px,1.8vw,8px);
+}
+#cropArea .compost-slot{
+  display:block;
+  min-width:0;
+  aspect-ratio:1;
+  overflow:hidden;
+  border:1px solid rgba(68,47,21,.78);
+  border-radius:8px;
+  background-image:url("../upgrades-v3/compost-bin-topdown-v2-192.png");
+  background-repeat:no-repeat;
+  background-size:200% 200%;
+  box-shadow:0 3px 0 rgba(59,48,19,.18),inset 0 0 0 1px rgba(255,225,147,.15);
+  image-rendering:pixelated;
+}
+#cropArea .compost-slot[data-compost-quadrant="tl"]{background-position:0 0}
+#cropArea .compost-slot[data-compost-quadrant="tr"]{background-position:100% 0}
+#cropArea .compost-slot[data-compost-quadrant="bl"]{background-position:0 100%}
+#cropArea .compost-slot[data-compost-quadrant="br"]{background-position:100% 100%}
+#cropArea .garden-panel{padding-bottom:clamp(32px,9vw,46px)}
+#cropArea .beds-grid{padding-top:0}
+#cropArea .bed-scene,
+.placement-bed-scene{
+  --plot-surface-width:102%;
+  --crop-anchor-y:39.78%;
+  --crop-size:53%;
+}
+#cropArea .bed-scene>.plot-surface{
+  filter:brightness(.79) saturate(.83) contrast(1.09);
+}
+#cropArea .bed.ready .plot-surface{filter:brightness(.79) saturate(.83) contrast(1.09)!important}
+#cropArea .bed-plaque{
+  top:70%;
+  right:19%;
+  left:19%;
+  min-height:clamp(15px,4.4vw,18px);
+  padding:1px 4px;
+  border:1px solid rgba(105,72,32,.48);
+  border-radius:5px;
+  color:#3c301b;
+  background:linear-gradient(180deg,rgba(255,241,191,.96),rgba(222,193,126,.96));
+  box-shadow:0 2px 0 rgba(76,52,20,.18),inset 0 1px 0 rgba(255,255,255,.45);
+  text-shadow:none;
+}
+#cropArea .bed-plaque strong{
+  font-size:clamp(6px,2vw,8px);
+  letter-spacing:.03em;
+}
+#cropArea .bed-progress,
+#cropArea .bed-ready-banner,
+#cropArea .bed-empty-callout,
+#cropArea .bed-unlock-banner{
+  right:9%;
+  bottom:0;
+  left:9%;
+  min-height:clamp(16px,4.7vw,20px);
+  border-width:1px;
+  border-radius:6px;
+  box-shadow:0 2px 0 rgba(54,42,20,.14),inset 0 1px 2px rgba(0,0,0,.18);
+}
+#cropArea .bed-progress{transform:none}
+#cropArea .bed-progress b{
+  min-height:16px;
+  font-size:clamp(5.5px,1.8vw,7px);
+}
+#cropArea .bed-ready-banner,
+#cropArea .bed-empty-callout{
+  padding:1px 3px;
+  font-size:clamp(5.5px,1.8vw,7px);
+}
+#cropArea .bed-unlock-banner{
+  min-height:26px;
+  padding:2px 4px;
+}
+#cropArea .bed-unlock-banner b,
+#cropArea .bed-unlock-banner .farm-currency{font-size:6px}
+#cropArea .bed-unlock-banner .currency-icon{width:11px;height:11px}
+#cropArea .bed-unlock-banner small{font-size:5.5px}
+
+@media(max-width:370px){
+  #cropArea{--crop-row-gap:19px;--crop-column-gap:6px}
+  #cropArea .crop-area-toolbar{grid-template-columns:34px minmax(0,1fr) 34px;min-height:60px;padding-inline:2px}
+  #cropArea .crop-area-back{width:31px;height:31px;font-size:19px}
+  #cropArea .crop-area-toolbar h1{max-width:none;font-size:22px}
+  #cropArea .crop-area-count{max-width:none;font-size:7px}
+  #cropArea .crop-area-controls{width:100%;gap:4px;margin-top:4px}
+  #cropArea .crop-area-controls .farm-actions{gap:4px}
+  #cropArea .crop-area-controls .btn,
+  #cropArea #openPlotLayout{min-height:31px;padding-inline:4px;font-size:6px}
+  #cropArea .crop-composter{width:calc(100% - 12px);margin-bottom:10px}
+  #cropArea .composter-slots{gap:4px}
+  #cropArea .compost-slot{border-radius:6px}
+}

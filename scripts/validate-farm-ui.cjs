@@ -4,6 +4,7 @@ const html = fs.readFileSync("index.html", "utf8");
 const manifest = JSON.parse(fs.readFileSync("manifest.webmanifest", "utf8"));
 const serviceWorker = fs.readFileSync("sw.js", "utf8");
 const theme = fs.readFileSync("assets/farm/ui-v3/theme-v3.css", "utf8");
+const farmArtBuilder = fs.readFileSync("scripts/build_generated_farm_art.py", "utf8");
 const script = html.match(/<script>\s*([\s\S]*?)<\/script>/);
 if (!script) throw new Error("Embedded script missing");
 new Function(script[1]);
@@ -108,15 +109,15 @@ new Function(instrumented)();
 const farm = global.__farmTest;
 const TOPDOWN_ASSETS = {
   soil:"assets/farm/soil-plot-topdown-v2-256x192.png",
-  radishPlanted:"assets/farm/crops/radish-planted-topdown-v2-64.png",
-  radishGrown:"assets/farm/crops/radish-grown-topdown-v2-64.png",
+  radishPlanted:"assets/farm/crops/radish-planted-meadow-v3-64.png",
+  radishGrown:"assets/farm/crops/radish-grown-meadow-v3-64.png",
   compostBin:"assets/farm/upgrades-v3/compost-bin-topdown-v2-192.png",
   deepBeds:"assets/farm/upgrades-v3/deep-beds-topdown-v2-192.png"
 };
 const pngContracts = [
   [TOPDOWN_ASSETS.soil,256,192,4000,24000,"0499995ec01756b0228a6563643cd6b000d0466a1dfd23f0eb7785e73b1ac863"],
-  [TOPDOWN_ASSETS.radishPlanted,64,64,300,3000,"c41d76746387a0cc36591e816295a71d97f4e57dbb1f82242e4d86c6a6d59963"],
-  [TOPDOWN_ASSETS.radishGrown,64,64,500,5000,"6f9adba1c580befbb356ca540fe9e177a080875b9b638cd234442ea4ecf0e775"],
+  [TOPDOWN_ASSETS.radishPlanted,64,64,500,4000,"e715770e8bbd01436320f4a5f25b8f8e12a116048a84c7014843b3c49136f08e"],
+  [TOPDOWN_ASSETS.radishGrown,64,64,1000,10000,"7fa98861b298797288b58212d44220bac8a27c15835b4e34c2e7589e5a2d9014"],
   [TOPDOWN_ASSETS.compostBin,192,192,3000,20000,"389ad414f5f8a03396fe6910c1d43c1b90af1afb042e0b745b9ca876f44a77aa"],
   [TOPDOWN_ASSETS.deepBeds,192,192,3000,20000,"a148fb267bba298ec8e9d99e261dc3cb5b5db2d4ee718d85b55420ab95d3b343"]
 ];
@@ -127,11 +128,30 @@ for (const [asset,width,height,minBytes,maxBytes,sha256] of pngContracts) {
     throw new Error(`Top-down PNG contract failed for ${asset}: ${JSON.stringify(metadata)}`);
   }
 }
+if (!farmArtBuilder.includes("HAND_AUTHORED_CROP_STAGES") ||
+    !farmArtBuilder.includes("radish-planted-meadow-v3-64.png") ||
+    !farmArtBuilder.includes("radish-grown-meadow-v3-64.png") ||
+    farmArtBuilder.includes("radish-planted-topdown-v2-64.png") ||
+    farmArtBuilder.includes("radish-grown-topdown-v2-64.png") ||
+    !farmArtBuilder.includes("shutil.copyfile(source, path)")) {
+  throw new Error("Farm art builds must preserve and copy both hand-authored Meadow v3 radish stages");
+}
 if (farm.MAX_BEDS !== 20 || farm.BED_COSTS.length !== 20 || farm.BED_REQUIREMENTS.length !== 20) {
   throw new Error("The farm must support exactly twenty progressively unlocked beds");
 }
 if (farm.freshState().unlockedBeds !== 1) {
   throw new Error("A new farm must start with one unlocked bed");
+}
+if (farm.freshState().cropArtVersion !== 3) {
+  throw new Error("New farms must use crop art layout version 3");
+}
+const loadStateSource = functionSource("loadState");
+const cropPlacementDeletes = [...loadStateSource.matchAll(/delete\s+merged\.cropPlacements\[["']([^"']+)["']\]/g)]
+  .map((match) => match[1]).sort();
+if (!/saved\.cropArtVersion\s*!==\s*3/.test(loadStateSource) ||
+    !/merged\.cropArtVersion\s*=\s*3/.test(loadStateSource) ||
+    cropPlacementDeletes.join("|") !== "radish:grown|radish:planted") {
+  throw new Error("Crop art v3 migration must reset only radish:planted and radish:grown placement overrides exactly once");
 }
 const freshPlotLayouts = farm.freshState().plotLayouts;
 if (!Array.isArray(freshPlotLayouts) || freshPlotLayouts.length !== farm.MAX_BEDS ||
@@ -146,7 +166,7 @@ if (!radish?.stages?.planted || !radish?.stages?.grown || radish?.stages?.half) 
   throw new Error("Radish must have exactly planted and ready growth sprites");
 }
 if (radish.stages.planted !== TOPDOWN_ASSETS.radishPlanted || radish.stages.grown !== TOPDOWN_ASSETS.radishGrown) {
-  throw new Error("Radish growth must use the approved top-down planted and ready sprites");
+  throw new Error("Radish growth must use the approved smaller Meadow v3 planted and ready sprites");
 }
 if (!radish.image?.includes("radish-crop-64") || !radish.seedImage?.includes("radish-seeds-96")) {
   throw new Error("The radish crop and seed packet sprites must be configured");
@@ -192,6 +212,16 @@ for (const id of [
 for (const removedId of ["dailyPercent", "stepStatus", "dailyProgress"]) {
   if (ids.includes(removedId)) throw new Error(`The simplified step hero must not retain ${removedId}`);
 }
+const composterSections = [...html.matchAll(/<section\b[^>]*class="[^"]*\bcrop-composter\b[^"]*"[^>]*>[\s\S]*?<\/section>/g)];
+const composterMarkup = composterSections[0]?.[0] || "";
+const compostSlots = [...composterMarkup.matchAll(/<[^>]+class="[^"]*\bcompost-slot\b[^"]*"[^>]*>/g)];
+const compostQuadrants = compostSlots.map((match) => match[0].match(/data-compost-quadrant="(tl|tr|bl|br)"/)?.[1]).sort();
+if (composterSections.length !== 1 || compostSlots.length !== 4 ||
+    compostQuadrants.join("|") !== "bl|br|tl|tr" ||
+    !composterMarkup.slice(0,composterMarkup.indexOf(">") + 1).includes('aria-hidden="true"') ||
+    /<(?:a|button|input|select|textarea)\b|\btabindex\s*=|\bonclick\s*=/.test(composterMarkup)) {
+  throw new Error("Crop Area must contain one decorative low-profile composter with four noninteractive tl/tr/bl/br slots");
+}
 for (const id of ["fertModal", "fertModalCard", "fertDetailName", "fertDetailArt", "fertDetailInfo", "fertDetailBuy"]) {
   if (!ids.includes(id)) throw new Error(`Missing fertiliser detail control: ${id}`);
 }
@@ -223,8 +253,8 @@ if (!html.includes(backgroundAssets[0][0]) ||
     !theme.includes("../ui/crop-area-ground-v1.webp") ||
     theme.includes("crop-area-scene-v2-432x864.webp") ||
     serviceWorker.includes("crop-area-scene-v2-432x864.webp") ||
-    !serviceWorker.includes("ironbound-farm-v41")) {
-  throw new Error("The top-down Farm backgrounds or v41 offline cache are not fully integrated");
+    !serviceWorker.includes("ironbound-farm-v42")) {
+  throw new Error("The top-down Farm backgrounds or v42 offline cache are not fully integrated");
 }
 if (!html.includes('id="farmOverview"') ||
     !html.includes('id="cropArea"') ||
@@ -272,13 +302,15 @@ const obsoleteOfflineArt = [
   "./assets/farm/planter-bed-complete-v7-256x232.webp",
   "./assets/farm/crops/radish-planted-64.png",
   "./assets/farm/crops/radish-grown-64.png",
+  "./assets/farm/crops/radish-planted-topdown-v2-64.png",
+  "./assets/farm/crops/radish-grown-topdown-v2-64.png",
   "./assets/farm/upgrades-v3/compost-bin-192.png",
   "./assets/farm/upgrades-v3/deep-beds-192.png"
 ];
 if (!html.includes(soilPlotAsset) ||
     Object.values(TOPDOWN_ASSETS).some((asset) => offlineAssets.filter((cached) => cached === `./${asset}`).length !== 1) ||
     obsoleteOfflineArt.some((asset) => offlineAssets.includes(asset))) {
-  throw new Error("The v41 cache must contain each approved top-down asset exactly once and exclude superseded perspective art");
+  throw new Error("The v42 cache must contain each approved Farm asset exactly once and exclude superseded radish and perspective art");
 }
 const uiV3Assets = [
   "assets/farm/ui-v3/theme-v3.css",
