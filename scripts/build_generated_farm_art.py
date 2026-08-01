@@ -65,6 +65,10 @@ FERTILISERS = (
     "quality-iridium",
 )
 NPCS = ("tilda", "bram", "nia")
+HAND_AUTHORED_CROP_STAGES = {
+    ("radish", "planted"): "radish-planted-meadow-v3-64.png",
+    ("radish", "grown"): "radish-grown-meadow-v3-64.png",
+}
 
 
 def cell(sheet: Image.Image, index: int, grid_rows: int = 4) -> Image.Image:
@@ -116,11 +120,12 @@ def build_crops(sheets_dir: Path, output_dir: Path, hand_authored_dir: Path) -> 
             grid_rows = 3 if sheet_name == "crop-6.png" else 4
             for row, crop_id in enumerate(crop_ids):
                 for column, kind in enumerate(CROP_COLUMNS):
-                    if crop_id == "radish" and kind in {"planted", "grown"}:
-                        path = crops_dir / f"radish-{kind}-topdown-v2-64.png"
+                    hand_authored_name = HAND_AUTHORED_CROP_STAGES.get((crop_id, kind))
+                    if hand_authored_name:
+                        path = crops_dir / hand_authored_name
                         source = hand_authored_dir / path.name
                         if not source.exists():
-                            raise FileNotFoundError(f"Missing hand-authored top-down radish stage: {source}")
+                            raise FileNotFoundError(f"Missing hand-authored crop stage: {source}")
                         path.parent.mkdir(parents=True, exist_ok=True)
                         if source.resolve() != path.resolve():
                             shutil.copyfile(source, path)
@@ -207,7 +212,7 @@ def main() -> None:
         "--hand-authored-dir",
         type=Path,
         default=Path(__file__).resolve().parents[1] / "assets" / "farm" / "crops",
-        help="Directory containing hand-authored top-down crop stages.",
+        help="Directory containing hand-authored crop stage overrides.",
     )
     parser.add_argument("--preview", type=Path)
     args = parser.parse_args()

@@ -668,8 +668,10 @@
         <div class="farm-subview crop-area" id="cropArea" role="region" aria-labelledby="cropAreaTitle" hidden>
           <div class="crop-area-toolbar">
             <button class="crop-area-back" id="closeCropArea" type="button" aria-label="Back to Farm"><span aria-hidden="true">←</span></button>
-            <h1 id="cropAreaTitle" tabindex="-1">Crop Area</h1>
-            <span class="crop-area-count" id="bedCount">1 / 20 plots</span>
+            <div class="crop-area-heading">
+              <h1 id="cropAreaTitle" tabindex="-1">Crop Area</h1>
+              <span class="crop-area-count" id="bedCount">1 / 20 plots</span>
+            </div>
           </div>
           <div class="crop-area-controls">
             <div class="farm-actions"><button class="btn secondary" id="plantAll">Plant all</button><button class="btn secondary" id="replantAll">Replant all</button></div>
@@ -689,6 +691,15 @@
               <button id="resetPlotLayout" type="button">Reset plot</button>
               <button id="resetAllPlotLayouts" type="button">Reset all</button>
               <button id="savePlotLayout" type="button">Save &amp; exit</button>
+            </div>
+          </section>
+          <section class="crop-composter" aria-hidden="true">
+            <h2 id="composterTitle">Composter</h2>
+            <div class="composter-slots" aria-hidden="true">
+              <span class="compost-slot" data-compost-quadrant="tl"></span>
+              <span class="compost-slot" data-compost-quadrant="tr"></span>
+              <span class="compost-slot" data-compost-quadrant="bl"></span>
+              <span class="compost-slot" data-compost-quadrant="br"></span>
             </div>
           </section>
           <div class="garden-panel">
@@ -992,8 +1003,8 @@
           image:`assets/farm/crops/${crop.id}-crop-64.png`,
           seedImage:`assets/farm/crops/${crop.id}-seeds-96.png`,
           stages:{
-            planted:crop.id==="radish"?"assets/farm/crops/radish-planted-topdown-v2-64.png":`assets/farm/crops/${crop.id}-planted-64.png`,
-            grown:crop.id==="radish"?"assets/farm/crops/radish-grown-topdown-v2-64.png":`assets/farm/crops/${crop.id}-grown-64.png`
+            planted:crop.id==="radish"?"assets/farm/crops/radish-planted-meadow-v3-64.png":`assets/farm/crops/${crop.id}-planted-64.png`,
+            grown:crop.id==="radish"?"assets/farm/crops/radish-grown-meadow-v3-64.png":`assets/farm/crops/${crop.id}-grown-64.png`
           },
           levelMultiplier,stepEfficiency,sellValue,seedCost:Math.max(5,Math.round(sellValue*.32))
         };
@@ -1080,7 +1091,7 @@
           equipment:{boots:null,gloves:null,tools:null},fertilisers:{},
           cropRateLevel:0,qualityLevel:0,saleLevel:0,farmUpgrades:[],cropPlacements:{},globalCropPlacement:{x:0,y:0,scale:1},plotLayouts:Array.from({length:MAX_BEDS},()=>({x:0,y:0,scale:1})),imageCenterY:{},assetTransforms:{},trackingStatus:"checking",
           bedPlans:Array.from({length:MAX_BEDS},()=>null),questDate:todayKey(),completedQuests:[],weeklyQuestKey:"",completedWeeklyQuests:[],
-          weather:null,weatherLocation:null,adminMode:false,profileName:"Farmer",seedShopSize:40,shopLayoutVersion:6,farmArtVersion:2,plotArtVersion:2,perkDate:todayKey(),doubleStepUsed:0,doubleGoldSalesUsed:0
+          weather:null,weatherLocation:null,adminMode:false,profileName:"Farmer",seedShopSize:40,shopLayoutVersion:6,farmArtVersion:2,plotArtVersion:2,cropArtVersion:3,perkDate:todayKey(),doubleStepUsed:0,doubleGoldSalesUsed:0
         };
       }
       function loadState(){
@@ -1119,8 +1130,13 @@
             };
           });
           merged.cropPlacements=saved.cropPlacements&&typeof saved.cropPlacements==="object"?{...saved.cropPlacements}:{};
+          if(saved.cropArtVersion!==3){
+            delete merged.cropPlacements["radish:planted"];
+            delete merged.cropPlacements["radish:grown"];
+          }
           merged.farmArtVersion=2;
           merged.plotArtVersion=2;
+          merged.cropArtVersion=3;
           merged.farmUpgrades=[...new Set(saved.farmUpgrades||[])];
           merged.completedQuests=saved.questDate===todayKey()?[...new Set(saved.completedQuests||[])]:[];
           merged.questDate=todayKey();
