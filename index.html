@@ -599,7 +599,7 @@
       #farm .step-copy .mini-progress i,#farm .bed-progress i{transition:none}
     }
   </style>
-  <link rel="stylesheet" href="assets/farm/ui-v3/theme-v3.css?v=48">
+  <link rel="stylesheet" href="assets/farm/ui-v3/theme-v3.css?v=49">
 </head>
 <body>
   <div class="app farm-view">
@@ -611,25 +611,27 @@
         <span class="account-copy"><b id="accountName">Farmer</b><small>LV <span id="accountLevel">1</span></small><span class="account-level-track" aria-hidden="true"><i id="accountLevelProgress"></i></span></span>
       </div>
       <div class="wallet" role="group" aria-label="Steps and gold">
-        <div class="wallet-pill">
+        <button class="wallet-pill wallet-action" id="stepsWalletAction" type="button" aria-label="Go to the Farm to earn steps" aria-describedby="stepsBalanceExact">
           <span class="wallet-accessible" id="stepsBalanceExact">0 steps</span>
           <span class="wallet-value" aria-hidden="true">
             <b id="stepsBalance">0</b>
             <img class="currency-icon currency-icon-default" src="assets/farm/ui/step-token-64.png" alt="">
             <img class="currency-icon currency-icon-farm" src="assets/farm/ui-v3/step-currency-v2-96.png" alt="">
+            <span class="wallet-plus">+</span>
           </span>
           <small class="wallet-label">Steps</small>
-        </div>
+        </button>
         <span class="wallet-divider" aria-hidden="true"></span>
-        <div class="wallet-pill">
+        <button class="wallet-pill wallet-action" id="goldWalletAction" type="button" aria-label="Go to the Silo to sell crops for gold" aria-describedby="goldBalanceExact">
           <span class="wallet-accessible" id="goldBalanceExact">120 gold</span>
           <span class="wallet-value" aria-hidden="true">
             <b id="goldBalance">120</b>
             <img class="currency-icon currency-icon-default" src="assets/farm/ui/gold-coin-64.png" alt="">
             <img class="currency-icon currency-icon-farm" src="assets/farm/ui-v3/gold-currency-v2-96.png" alt="">
+            <span class="wallet-plus">+</span>
           </span>
           <small class="wallet-label">Gold</small>
-        </div>
+        </button>
       </div>
     </header>
 
@@ -638,7 +640,7 @@
         <div class="farm-overview" id="farmOverview">
           <div class="farm-hero">
             <div class="step-card">
-              <div class="step-ring" id="stepRing" role="progressbar" aria-label="Daily step goal" aria-valuemin="0" aria-valuemax="8000" aria-valuenow="0">
+              <div class="step-ring" id="stepRing" role="progressbar" aria-label="Daily step goal" aria-valuemin="0" aria-valuemax="8000" aria-valuenow="0" tabindex="-1">
                 <div class="step-ring-copy">
                   <img class="step-ring-icon pixel-sprite" src="assets/farm/ui-v3/step-currency-v2-96.png" alt="">
                   <div class="step-total"><b id="todaySteps">0</b><small id="dailyGoalLabel">/ 8,000</small></div>
@@ -716,9 +718,9 @@
         </div>
         <div class="loadout" id="loadout"></div>
         <div class="silo-tabs" aria-label="Silo category">
-          <button class="active" type="button" data-silo-tab="gear">Gear</button>
-          <button type="button" data-silo-tab="crops">Crops</button>
-          <button type="button" data-silo-tab="fertiliser">Fertiliser</button>
+          <button class="active" type="button" data-silo-tab="gear" aria-pressed="true">Gear</button>
+          <button type="button" data-silo-tab="crops" aria-pressed="false">Crops</button>
+          <button type="button" data-silo-tab="fertiliser" aria-pressed="false">Fertiliser</button>
         </div>
         <div class="silo-panel active" data-silo-panel="gear">
           <div class="section-head"><h2>Gear</h2><small id="gearCount">0 items</small></div>
@@ -839,7 +841,7 @@
     </main>
 
     <nav class="bottom-nav" aria-label="Main navigation">
-      <button class="nav-btn active" data-screen="farm"><i><img src="assets/farm/ui-v3/nav-farm-64.png" alt="" draggable="false"></i><span>Farm</span></button>
+      <button class="nav-btn active" data-screen="farm" aria-current="page"><i><img src="assets/farm/ui-v3/nav-farm-64.png" alt="" draggable="false"></i><span>Farm</span></button>
       <button class="nav-btn" data-screen="shop"><i><img src="assets/farm/ui-v3/nav-shop-64.png" alt="" draggable="false"></i><span>Shop</span></button>
       <button class="nav-btn" data-screen="quests"><i><img src="assets/farm/ui-v3/nav-quests-64.png" alt="" draggable="false"></i><span>Quests</span></button>
       <button class="nav-btn" data-screen="barn"><i><img src="assets/farm/ui-v3/nav-silo-64.png" alt="" draggable="false"></i><span>Silo</span></button>
@@ -2128,7 +2130,11 @@
       }
 
       function renderSiloTabs(){
-        $$("[data-silo-tab]").forEach(button=>button.classList.toggle("active",button.dataset.siloTab===activeSiloTab));
+        $$("[data-silo-tab]").forEach(button=>{
+          const active=button.dataset.siloTab===activeSiloTab;
+          button.classList.toggle("active",active);
+          button.setAttribute("aria-pressed",String(active));
+        });
         $$("[data-silo-panel]").forEach(panel=>panel.classList.toggle("active",panel.dataset.siloPanel===activeSiloTab));
       }
       function renderBarn(){
@@ -2599,7 +2605,12 @@
         $(".app").classList.toggle("shop-view",screen==="shop");
         renderHeader();
         $$(".screen").forEach(el=>el.classList.toggle("active",el.id===screen));
-        $$(".nav-btn").forEach(button=>button.classList.toggle("active",button.dataset.screen===screen));
+        $$(".nav-btn").forEach(button=>{
+          const current=button.dataset.screen===screen;
+          button.classList.toggle("active",current);
+          if(current)button.setAttribute("aria-current","page");
+          else button.removeAttribute("aria-current");
+        });
         window.scrollTo({top:0,behavior:"smooth"});
         if(screen==="farm")renderFarm();
         if(screen==="shop")renderShop();
@@ -2609,6 +2620,18 @@
         prepareAssetLayouts();
         if(screen==="upgrades")renderAssetLayoutEditor();
         requestAnimationFrame(()=>{applyImageCentering();prepareAssetLayouts()});
+      }
+      function openWalletEarningPath(currency){
+        if(currency==="gold"){
+          activeSiloTab="crops";
+          navigate("barn");
+          requestAnimationFrame(()=>$('[data-silo-tab="crops"]')?.focus({preventScroll:true}));
+          toast("Sell harvested crops here to earn gold");
+          return;
+        }
+        navigate("farm");
+        requestAnimationFrame(()=>$("#stepRing")?.focus({preventScroll:true}));
+        toast("Walk to earn more steps");
       }
       function closeModals(){
         $$(".modal").forEach(modal=>modal.classList.remove("show"));
@@ -2639,6 +2662,8 @@
 
       $$(".nav-btn").forEach(button=>button.onclick=()=>navigate(button.dataset.screen));
       $("#profileButton").onclick=openProfilePicker;
+      $("#stepsWalletAction").onclick=()=>openWalletEarningPath("steps");
+      $("#goldWalletAction").onclick=()=>openWalletEarningPath("gold");
       const plantPickerTabs=$$("[data-plant-picker-tab]");
       plantPickerTabs.forEach((button,index)=>{
         button.onclick=()=>setPlantPickerTab(button.dataset.plantPickerTab);
