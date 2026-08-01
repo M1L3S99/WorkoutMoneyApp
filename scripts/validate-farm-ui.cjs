@@ -60,6 +60,45 @@ function pngMetadata(asset) {
   };
 }
 
+function webpMetadata(asset) {
+  const data = fs.readFileSync(asset);
+  if (data.length < 30 || data.toString("ascii", 0, 4) !== "RIFF" || data.toString("ascii", 8, 12) !== "WEBP") {
+    throw new Error(`Invalid WebP container: ${asset}`);
+  }
+  const uint24 = (offset) => data[offset] | (data[offset + 1] << 8) | (data[offset + 2] << 16);
+  for (let offset = 12; offset + 8 <= data.length;) {
+    const type = data.toString("ascii", offset, offset + 4);
+    const size = data.readUInt32LE(offset + 4);
+    const payload = offset + 8;
+    if (payload + size > data.length) throw new Error(`Truncated WebP chunk in ${asset}`);
+    if (type === "VP8X" && size >= 10) {
+      return { width:uint24(payload + 4) + 1, height:uint24(payload + 7) + 1, bytes:data.length };
+    }
+    if (type === "VP8 " && size >= 10 && data[payload + 3] === 0x9d && data[payload + 4] === 0x01 && data[payload + 5] === 0x2a) {
+      return {
+        width:data.readUInt16LE(payload + 6) & 0x3fff,
+        height:data.readUInt16LE(payload + 8) & 0x3fff,
+        bytes:data.length
+      };
+    }
+    if (type === "VP8L" && size >= 5 && data[payload] === 0x2f) {
+      const bits = data.readUInt32LE(payload + 1);
+      return { width:(bits & 0x3fff) + 1, height:((bits >>> 14) & 0x3fff) + 1, bytes:data.length };
+    }
+    offset = payload + size + (size & 1);
+  }
+  throw new Error(`Could not read WebP dimensions: ${asset}`);
+}
+
+function cssRuleBodies(source, selector) {
+  return [...source.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .filter((match) => match[1].split(",").some((entry) => {
+      const candidate = entry.trim();
+      return candidate === selector || candidate.endsWith(` ${selector}`);
+    }))
+    .map((match) => match[2]);
+}
+
 const ids = [...html.matchAll(/id="([^"]+)"/g)].map((match) => match[1]);
 const duplicates = [...new Set(ids.filter((id, index) => ids.indexOf(id) !== index))];
 if (duplicates.length) throw new Error(`Duplicate IDs: ${duplicates.join(", ")}`);
@@ -214,49 +253,32 @@ for (const id of [
 for (const removedId of ["dailyPercent", "stepStatus", "dailyProgress"]) {
   if (ids.includes(removedId)) throw new Error(`The simplified step hero must not retain ${removedId}`);
 }
-const composterSections = [...html.matchAll(/<section\b[^>]*class="[^"]*\bcrop-composter\b[^"]*"[^>]*>[\s\S]*?<\/section>/g)];
-const composterMarkup = composterSections[0]?.[0] || "";
-const compostSlots = [...composterMarkup.matchAll(/<[^>]+class="[^"]*\bcompost-slot\b[^"]*"[^>]*>/g)];
-const compostQuadrants = compostSlots.map((match) => match[0].match(/data-compost-quadrant="(tl|tr|bl|br)"/)?.[1]).sort();
-if (composterSections.length !== 1 || compostSlots.length !== 4 ||
-    compostQuadrants.join("|") !== "bl|br|tl|tr" ||
-    !composterMarkup.slice(0,composterMarkup.indexOf(">") + 1).includes('aria-hidden="true"') ||
-    /<(?:a|button|input|select|textarea)\b|\btabindex\s*=|\bonclick\s*=/.test(composterMarkup)) {
-  throw new Error("Crop Area must contain one decorative low-profile composter with four noninteractive tl/tr/bl/br slots");
+const removedComposterHooks = ["crop-composter", "composter-slots", "compost-slot", "composterTitle", "data-compost-quadrant"];
+if (removedComposterHooks.some((hook) => html.includes(hook) || theme.includes(hook))) {
+  throw new Error("The decorative four-slot composter must be fully removed from the Farm screen");
 }
 for (const id of ["fertModal", "fertModalCard", "fertDetailName", "fertDetailArt", "fertDetailInfo", "fertDetailBuy"]) {
   if (!ids.includes(id)) throw new Error(`Missing fertiliser detail control: ${id}`);
 }
-if (!html.includes("data-seed-view") || html.includes("data-seed-buy")) {
-  throw new Error("Seed cards must open details instead of buying immediately");
+if (!html.includes("data-seed-view") || !html.includes("data-seed-buy")) {
+  throw new Error("Seed rows must offer both a detail view and an explicit Buy action");
 }
 for (const asset of ["assets/farm/crops/radish-seeds-96.png", "assets/farm/ui/gold-coin-64.png", "assets/farm/ui/step-token-64.png"]) {
   const size = fs.statSync(asset).size;
   if (size < 100 || size > 20000) throw new Error(`Generated pixel asset has an unexpected size: ${asset} (${size} bytes)`);
 }
-const backgroundAssets = [
-  ["assets/farm/ui/farm-background-v2.webp", 50000, 150000],
-  ["assets/farm/ui/farm-background-master-v6.webp", 70000, 220000],
-  ["assets/farm/ui/farm-ground-sand-v6.webp", 25000, 120000],
-  ["assets/farm/ui/farm-overview-scene-v1.webp", 80000, 180000],
-  ["assets/farm/ui/crop-area-ground-v1.webp", 50000, 130000]
-];
-for (const [backgroundAsset, minSize, maxSize] of backgroundAssets) {
-  const backgroundSize = fs.statSync(backgroundAsset).size;
-  if (backgroundSize < minSize || backgroundSize > maxSize ||
-      !serviceWorker.includes(`./${backgroundAsset}`)) {
-    throw new Error(`A compressed offline Farm background is missing or too heavy: ${backgroundAsset} (${backgroundSize} bytes)`);
-  }
+const meadowBackgroundAsset = "assets/farm/ui/farm-meadow-background-v1.webp";
+if (!fs.existsSync(meadowBackgroundAsset)) throw new Error(`Missing generated Farm meadow: ${meadowBackgroundAsset}`);
+const meadowBackground = webpMetadata(meadowBackgroundAsset);
+if (meadowBackground.width !== 768 || meadowBackground.height !== 1152 ||
+    meadowBackground.bytes < 100000 || meadowBackground.bytes > 280000 ||
+    offlineAssets.filter((asset) => asset === `./${meadowBackgroundAsset}`).length !== 1 ||
+    (!theme.includes('../ui/farm-meadow-background-v1.webp') && !html.includes(meadowBackgroundAsset)) ||
+    !serviceWorker.includes("ironbound-farm-v46") || serviceWorker.includes("ironbound-farm-v45")) {
+  throw new Error(`The 768×1152 compressed Farm meadow and v46 offline cache must be fully integrated: ${JSON.stringify(meadowBackground)}`);
 }
-if (!html.includes(backgroundAssets[0][0]) ||
-    !theme.includes("../ui/farm-background-master-v6.webp") ||
-    !theme.includes("../ui/farm-ground-sand-v6.webp") ||
-    !theme.includes("../ui/farm-overview-scene-v1.webp") ||
-    !theme.includes("../ui/crop-area-ground-v1.webp") ||
-    theme.includes("crop-area-scene-v2-432x864.webp") ||
-    serviceWorker.includes("crop-area-scene-v2-432x864.webp") ||
-    !serviceWorker.includes("ironbound-farm-v45")) {
-  throw new Error("The top-down Farm backgrounds or v45 offline cache are not fully integrated");
+if (theme.includes("crop-area-scene-v2-432x864.webp") || serviceWorker.includes("crop-area-scene-v2-432x864.webp")) {
+  throw new Error("Superseded perspective Farm scenery must not return");
 }
 const farmOverviewStart = html.indexOf('<div class="farm-overview" id="farmOverview">');
 const farmPlotsStart = html.indexOf('<section class="farm-plots" id="cropArea" role="region" aria-label="Farm plots">');
@@ -270,16 +292,61 @@ if (farmOverviewStart < 0 || farmPlotsStart <= farmOverviewStart ||
     script[1].includes("setFarmSubview") ||
     !/#farm\s*\{[^}]*height:\s*auto;[^}]*overflow:\s*visible;/s.test(theme) ||
     !/#cropArea \.beds-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,/s.test(theme) ||
-    !theme.includes('url("../ui/crop-area-ground-v1.webp")') ||
+    !theme.includes('url("../ui/farm-meadow-background-v1.webp")') ||
     ["crop-area-entry","farm-overview-landmark","farm-subview","crop-area-open"].some((hook) => html.includes(hook) || theme.includes(hook)) ||
     ["Back to Farm","cropAreaTitle"].some((hook) => html.includes(hook))) {
   throw new Error("The Farm hero, weather and all plots must share one continuous main screen without a Crop Area gateway");
 }
 const renderBedSource = functionSource("renderBed");
 if (!script[1].includes('Array.from({length:MAX_BEDS},(_,index)=>renderBed(index)).join("")') ||
+    !renderBedSource.includes("next-unlock") ||
     !renderBedSource.includes("locked-future") ||
+    !renderBedSource.includes("data-open-unlock-bed") ||
+    !renderBedSource.includes("plot-lock-medallion") ||
+    renderBedSource.includes("data-unlock-bed") ||
     renderBedSource.includes('return ""')) {
-  throw new Error("The Crop Area must render all twenty plots, including visible future locked plots");
+  throw new Error("The Crop Area must render all twenty plots with one reviewable next plot and visible inert future locks");
+}
+const plotUnlockIds = [
+  "plotUnlockModal", "plotUnlockTitle", "plotUnlockName", "plotUnlockCost",
+  "plotUnlockRequirementRow", "plotUnlockRequirement", "plotUnlockStatus", "confirmUnlockPlot"
+];
+for (const id of plotUnlockIds) {
+  if (!ids.includes(id)) throw new Error(`Missing plot-unlock confirmation control: ${id}`);
+}
+const renderFarmSource = functionSource("renderFarm");
+const unlockBedSource = functionSource("unlockBed");
+const openPlotUnlockSource = functionSource("openPlotUnlock");
+const renderPlotUnlockSource = functionSource("renderPlotUnlockModal");
+const confirmPlotUnlockSource = functionSource("confirmPlotUnlock");
+const plotUnlockTag = html.match(/<[^>]+\bid="plotUnlockModal"[^>]*>/)?.[0] || "";
+if (!/\brole="dialog"/.test(plotUnlockTag) ||
+    !/\baria-modal="true"/.test(plotUnlockTag) ||
+    !/\baria-labelledby="plotUnlockTitle"/.test(plotUnlockTag) ||
+    !/\baria-describedby="plotUnlockStatus"/.test(plotUnlockTag) ||
+    !renderFarmSource.includes("openPlotUnlock") || renderFarmSource.includes("=>unlockBed(") ||
+    !openPlotUnlockSource.includes("index!==state.unlockedBeds") ||
+    !openPlotUnlockSource.includes('$("#plotUnlockModal").classList.add("show")') ||
+    openPlotUnlockSource.includes("state.unlockedBeds++") ||
+    !renderPlotUnlockSource.includes("canSpendGold(cost)") ||
+    !renderPlotUnlockSource.includes("hasCropRequirement(requirement)") ||
+    !renderPlotUnlockSource.includes('$("#confirmUnlockPlot").disabled=!ready') ||
+    !confirmPlotUnlockSource.includes("unlockBed(pendingUnlockBed)") ||
+    !script[1].includes('$("#confirmUnlockPlot").onclick=confirmPlotUnlock')) {
+  throw new Error("Plot expansion must use an accessible, resource-aware confirmation dialog before spending anything");
+}
+if (!unlockBedSource.includes("Number.isInteger(index)") ||
+    !unlockBedSource.includes("index<1") ||
+    !unlockBedSource.includes("index>=MAX_BEDS") ||
+    !unlockBedSource.includes("index!==state.unlockedBeds") ||
+    !unlockBedSource.includes("Number.isFinite(cost)") ||
+    !unlockBedSource.includes("canSpendGold(cost)") ||
+    !unlockBedSource.includes("hasCropRequirement(requirement)") ||
+    !unlockBedSource.includes("spendGold(cost)") ||
+    !unlockBedSource.includes("consumeCropRequirement(requirement)") ||
+    !unlockBedSource.includes("state.unlockedBeds++") ||
+    !unlockBedSource.includes("return true")) {
+  throw new Error("Confirmed plot unlocks must revalidate bounds, currency, and crop requirements before mutating state");
 }
 if (renderBedSource.includes("plotLayout") || renderBedSource.includes("--plot-x") ||
     renderBedSource.includes("--plot-y") || renderBedSource.includes("--plot-scale") ||
@@ -300,7 +367,7 @@ const obsoleteOfflineArt = [
 if (!html.includes(soilPlotAsset) ||
     Object.values(TOPDOWN_ASSETS).some((asset) => offlineAssets.filter((cached) => cached === `./${asset}`).length !== 1) ||
     obsoleteOfflineArt.some((asset) => offlineAssets.includes(asset))) {
-  throw new Error("The v45 cache must contain each approved Farm asset exactly once and exclude superseded radish and perspective art");
+  throw new Error("The v46 cache must contain each approved Farm asset exactly once and exclude superseded radish and perspective art");
 }
 const uiV3Assets = [
   "assets/farm/ui-v3/theme-v3.css",
@@ -352,16 +419,11 @@ for (const farmHook of ["FARM_CURRENCY_ICONS", "farm-view", "compactFmt", "step-
   }
 }
 if (!theme.includes("#farm:before") ||
-    !theme.includes("url(\"../ui/farm-background-master-v6.webp\")") ||
-    !theme.includes("background-size:100% 100%,100% auto,100% 100%") ||
-    !theme.includes("#farm .garden-panel:before") ||
-    !theme.includes("url(\"../ui/farm-ground-sand-v6.webp\")") ||
-    !theme.includes("background-repeat:no-repeat,repeat-y") ||
-    !theme.includes("--farm-gutter:13px") ||
+    !theme.includes("url(\"../ui/farm-meadow-background-v1.webp\")") ||
     !theme.includes("#farm .garden-panel") ||
     !theme.includes("background:transparent") ||
     !theme.includes("#farm .bed-plaque")) {
-  throw new Error("The Farm screen must keep its full-bleed scenery and integrated planter composition");
+  throw new Error("The Farm screen must use the new full-bleed meadow with integrated transparent planter composition");
 }
 if (!html.includes('background-attachment:fixed,fixed') ||
     !html.includes('linear-gradient(rgba(255,255,255,.58),rgba(255,255,255,.68))') ||
@@ -373,6 +435,11 @@ if (!html.includes('.bottom-nav{') ||
     !html.includes('width:min(100%,480px)') ||
     !html.includes('env(safe-area-inset-bottom)')) {
   throw new Error("The bottom navigation must stay pinned to the visible phone viewport");
+}
+const combinedStyles = `${html}\n${theme}`;
+const bottomNavRules = cssRuleBodies(combinedStyles, ".bottom-nav");
+if (!bottomNavRules.some((body) => /(?:background|background-color)\s*:[\s\S]*(?:#fff(?:fff)?\b|rgba?\(\s*255\s*,\s*255\s*,\s*255)/i.test(body))) {
+  throw new Error("The bottom navigation must use the requested white surface");
 }
 if (html.includes('class="brand"') || !html.includes('class="account-summary" aria-label="Account"') || !html.includes('class="wallet" aria-label="Steps and gold"')) {
   throw new Error("The top bar must show the account and level on the left with currencies on the right");
@@ -395,39 +462,65 @@ if (!html.includes(".currency{display:inline;") || !html.includes("vertical-alig
 if (html.includes('${currencyMarkup("steps",crop.steps)} · ${state.adminMode?') || html.includes('Plant · ${currencyMarkup("steps",crop.steps)} to grow')) {
   throw new Error("The crop picker must list seeds without growth-step pricing");
 }
-if (html.includes(".shop-item:before") || !html.includes("background:linear-gradient(180deg,#fff,#f7f3e9)") || html.includes("background:radial-gradient(circle at 50% 42%,color-mix")) {
-  throw new Error("Shop items must use neutral full-card backplates without a rarity side band");
-}
 if (farm.freshState().seedShopSize !== 40 || !html.includes("--seed-shop-size") || !html.includes("detailLinesMarkup")) {
   throw new Error("Persistent seed sizing and one-line-per-stat shop details are required");
 }
-if (!html.includes(".shop-grid{display:grid;grid-template-columns:repeat(3") || html.includes("large-seeds") || html.includes("data-fert-buy")) {
-  throw new Error("The reference-style shop must remain three wide with popup purchasing");
+const renderShopSource = functionSource("renderShop");
+const itemCardMarkupSource = functionSource("itemCardMarkup");
+const shopPriceMarkupSource = functionSource("shopPriceMarkup");
+if (farm.freshState().shopLayoutVersion !== 7 ||
+    !/saved\.shopLayoutVersion\s*!==\s*7/.test(loadStateSource) ||
+    !/merged\.shopLayoutVersion\s*=\s*7/.test(loadStateSource)) {
+  throw new Error("Shop layout v7 must be the saved default with a forward migration for existing farms");
 }
-if (!html.includes("data-fert-view") || !html.includes("shopLayoutVersion:6") || !html.includes("class=\"seed-shop-row")) {
-  throw new Error("The seed shop must use the compact reference-list layout and migration");
+for (const id of ["shopTitle", "shopRefreshLabel", "shopTabs", "gearViewTabs", "fertTierTabs", "shopGrid"]) {
+  if (!ids.includes(id)) throw new Error(`Missing Shop v7 control: ${id}`);
 }
-if (!html.includes("grid-template-columns:var(--seed-shop-size) minmax(0,1fr) auto") || !html.includes("seed-row-price") || !html.includes("seed-row-steps")) {
-  throw new Error("Seed rows must align the unframed packet, growing steps, name, and price");
+const shopTabsTag = html.match(/<[^>]+\bid="shopTabs"[^>]*>/)?.[0] || "";
+const shopGridTag = html.match(/<[^>]+\bid="shopGrid"[^>]*>/)?.[0] || "";
+const shopTabMarkup = [...html.matchAll(/<button\b[^>]*\brole="tab"[^>]*>/g)].map((match) => match[0]);
+if (!/class="[^"]*\bshop-sign\b/.test(html) || !/class="[^"]*\bshop-shell\b/.test(html) ||
+    !/class="[^"]*\bshop-product-list\b/.test(shopGridTag) ||
+    !/\brole="tablist"/.test(shopTabsTag) || !/\brole="tabpanel"/.test(shopGridTag) ||
+    !["seeds", "gear", "fertiliser"].every((department) => shopTabMarkup.some((tag) =>
+      tag.includes(`data-shop-tab="${department}"`) && tag.includes('aria-controls="shopGrid"') && tag.includes("aria-selected=")
+    ))) {
+  throw new Error("Shop v7 must keep its signed cream frame and accessible department tabs");
 }
-if (html.includes('<div class="section-head"><h1>Shop</h1></div>') ||
-    !html.includes("#shop>#shopTabs{margin-top:1px}") ||
-    !html.includes("background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(244,248,239,.91))")) {
-  throw new Error("The seed shop must use the clean mobile list without a redundant Shop heading");
+const shopShellRules = cssRuleBodies(combinedStyles, ".shop-shell");
+const shopSignRules = cssRuleBodies(combinedStyles, ".shop-sign");
+const shopListRules = cssRuleBodies(combinedStyles, "#shop .shop-product-list");
+const shopRowRules = cssRuleBodies(combinedStyles, "#shop .shop-product-row");
+const creamSurface = /(?:#fff[0-9a-f]{3}|#f[0-9a-f]{5}|var\(--(?:cream|paper)[\w-]*\))/i;
+if (!shopShellRules.some((body) => /(?:background|background-color)\s*:/.test(body) && /border-radius\s*:/.test(body) && creamSurface.test(body)) ||
+    !shopSignRules.some((body) => /(?:background|background-color)\s*:/.test(body)) ||
+    !shopListRules.some((body) => /grid-template-columns\s*:\s*(?:minmax\(\s*0\s*,\s*1fr\s*\)|1fr)/.test(body)) ||
+    !shopRowRules.some((body) => /grid-template-columns\s*:\s*minmax\(\s*0\s*,\s*1fr\s*\)\s+(?:auto|var\(--[\w-]+\))/.test(body))) {
+  throw new Error("Shop v7 must use one-column product rows inside a rounded cream market frame");
 }
-if (!html.includes('src="${CURRENCY_ICONS.steps}" alt="Steps">${fmt(crop.steps)}')) {
-  throw new Error("Every seed row must show that crop's growing steps with the step icon");
+if (!renderShopSource.includes("shop-product-row") ||
+    !renderShopSource.includes("shop-product-main") ||
+    !renderShopSource.includes("shop-row-buy") ||
+    !renderShopSource.includes("data-seed-buy") ||
+    !renderShopSource.includes("data-fert-buy") ||
+    !renderShopSource.includes("data-seed-view") ||
+    !renderShopSource.includes("data-fert-view") ||
+    !renderShopSource.includes("aria-selected") ||
+    !itemCardMarkupSource.includes("shop-product-row") ||
+    !itemCardMarkupSource.includes("data-item-buy") ||
+    !itemCardMarkupSource.includes("data-shop-item") ||
+    !shopPriceMarkupSource.includes("FARM_CURRENCY_ICONS") ||
+    !shopPriceMarkupSource.includes("shop-price-pill") ||
+    html.includes("large-seeds")) {
+  throw new Error("Seeds, gear, and fertiliser must share the Shop v7 row/detail/explicit-buy architecture");
+}
+if (!renderShopSource.includes("FARM_CURRENCY_ICONS.steps") || !renderShopSource.includes("steps to grow")) {
+  throw new Error("Every seed product row must show its growing-step requirement with the Farm step icon");
 }
 for (const forbiddenTimer of ["expiryHours", "effectiveExpiryMs", "data-bed-time", "plant-expiry", "seed-row-expiry", 'label:"Expires"', '"withered"', "crop lifetime"]) {
   if (html.includes(forbiddenTimer)) throw new Error(`Crop timing must be removed completely: ${forbiddenTimer}`);
 }
-if (!html.includes('font-family:"DM Sans"') || !html.includes("font-weight:800") || !html.includes("background:transparent;") || !html.includes("border:0;border-radius:0")) {
-  throw new Error("The refined seed ledger requires thick modern typography and a transparent outer field");
-}
-if (!html.includes('${fmt(crop.seedCost)}<img class="currency-icon"') || !html.includes("border-radius:24px") || !html.includes(".seed-shop-row:last-child{border-bottom:0}")) {
-  throw new Error("Seed prices and the polished rounded mobile list must remain intact");
-}
-if (html.includes("discountedCrop") || html.includes("data-discount") || html.includes("half price") || html.includes("seed-shop-row discount")) {
+if (html.includes("discountedCrop") || html.includes("data-discount") || html.includes("half price") || html.includes("shop-product-row discount")) {
   throw new Error("The daily seed discount must be removed completely");
 }
 if (!html.includes("width:min(104%,180px);height:10px;margin:1px auto 0;border:2px solid #804615") || !html.includes("background:linear-gradient(90deg,#a7b86b,#60753a)")) {
@@ -657,6 +750,27 @@ if (baseOdds.base < 79.9 || Math.abs(baseOdds.iridium - 1) > 0.001) {
 }
 if (!html.includes('item?spriteMarkup(item,"loadout-sprite"):icon') || !html.includes(".loadout-slot .loadout-sprite")) {
   throw new Error("Equipped gear must keep using its generated item artwork");
+}
+const openItemSource = functionSource("openItem");
+const unequipItemSource = functionSource("unequipSelectedItem");
+const renderBarnSource = functionSource("renderBarn");
+if (!ids.includes("detailUnequip") ||
+    !/<button\b[^>]*\bid="detailUnequip"[^>]*\bhidden\b[^>]*>/i.test(html) ||
+    !openItemSource.includes('$("#detailUnequip").hidden=!equipped') ||
+    !openItemSource.includes('$("#detailUnequip").disabled=!equipped') ||
+    !openItemSource.includes("Unequip ${selectedItem.name}") ||
+    !unequipItemSource.includes("state.equipment[selectedItem.type]!==selectedItem.id") ||
+    !unequipItemSource.includes("state.equipment[selectedItem.type]=null") ||
+    !unequipItemSource.includes("save()") ||
+    !unequipItemSource.includes("renderAll()") ||
+    !script[1].includes('$("#detailUnequip").onclick=unequipSelectedItem') ||
+    !renderBarnSource.includes("data-equipped") ||
+    !renderBarnSource.includes("data-owned-item") ||
+    !renderBarnSource.includes("openItem")) {
+  throw new Error("Equipped inventory gear must expose a wired Unequip action without affecting ownership");
+}
+if (unequipItemSource.includes("ownedItems=") || unequipItemSource.includes("stepBalance")) {
+  throw new Error("Unequipping must not sell the item or change its ownership or currency");
 }
 for (const id of ["imageCenterAsset", "imageCenterPreview", "imageCenterY", "imageCenterUp", "imageCenterDown", "resetImageCenter", "saveImageCenter"]) {
   if (!ids.includes(id)) throw new Error(`Missing permanent sprite-centre control: ${id}`);

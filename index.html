@@ -671,40 +671,34 @@
               </div>
               <div class="beds-grid" id="bedsGrid"></div>
             </div>
-            <section class="crop-composter" aria-hidden="true">
-              <h2 id="composterTitle">Composter</h2>
-              <div class="composter-slots" aria-hidden="true">
-                <span class="compost-slot" data-compost-quadrant="tl"></span>
-                <span class="compost-slot" data-compost-quadrant="tr"></span>
-                <span class="compost-slot" data-compost-quadrant="bl"></span>
-                <span class="compost-slot" data-compost-quadrant="br"></span>
-              </div>
-            </section>
           </section>
         </div>
       </section>
 
       <section class="screen" id="shop">
-        <div class="screen-title-row">
-          <div><span class="screen-kicker">Village market</span><h1>Shop</h1></div>
-          <span class="screen-meta" id="shopRefreshLabel">Fresh stock today</span>
+        <div class="shop-sign" aria-labelledby="shopTitle">
+          <span class="shop-sign-leaf shop-sign-leaf-left" aria-hidden="true">❧</span>
+          <div><span class="screen-kicker">Village market</span><h1 id="shopTitle">Seed Shop</h1><small id="shopRefreshLabel">Fresh stock today</small></div>
+          <span class="shop-sign-leaf shop-sign-leaf-right" aria-hidden="true">❧</span>
         </div>
-        <div class="tabs" id="shopTabs">
-          <button class="tab active" data-shop-tab="seeds">Seeds</button>
-          <button class="tab" data-shop-tab="gear">Gear</button>
-          <button class="tab" data-shop-tab="fertiliser">Fertiliser</button>
+        <div class="shop-shell">
+          <div class="tabs" id="shopTabs" role="tablist" aria-label="Shop department">
+            <button class="tab active" id="shopSeedsTab" type="button" role="tab" data-shop-tab="seeds" aria-selected="true" aria-controls="shopGrid">Seeds</button>
+            <button class="tab" id="shopGearTab" type="button" role="tab" data-shop-tab="gear" aria-selected="false" aria-controls="shopGrid" tabindex="-1">Gear</button>
+            <button class="tab" id="shopFertiliserTab" type="button" role="tab" data-shop-tab="fertiliser" aria-selected="false" aria-controls="shopGrid" tabindex="-1">Fertiliser</button>
+          </div>
+          <div class="tabs gear-view-tabs" id="gearViewTabs" hidden>
+            <button class="tab active" type="button" data-gear-view="daily">Daily stock</button>
+            <button class="tab" type="button" data-gear-view="catalogue">Catalogue</button>
+          </div>
+          <div class="tabs" id="fertTierTabs" hidden>
+            <button class="tab active" type="button" data-fert-tier="bronze">Bronze</button>
+            <button class="tab" type="button" data-fert-tier="silver">Silver</button>
+            <button class="tab" type="button" data-fert-tier="gold">Gold</button>
+            <button class="tab" type="button" data-fert-tier="iridium">Iridium</button>
+          </div>
+          <div class="shop-grid shop-product-list" id="shopGrid" role="tabpanel" aria-labelledby="shopSeedsTab"></div>
         </div>
-        <div class="tabs gear-view-tabs" id="gearViewTabs" hidden>
-          <button class="tab active" data-gear-view="daily">Daily stock</button>
-          <button class="tab" data-gear-view="catalogue">Catalogue</button>
-        </div>
-        <div class="tabs" id="fertTierTabs" hidden>
-          <button class="tab active" data-fert-tier="bronze">Bronze</button>
-          <button class="tab" data-fert-tier="silver">Silver</button>
-          <button class="tab" data-fert-tier="gold">Gold</button>
-          <button class="tab" data-fert-tier="iridium">Iridium</button>
-        </div>
-        <div class="shop-grid" id="shopGrid"></div>
       </section>
 
       <section class="screen" id="quests">
@@ -865,6 +859,25 @@
     </div>
   </div>
 
+  <div class="modal" id="plotUnlockModal" role="dialog" aria-modal="true" aria-labelledby="plotUnlockTitle" aria-describedby="plotUnlockStatus">
+    <div class="modal-card plot-unlock-modal-card">
+      <div class="modal-head">
+        <div><span class="modal-kicker">Farm expansion</span><h2 id="plotUnlockTitle">Unlock new plot</h2></div>
+        <button class="close-btn" type="button" data-close-modal aria-label="Close plot unlock">×</button>
+      </div>
+      <div class="plot-unlock-visual">
+        <span class="plot-lock-medallion" aria-hidden="true"><i></i></span>
+        <span><small>Next space</small><b id="plotUnlockName">Plot 2</b></span>
+      </div>
+      <div class="plot-unlock-details">
+        <div><span>Gold cost</span><strong id="plotUnlockCost"></strong></div>
+        <div id="plotUnlockRequirementRow"><span>Crop offering</span><strong id="plotUnlockRequirement"></strong></div>
+      </div>
+      <p class="plot-unlock-status" id="plotUnlockStatus" role="status" aria-live="polite">Review the cost to expand your farm.</p>
+      <button class="btn wide" type="button" id="confirmUnlockPlot">Unlock plot</button>
+    </div>
+  </div>
+
   <div class="modal" id="plantModal" role="dialog" aria-modal="true" aria-labelledby="plantModalTitle">
     <div class="modal-card planting-modal-card">
       <div class="modal-head planting-modal-head">
@@ -915,13 +928,14 @@
     </div>
   </div>
 
-  <div class="modal" id="itemModal" role="dialog" aria-modal="true">
+  <div class="modal" id="itemModal" role="dialog" aria-modal="true" aria-labelledby="detailName">
     <div class="modal-card quality-base" id="itemModalCard">
-      <div class="modal-head"><div><div class="detail-quality" id="detailQuality"></div><h2 id="detailName">Item</h2></div><button class="close-btn" data-close-modal>×</button></div>
+      <div class="modal-head"><div><div class="detail-quality" id="detailQuality"></div><h2 id="detailName">Item</h2></div><button class="close-btn" data-close-modal aria-label="Close item details">×</button></div>
       <div class="detail-art" id="detailArt"></div>
       <div class="detail-effect" id="detailEffect"></div>
       <div class="detail-quality-line" id="detailQualityLine"></div>
       <button class="btn wide" id="detailAction"></button>
+      <button class="btn wide secondary" type="button" id="detailUnequip" hidden style="margin-top:8px">Unequip</button>
       <button class="btn wide danger" id="detailSell" hidden style="margin-top:8px">Sell gear</button>
       <div class="upgrade-preview" id="detailUpgradePreview" hidden><b id="detailUpgradeTitle"></b><small id="detailUpgradeRecipe"></small></div>
       <button class="btn wide clay" id="detailUpgrade" hidden>Upgrade</button>
@@ -937,7 +951,7 @@
     </div>
   </div>
 
-  <div class="toast" id="toast"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>
     (() => {
@@ -1107,7 +1121,7 @@
           equipment:{boots:null,gloves:null,tools:null},fertilisers:{},
           cropRateLevel:0,qualityLevel:0,saleLevel:0,farmUpgrades:[],cropPlacements:{},globalCropPlacement:{x:0,y:0,scale:1},imageCenterY:{},assetTransforms:{},trackingStatus:"checking",
           bedPlans:Array.from({length:MAX_BEDS},()=>null),questDate:todayKey(),completedQuests:[],weeklyQuestKey:"",completedWeeklyQuests:[],
-          weather:null,weatherLocation:null,adminMode:false,profileName:"Farmer",characterProfile:"farmer",seedShopSize:40,shopLayoutVersion:6,farmArtVersion:2,plotArtVersion:2,cropArtVersion:3,perkDate:todayKey(),doubleStepUsed:0,doubleGoldSalesUsed:0
+          weather:null,weatherLocation:null,adminMode:false,profileName:"Farmer",characterProfile:"farmer",seedShopSize:40,shopLayoutVersion:7,farmArtVersion:2,plotArtVersion:2,cropArtVersion:3,perkDate:todayKey(),doubleStepUsed:0,doubleGoldSalesUsed:0
         };
       }
       function loadState(){
@@ -1116,6 +1130,7 @@
           if(!saved||saved.version!==1)return freshState();
           const base=freshState();
           const merged={...base,...saved};
+          merged.unlockedBeds=clamp(Math.trunc(Number(saved.unlockedBeds))||1,1,MAX_BEDS);
           merged.beds=Array.from({length:MAX_BEDS},(_,i)=>{
             const bed=saved.beds?.[i];
             return bed?{...bed,fertiliserId:normaliseFertiliserId(bed.fertiliserId)}:null;
@@ -1150,7 +1165,7 @@
           merged.farmUpgrades=[...new Set(saved.farmUpgrades||[])];
           merged.completedQuests=saved.questDate===todayKey()?[...new Set(saved.completedQuests||[])]:[];
           merged.questDate=todayKey();
-          if(saved.shopLayoutVersion!==6){merged.seedShopSize=40;merged.shopLayoutVersion=6}
+          if(saved.shopLayoutVersion!==7){merged.seedShopSize=40;merged.shopLayoutVersion=7}
           return merged;
         }catch{return freshState()}
       }
@@ -1172,6 +1187,9 @@
       let plantFertiliserQuery="";
       let plantFertiliserFamily="all";
       let plantModalReturnFocus=null;
+      let pendingUnlockBed=null;
+      let plotUnlockReturnFocus=null;
+      let itemModalReturnFocus=null;
       let selectedItem=null;
       let selectedFromCatalogue=false;
       let selectedSeedCrop=null;
@@ -1559,7 +1577,7 @@
         renderWeather();
         $("#bedsGrid").innerHTML=Array.from({length:MAX_BEDS},(_,index)=>renderBed(index)).join("");
         $$("[data-plant-bed]").forEach(button=>button.onclick=()=>openPlantModal(Number(button.dataset.plantBed)));
-        $$("[data-unlock-bed]").forEach(button=>button.onclick=()=>unlockBed(Number(button.dataset.unlockBed)));
+        $$("[data-open-unlock-bed]").forEach(button=>button.onclick=()=>openPlotUnlock(Number(button.dataset.openUnlockBed)));
         $$("[data-harvest-bed]").forEach(button=>button.onclick=()=>harvestBed(Number(button.dataset.harvestBed)));
         $("#plantAll").disabled=!state.beds.slice(0,state.unlockedBeds).some(bed=>!bed);
         $("#replantAll").disabled=!state.beds.slice(0,state.unlockedBeds).some((bed,index)=>!bed&&state.bedPlans[index]);
@@ -1573,9 +1591,10 @@
           const next=index===state.unlockedBeds;
           if(next){
             const requirement=BED_REQUIREMENTS[index];
-            return `<article class="bed locked next-unlock" data-bed-index="${index}"><button class="bed-scene bed-action" data-unlock-bed="${index}">${planterArt()}<span class="bed-plaque"><strong>Plot ${index+1}</strong></span><span class="bed-unlock-banner"><b>Unlock</b>${farmCurrencyMarkup("gold",BED_COSTS[index])}${requirement?`<small>${cropRequirementText(requirement)}</small>`:""}</span></button></article>`;
+            const requirementCopy=requirement?cropRequirementText(requirement):"No crop offering";
+            return `<article class="bed locked next-unlock" data-bed-index="${index}"><button class="bed-scene bed-action" type="button" data-open-unlock-bed="${index}" aria-label="Review unlock for plot ${index+1}, ${fmt(BED_COSTS[index])} gold${requirement?`, requires ${requirementCopy}`:""}">${planterArt()}<span class="plot-lock-medallion" aria-hidden="true"><i></i></span><span class="bed-plaque"><strong>New plot</strong></span><span class="bed-unlock-summary"><b>Unlock plot ${index+1}</b>${farmCurrencyMarkup("gold",BED_COSTS[index])}<small>${requirement?requirementCopy:"Tap to review"}</small></span></button></article>`;
           }
-          return `<article class="bed locked locked-future" data-bed-index="${index}"><div class="bed-scene" aria-hidden="true">${planterArt()}<span class="bed-plaque"><strong>Plot ${index+1}</strong></span><span class="bed-unlock-banner"><b>Locked</b><small>Unlock plot ${index} first</small></span></div></article>`;
+          return `<article class="bed locked locked-future" data-bed-index="${index}"><div class="bed-scene" role="img" aria-label="Plot ${index+1} locked. Unlock plot ${index} first.">${planterArt()}<span class="plot-lock-medallion" aria-hidden="true"><i></i></span><span class="bed-plaque"><strong>Plot ${index+1}</strong></span><span class="bed-unlock-summary"><b>Locked</b><small>Unlock previous plot first</small></span></div></article>`;
         }
         const bed=state.beds[index];
         if(!bed)return `<article class="bed empty" data-bed-index="${index}"><button class="bed-scene bed-action" data-plant-bed="${index}" aria-label="Plant crop in plot ${index+1}">${planterArt()}<span class="bed-plaque"><strong>Empty</strong></span></button></article>`;
@@ -1593,11 +1612,60 @@
         return `<article class="bed ${status}" data-bed-index="${index}">${scene}</article>`;
       }
       function unlockBed(index){
+        if(!Number.isInteger(index)||index<1||index>=MAX_BEDS||index!==state.unlockedBeds)return false;
         const cost=BED_COSTS[index],requirement=BED_REQUIREMENTS[index];
-        if(index!==state.unlockedBeds)return;
-        if(!canSpendGold(cost))return toast("Not enough gold");
-        if(!hasCropRequirement(requirement))return toast(`Requires ${cropRequirementText(requirement)}`);
-        spendGold(cost);consumeCropRequirement(requirement);state.unlockedBeds++;save();renderAll();toast(`Bed ${index+1} unlocked`);
+        if(!Number.isFinite(cost)||cost<0)return false;
+        if(!canSpendGold(cost)){toast("Not enough gold");renderPlotUnlockModal();return false}
+        if(!hasCropRequirement(requirement)){toast(`Requires ${cropRequirementText(requirement)}`);renderPlotUnlockModal();return false}
+        spendGold(cost);
+        consumeCropRequirement(requirement);
+        state.unlockedBeds++;
+        const plotNumber=index+1;
+        save();
+        closeModals();
+        renderAll();
+        toast(`Plot ${plotNumber} unlocked`);
+        requestAnimationFrame(()=>$(`[data-plant-bed="${index}"]`)?.focus({preventScroll:true}));
+        return true;
+      }
+      function openPlotUnlock(index){
+        if(!Number.isInteger(index)||index<1||index>=MAX_BEDS||index!==state.unlockedBeds)return;
+        pendingUnlockBed=index;
+        plotUnlockReturnFocus=document.activeElement;
+        renderPlotUnlockModal();
+        document.body.classList.add("modal-open");
+        $("#plotUnlockModal").classList.add("show");
+        requestAnimationFrame(()=>{
+          const confirm=$("#confirmUnlockPlot");
+          (confirm.disabled?$("#plotUnlockModal [data-close-modal]"):confirm)?.focus({preventScroll:true});
+        });
+      }
+      function renderPlotUnlockModal(){
+        if(!Number.isInteger(pendingUnlockBed))return;
+        const index=pendingUnlockBed,cost=BED_COSTS[index],requirement=BED_REQUIREMENTS[index];
+        const goldReady=Number.isFinite(cost)&&canSpendGold(cost);
+        const cropReady=hasCropRequirement(requirement);
+        $("#plotUnlockName").textContent=`Plot ${index+1}`;
+        $("#plotUnlockTitle").textContent=`Unlock plot ${index+1}`;
+        $("#plotUnlockCost").innerHTML=farmCurrencyMarkup("gold",cost);
+        $("#plotUnlockCost").classList.toggle("requirement-ready",goldReady);
+        $("#plotUnlockCost").classList.toggle("requirement-missing",!goldReady);
+        $("#plotUnlockRequirementRow").hidden=!requirement;
+        $("#plotUnlockRequirement").textContent=requirement?`${cropRequirementText(requirement)} · ${cropReady?"Ready":"Missing"}`:"";
+        $("#plotUnlockRequirement").classList.toggle("requirement-ready",cropReady);
+        $("#plotUnlockRequirement").classList.toggle("requirement-missing",!cropReady);
+        const ready=goldReady&&cropReady;
+        $("#confirmUnlockPlot").disabled=!ready;
+        $("#confirmUnlockPlot").textContent=ready?`Unlock plot ${index+1}`:"Requirements missing";
+        $("#plotUnlockStatus").textContent=ready
+          ?"Everything is ready. Confirm to add this plot to your farm."
+          :!goldReady&&!cropReady
+            ?"Earn more gold and collect the crop offering to unlock this plot."
+            :!goldReady?"Earn more gold to unlock this plot.":"Collect the crop offering to unlock this plot.";
+      }
+      function confirmPlotUnlock(){
+        if(!Number.isInteger(pendingUnlockBed))return;
+        unlockBed(pendingUnlockBed);
       }
       function plantableCrops(){
         const level=levelInfo().level;
@@ -1766,9 +1834,21 @@
         save();renderAll();celebrate(crop.icon);
         toast(`${QUALITY_LABELS[quality]?QUALITY_LABELS[quality]+" ":""}${crop.name}`);
       }
+      function shopPriceMarkup(type,amount,label=type){
+        const icon=FARM_CURRENCY_ICONS[type]||CURRENCY_ICONS[type];
+        const alt=type==="gold"?"Gold":"Steps";
+        return `<span class="shop-price-pill"><img src="${icon}" alt="${alt}"><strong>${fmt(amount)}</strong><small>${label}</small></span>`;
+      }
       function renderShop(){
-        if($("#shopRefreshLabel"))$("#shopRefreshLabel").textContent=stockRefreshText();
-        $$("#shopTabs .tab").forEach(tab=>tab.classList.toggle("active",tab.dataset.shopTab===activeShopTab));
+        const titles={seeds:"Seed Shop",gear:"Gear Shop",fertiliser:"Fertiliser Shop"};
+        $("#shopTitle").textContent=titles[activeShopTab]||"Village Shop";
+        if($("#shopRefreshLabel"))$("#shopRefreshLabel").textContent=activeShopTab==="gear"?stockRefreshText():"Fresh stock today";
+        $$("#shopTabs .tab").forEach(tab=>{
+          const active=tab.dataset.shopTab===activeShopTab;
+          tab.classList.toggle("active",active);
+          tab.setAttribute("aria-selected",String(active));
+          tab.tabIndex=active?0:-1;
+        });
         $("#gearViewTabs").hidden=activeShopTab!=="gear";
         $("#fertTierTabs").hidden=activeShopTab!=="fertiliser";
         $$("#gearViewTabs .tab").forEach(tab=>tab.classList.toggle("active",tab.dataset.gearView===activeGearView));
@@ -1776,33 +1856,56 @@
         const seedSize=clamp(Number(state.seedShopSize)||40,24,48);
         $("#seedShopSize").value=String(seedSize);
         $("#seedShopSizeValue").textContent=`${seedSize}px`;
-        $("#shopGrid").style.setProperty("--seed-shop-size",`${seedSize}px`);
-        $("#shopGrid").classList.toggle("gear-grid",activeShopTab==="gear");
-        $("#shopGrid").classList.toggle("seed-grid",activeShopTab==="seeds");
+        const grid=$("#shopGrid");
+        grid.style.setProperty("--seed-shop-size",`${seedSize}px`);
+        grid.className=`shop-grid shop-product-list ${activeShopTab}-product-list`;
+        const activeTab=$(activeShopTab==="seeds"?"#shopSeedsTab":activeShopTab==="gear"?"#shopGearTab":"#shopFertiliserTab");
+        grid.setAttribute("aria-labelledby",activeTab.id);
         if(activeShopTab==="seeds"){
           const level=levelInfo().level;
           const crops=state.adminMode?CROPS:CROPS.filter(crop=>crop.level<=level);
-          $("#shopGrid").innerHTML=crops.map(crop=>{
-            return `<button class="seed-shop-row" data-seed-view="${crop.id}"><span class="seed-row-icon">${cropIconMarkup(crop,true)}</span><span class="seed-row-copy"><span class="seed-row-name">${crop.name} Seeds</span><span class="seed-row-meta"><span class="seed-row-steps"><img class="currency-icon" src="${CURRENCY_ICONS.steps}" alt="Steps">${fmt(crop.steps)}</span></span></span><span class="seed-row-price">${fmt(crop.seedCost)}<img class="currency-icon" src="${CURRENCY_ICONS.gold}" alt="Gold"></span></button>`;
-          }).join("");
+          grid.innerHTML=crops.map(crop=>`<article class="shop-product-row seed-product quality-base">
+            <button class="shop-product-main" type="button" data-seed-view="${crop.id}" aria-label="View ${crop.name} seed details">
+              <span class="shop-product-art seed-row-icon">${cropIconMarkup(crop,true,"shop-product-sprite")}</span>
+              <span class="shop-product-copy"><strong>${crop.name}</strong><small>Seed packet · Level ${crop.level}</small><span class="shop-product-stat"><img src="${FARM_CURRENCY_ICONS.steps}" alt="Steps">${fmt(crop.steps)} steps to grow</span></span>
+            </button>
+            <span class="shop-product-action">${shopPriceMarkup("gold",crop.seedCost,"gold")}<button class="shop-row-buy shop-buy-button" type="button" data-seed-buy="${crop.id}" aria-label="Buy one ${crop.name} seed for ${fmt(crop.seedCost)} gold" ${canSpendGold(crop.seedCost)?"":"disabled"}>Buy</button></span>
+          </article>`).join("");
           $$("[data-seed-view]").forEach(button=>button.onclick=()=>openSeed(button.dataset.seedView));
+          $$("[data-seed-buy]").forEach(button=>button.onclick=()=>buySeed(button.dataset.seedBuy));
           return;
         }
         if(activeShopTab==="fertiliser"){
           const products=FERTILISERS.filter(fert=>fert.tier===selectedFertiliserTier);
-          $("#shopGrid").innerHTML=products.map(fert=>`<button class="shop-item fert-card quality-${fert.tier}" data-fert-view="${fert.id}"><div class="item-art">${spriteMarkup(fert)}</div><div class="item-name">${fert.name}</div></button>`).join("");
+          grid.innerHTML=products.map(fert=>`<article class="shop-product-row fertiliser-product quality-${fert.tier}">
+            <button class="shop-product-main" type="button" data-fert-view="${fert.id}" aria-label="View ${fert.name} details">
+              <span class="shop-product-art">${spriteMarkup(fert,"shop-product-sprite")}</span>
+              <span class="shop-product-copy"><strong>${fert.name}</strong><small>${QUALITY_LABELS[fert.tier]||"Base"} fertiliser</small><span class="shop-product-stat">${fert.effectText}</span></span>
+            </button>
+            <span class="shop-product-action">${shopPriceMarkup("steps",fert.cost,"steps")}<button class="shop-row-buy shop-buy-button" type="button" data-fert-buy="${fert.id}" aria-label="Buy ${fert.name} for ${fmt(fert.cost)} steps" ${canSpendSteps(fert.cost)?"":"disabled"}>Buy</button></span>
+          </article>`).join("");
           $$("[data-fert-view]").forEach(button=>button.onclick=()=>openFertiliser(button.dataset.fertView));
+          $$("[data-fert-buy]").forEach(button=>button.onclick=()=>buyFertiliser(button.dataset.fertBuy));
           return;
         }
-        $("#shopGrid").innerHTML=GEAR_TYPES.map(([type,label])=>{
+        grid.innerHTML=GEAR_TYPES.map(([type,label])=>{
           const items=activeGearView==="daily"?dailyStock(type):ITEMS.filter(item=>item.type===type);
           return `<div class="shop-section"><h2>${label}</h2></div>${items.map(item=>itemCardMarkup(item,activeGearView==="catalogue")).join("")}`;
         }).join("");
         $$("[data-shop-item]").forEach(button=>button.onclick=()=>openItem(button.dataset.shopItem,button.dataset.catalogue==="1"));
+        $$("[data-item-buy]").forEach(button=>button.onclick=()=>openItem(button.dataset.itemBuy,button.dataset.catalogue==="1"));
       }
       function itemCardMarkup(item,catalogue=false){
         const owned=state.ownedItems.includes(item.id),upgrade=itemUpgradeLevel(item);
-        return `<button class="shop-item quality-${item.quality} ${owned?"owned":""}" data-shop-item="${item.id}" data-catalogue="${catalogue?"1":"0"}"><div class="item-art">${spriteMarkup(item,"gear-sprite")}</div><div class="item-name">${item.name}</div></button>`;
+        const available=isDailyItem(item.id)||state.adminMode;
+        const quality=QUALITY_LABELS[item.quality]||"Standard";
+        return `<article class="shop-product-row gear-product quality-${item.quality} ${owned?"owned":""}">
+          <button class="shop-product-main" type="button" data-shop-item="${item.id}" data-catalogue="${catalogue?"1":"0"}" aria-label="View ${item.name} details">
+            <span class="shop-product-art">${spriteMarkup(item,"shop-product-sprite gear-sprite")}</span>
+            <span class="shop-product-copy"><strong>${item.name}</strong><small>${quality}${upgrade?` · +${upgrade}`:""}</small><span class="shop-product-stat">${effectDescription(item.effect,itemEffectScale(item))}</span></span>
+          </button>
+          <span class="shop-product-action">${owned?`<span class="shop-owned-pill">Owned</span>`:available?shopPriceMarkup("steps",item.cost,"steps"):`<span class="shop-owned-pill unavailable">Not in stock</span>`}<button class="shop-row-buy shop-buy-button" type="button" data-item-buy="${item.id}" data-catalogue="${catalogue?"1":"0"}" aria-label="${owned?"View":available?"Buy":"View"} ${item.name}">${owned||!available?"View":"Buy"}</button></span>
+        </article>`;
       }
       function openSeed(id){
         const crop=cropById(id);if(!crop)return;
@@ -1871,6 +1974,7 @@
         save();renderAll();toast(`${crop.name} seeds added`);
       }
       function openItem(id,fromCatalogue=false){
+        if(!$("#itemModal").classList.contains("show"))itemModalReturnFocus=document.activeElement;
         selectedItem=itemById(id);if(!selectedItem)return;
         selectedFromCatalogue=fromCatalogue;
         const owned=state.ownedItems.includes(id);
@@ -1884,6 +1988,9 @@
         $("#detailQualityLine").textContent=`Quality · ${QUALITY_LABELS[selectedItem.quality]||"Standard"}`;
         $("#detailAction").innerHTML=owned?(equipped?"Equipped":"Equip item"):available?`Buy · ${currencyMarkup("steps",selectedItem.cost)}`:"Not in today’s stock";
         $("#detailAction").disabled=equipped||(!owned&&(!available||!canSpendSteps(selectedItem.cost)));
+        $("#detailUnequip").hidden=!equipped;
+        $("#detailUnequip").disabled=!equipped;
+        $("#detailUnequip").setAttribute("aria-label",`Unequip ${selectedItem.name}`);
         $("#detailSell").hidden=!owned;
         $("#detailSell").innerHTML=`Sell · ${currencyMarkup("steps",gearSellValue(selectedItem))}`;
         renderItemUpgrade();
@@ -1920,8 +2027,25 @@
           state.ownedItems.push(selectedItem.id);
           toast(`${selectedItem.name} purchased`);
         }
-        state.equipment[selectedItem.type]=selectedItem.id;
-        save();closeModals();renderAll();toast(`${selectedItem.name} equipped`);
+        const itemId=selectedItem.id;
+        state.equipment[selectedItem.type]=itemId;
+        save();closeModals();renderAll();toast(`${selectedItem.name} equipped`);restoreItemFocus(itemId);
+      }
+      function unequipSelectedItem(){
+        if(!selectedItem||state.equipment[selectedItem.type]!==selectedItem.id)return;
+        const name=selectedItem.name,itemId=selectedItem.id;
+        state.equipment[selectedItem.type]=null;
+        save();
+        closeModals();
+        renderAll();
+        toast(`${name} unequipped`);
+        restoreItemFocus(itemId);
+      }
+      function restoreItemFocus(itemId){
+        requestAnimationFrame(()=>{
+          const selector=`[data-owned-item="${itemId}"],[data-equipped="${itemId}"],[data-shop-item="${itemId}"]`;
+          $$(selector).find(element=>element.offsetParent!==null)?.focus({preventScroll:true});
+        });
       }
       function gearSellValue(item){
         return Math.max(1,Math.round(item.cost*(.4+itemUpgradeLevel(item)*.08)));
@@ -2463,6 +2587,7 @@
       function navigate(screen){
         activeScreen=screen;
         $(".app").classList.toggle("farm-view",screen==="farm");
+        $(".app").classList.toggle("shop-view",screen==="shop");
         renderHeader();
         $$(".screen").forEach(el=>el.classList.toggle("active",el.id===screen));
         $$(".nav-btn").forEach(button=>button.classList.toggle("active",button.dataset.screen===screen));
@@ -2479,8 +2604,11 @@
       function closeModals(){
         $$(".modal").forEach(modal=>modal.classList.remove("show"));
         document.body.classList.remove("modal-open");
-        const returnFocus=plantModalReturnFocus;
+        const returnFocus=plantModalReturnFocus||plotUnlockReturnFocus||itemModalReturnFocus;
         plantModalReturnFocus=null;
+        plotUnlockReturnFocus=null;
+        itemModalReturnFocus=null;
+        pendingUnlockBed=null;
         if(returnFocus)requestAnimationFrame(()=>{if(returnFocus.isConnected)returnFocus.focus({preventScroll:true})});
       }
       function toast(message){
@@ -2551,7 +2679,35 @@
         if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
         else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
       };
-      $$("#shopTabs .tab").forEach(tab=>tab.onclick=()=>{activeShopTab=tab.dataset.shopTab;renderShop()});
+      $("#plotUnlockModal").onkeydown=event=>{
+        if(event.key==="Escape"){event.preventDefault();closeModals();return}
+        if(event.key!=="Tab")return;
+        const focusable=$$("#plotUnlockModal button:not([disabled])").filter(element=>element.offsetParent!==null);
+        if(!focusable.length)return;
+        const first=focusable[0],last=focusable[focusable.length-1];
+        if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
+        else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
+      };
+      $("#itemModal").onkeydown=event=>{
+        if(event.key==="Escape"){event.preventDefault();closeModals();return}
+        if(event.key!=="Tab")return;
+        const focusable=$$("#itemModal button:not([disabled])").filter(element=>element.offsetParent!==null&&!element.closest("[hidden]"));
+        if(!focusable.length)return;
+        const first=focusable[0],last=focusable[focusable.length-1];
+        if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
+        else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
+      };
+      const shopTabs=$$("#shopTabs .tab");
+      shopTabs.forEach((tab,index)=>{
+        tab.onclick=()=>{activeShopTab=tab.dataset.shopTab;renderShop()};
+        tab.onkeydown=event=>{
+          if(!["ArrowLeft","ArrowRight","Home","End"].includes(event.key))return;
+          event.preventDefault();
+          const nextIndex=event.key==="Home"?0:event.key==="End"?shopTabs.length-1:(index+(event.key==="ArrowRight"?1:-1)+shopTabs.length)%shopTabs.length;
+          shopTabs[nextIndex].click();
+          shopTabs[nextIndex].focus();
+        };
+      });
       $$("#gearViewTabs .tab").forEach(tab=>tab.onclick=()=>{activeGearView=tab.dataset.gearView;renderShop()});
       $$("#fertTierTabs .tab").forEach(tab=>tab.onclick=()=>{selectedFertiliserTier=tab.dataset.fertTier;renderShop()});
       $$("[data-quest-period]").forEach(button=>button.onclick=()=>{activeQuestPeriod=button.dataset.questPeriod;renderQuests();prepareAssetLayouts()});
@@ -2571,7 +2727,9 @@
       $("#seedDetailBuy").onclick=buySelectedSeed;
       $("#seedDetailAdjust").onclick=adjustSelectedSeedPosition;
       $("#fertDetailBuy").onclick=buySelectedFertiliser;
+      $("#confirmUnlockPlot").onclick=confirmPlotUnlock;
       $("#detailAction").onclick=itemAction;
+      $("#detailUnequip").onclick=unequipSelectedItem;
       $("#detailSell").onclick=sellSelectedGear;
       $("#detailUpgrade").onclick=upgradeSelectedItem;
       $("#plantAll").onclick=openPlantAll;
@@ -2597,7 +2755,7 @@
       });
       document.addEventListener("visibilitychange",()=>{if(!document.hidden){postNative({type:"pedometerReady"});renderAll()}});
       setInterval(()=>{
-        if($("#shopRefreshLabel"))$("#shopRefreshLabel").textContent=stockRefreshText();
+        if($("#shopRefreshLabel")&&activeShopTab==="gear")$("#shopRefreshLabel").textContent=stockRefreshText();
         if(renderedStockDate!==todayKey()){
           renderedStockDate=todayKey();resetDailyPerks();state.questDate=todayKey();state.completedQuests=[];save();
           if(activeScreen==="shop")renderShop();
