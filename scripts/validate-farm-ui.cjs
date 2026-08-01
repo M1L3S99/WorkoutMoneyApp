@@ -1,4 +1,5 @@
 const fs = require("fs");
+const crypto = require("crypto");
 const html = fs.readFileSync("index.html", "utf8");
 const manifest = JSON.parse(fs.readFileSync("manifest.webmanifest", "utf8"));
 const serviceWorker = fs.readFileSync("sw.js", "utf8");
@@ -7,6 +8,11 @@ const script = html.match(/<script>\s*([\s\S]*?)<\/script>/);
 if (!script) throw new Error("Embedded script missing");
 new Function(script[1]);
 console.log("Embedded JavaScript syntax OK");
+
+const serviceWorkerAssetHook = "self.addEventListener('install'";
+if (!serviceWorker.includes(serviceWorkerAssetHook)) throw new Error("Could not inspect service-worker asset list");
+const offlineAssets = new Function(serviceWorker.replace(serviceWorkerAssetHook, `return ASSETS;\n${serviceWorkerAssetHook}`))();
+if (!Array.isArray(offlineAssets)) throw new Error("Service-worker asset list is not an array");
 
 function functionSource(name) {
   const marker = `function ${name}`;
@@ -20,6 +26,37 @@ function functionSource(name) {
     if (script[1][index] === "}" && --depth === 0) return script[1].slice(start, index + 1);
   }
   return "";
+}
+
+function pngMetadata(asset) {
+  const data = fs.readFileSync(asset);
+  const signature = "89504e470d0a1a0a";
+  if (data.length < 33 || data.subarray(0, 8).toString("hex") !== signature || data.toString("ascii", 12, 16) !== "IHDR") {
+    throw new Error(`Invalid PNG container: ${asset}`);
+  }
+  const width = data.readUInt32BE(16);
+  const height = data.readUInt32BE(20);
+  const bitDepth = data[24];
+  const colorType = data[25];
+  let hasTransparencyChunk = false;
+  for (let offset = 8; offset + 12 <= data.length;) {
+    const chunkSize = data.readUInt32BE(offset);
+    const chunk = data.toString("ascii", offset + 4, offset + 8);
+    const next = offset + 12 + chunkSize;
+    if (next > data.length) throw new Error(`Truncated PNG chunk in ${asset}`);
+    if (chunk === "tRNS") hasTransparencyChunk = true;
+    offset = next;
+    if (chunk === "IEND") break;
+  }
+  return {
+    width,
+    height,
+    bitDepth,
+    colorType,
+    hasAlpha:colorType === 4 || colorType === 6 || hasTransparencyChunk,
+    bytes:data.length,
+    sha256:crypto.createHash("sha256").update(data).digest("hex")
+  };
 }
 
 const ids = [...html.matchAll(/id="([^"]+)"/g)].map((match) => match[1]);
@@ -60,7 +97,7 @@ const hook = '      $$(".nav-btn").forEach(button=>button.onclick';
 if (!script[1].includes(hook)) throw new Error("Could not locate runtime test hook");
 const instrumented = script[1].replace(
   hook,
-  `      globalThis.__farmTest = { CROPS, ITEMS, FERTILISERS, BED_COSTS, BED_REQUIREMENTS, MAX_BEDS, FARM_UPGRADES, qualityOdds, bedState, freshState, dailyStock, dailyQuests, weatherFromCurrent, upgradeRecipe, ITEM_UPGRADE_MAX };
+  `      globalThis.__farmTest = { CROPS, ITEMS, FERTILISERS, BED_COSTS, BED_REQUIREMENTS, MAX_BEDS, FARM_UPGRADES, FARM_UPGRADE_ART, qualityOdds, bedState, freshState, dailyStock, dailyQuests, weatherFromCurrent, upgradeRecipe, ITEM_UPGRADE_MAX };
       return;
 ${hook}`
 );
@@ -69,6 +106,27 @@ global.localStorage = { getItem() { return null; }, setItem() {} };
 new Function(instrumented)();
 
 const farm = global.__farmTest;
+const TOPDOWN_ASSETS = {
+  soil:"assets/farm/soil-plot-topdown-v2-256x192.png",
+  radishPlanted:"assets/farm/crops/radish-planted-topdown-v2-64.png",
+  radishGrown:"assets/farm/crops/radish-grown-topdown-v2-64.png",
+  compostBin:"assets/farm/upgrades-v3/compost-bin-topdown-v2-192.png",
+  deepBeds:"assets/farm/upgrades-v3/deep-beds-topdown-v2-192.png"
+};
+const pngContracts = [
+  [TOPDOWN_ASSETS.soil,256,192,4000,24000,"0499995ec01756b0228a6563643cd6b000d0466a1dfd23f0eb7785e73b1ac863"],
+  [TOPDOWN_ASSETS.radishPlanted,64,64,300,3000,"c41d76746387a0cc36591e816295a71d97f4e57dbb1f82242e4d86c6a6d59963"],
+  [TOPDOWN_ASSETS.radishGrown,64,64,500,5000,"6f9adba1c580befbb356ca540fe9e177a080875b9b638cd234442ea4ecf0e775"],
+  [TOPDOWN_ASSETS.compostBin,192,192,3000,20000,"389ad414f5f8a03396fe6910c1d43c1b90af1afb042e0b745b9ca876f44a77aa"],
+  [TOPDOWN_ASSETS.deepBeds,192,192,3000,20000,"a148fb267bba298ec8e9d99e261dc3cb5b5db2d4ee718d85b55420ab95d3b343"]
+];
+for (const [asset,width,height,minBytes,maxBytes,sha256] of pngContracts) {
+  const metadata=pngMetadata(asset);
+  if (metadata.width !== width || metadata.height !== height || !metadata.hasAlpha ||
+      metadata.bytes < minBytes || metadata.bytes > maxBytes || metadata.sha256 !== sha256) {
+    throw new Error(`Top-down PNG contract failed for ${asset}: ${JSON.stringify(metadata)}`);
+  }
+}
 if (farm.MAX_BEDS !== 20 || farm.BED_COSTS.length !== 20 || farm.BED_REQUIREMENTS.length !== 20) {
   throw new Error("The farm must support exactly twenty progressively unlocked beds");
 }
@@ -87,8 +145,8 @@ const radish = farm.CROPS.find((crop) => crop.id === "radish");
 if (!radish?.stages?.planted || !radish?.stages?.grown || radish?.stages?.half) {
   throw new Error("Radish must have exactly planted and ready growth sprites");
 }
-if (!radish.stages.grown.includes("radish-grown-64")) {
-  throw new Error("The ready radish must remain visibly planted in the soil");
+if (radish.stages.planted !== TOPDOWN_ASSETS.radishPlanted || radish.stages.grown !== TOPDOWN_ASSETS.radishGrown) {
+  throw new Error("Radish growth must use the approved top-down planted and ready sprites");
 }
 if (!radish.image?.includes("radish-crop-64") || !radish.seedImage?.includes("radish-seeds-96")) {
   throw new Error("The radish crop and seed packet sprites must be configured");
@@ -149,7 +207,6 @@ const backgroundAssets = [
   ["assets/farm/ui/farm-background-master-v6.webp", 70000, 220000],
   ["assets/farm/ui/farm-ground-sand-v6.webp", 25000, 120000],
   ["assets/farm/ui/farm-overview-scene-v1.webp", 80000, 180000],
-  ["assets/farm/ui/crop-area-scene-v1.webp", 80000, 180000],
   ["assets/farm/ui/crop-area-ground-v1.webp", 50000, 130000]
 ];
 for (const [backgroundAsset, minSize, maxSize] of backgroundAssets) {
@@ -163,10 +220,11 @@ if (!html.includes(backgroundAssets[0][0]) ||
     !theme.includes("../ui/farm-background-master-v6.webp") ||
     !theme.includes("../ui/farm-ground-sand-v6.webp") ||
     !theme.includes("../ui/farm-overview-scene-v1.webp") ||
-    !theme.includes("../ui/crop-area-scene-v1.webp") ||
     !theme.includes("../ui/crop-area-ground-v1.webp") ||
-    !serviceWorker.includes("ironbound-farm-v38")) {
-  throw new Error("The Farm backgrounds or v37 offline cache are not fully integrated");
+    theme.includes("crop-area-scene-v2-432x864.webp") ||
+    serviceWorker.includes("crop-area-scene-v2-432x864.webp") ||
+    !serviceWorker.includes("ironbound-farm-v41")) {
+  throw new Error("The top-down Farm backgrounds or v41 offline cache are not fully integrated");
 }
 if (!html.includes('id="farmOverview"') ||
     !html.includes('id="cropArea"') ||
@@ -208,12 +266,19 @@ if (!/plotLayouts\s*:\s*Array\.from\(\{\s*length\s*:\s*MAX_BEDS\s*\}/s.test(scri
     !savePlotLayoutSource.includes("saveNow()")) {
   throw new Error("Per-planter position and size adjustments must be normalised to twenty plots, applied to rendering, and saved permanently");
 }
-const planterAsset = "assets/farm/planter-bed-complete-v7-256x232.webp";
-const planterSize = fs.statSync(planterAsset).size;
-if (planterSize < 15000 || planterSize > 70000 ||
-    !html.includes(planterAsset) ||
-    !serviceWorker.includes(`./${planterAsset}`)) {
-  throw new Error(`The grounded planter asset is missing or too heavy (${planterSize} bytes)`);
+const soilPlotAsset = TOPDOWN_ASSETS.soil;
+const obsoleteOfflineArt = [
+  "./assets/farm/soil-plot-ground-v1-256x192.webp",
+  "./assets/farm/planter-bed-complete-v7-256x232.webp",
+  "./assets/farm/crops/radish-planted-64.png",
+  "./assets/farm/crops/radish-grown-64.png",
+  "./assets/farm/upgrades-v3/compost-bin-192.png",
+  "./assets/farm/upgrades-v3/deep-beds-192.png"
+];
+if (!html.includes(soilPlotAsset) ||
+    Object.values(TOPDOWN_ASSETS).some((asset) => offlineAssets.filter((cached) => cached === `./${asset}`).length !== 1) ||
+    obsoleteOfflineArt.some((asset) => offlineAssets.includes(asset))) {
+  throw new Error("The v41 cache must contain each approved top-down asset exactly once and exclude superseded perspective art");
 }
 const uiV3Assets = [
   "assets/farm/ui-v3/theme-v3.css",
@@ -227,7 +292,7 @@ const uiV3Assets = [
   "assets/farm/ui-v3/step-currency-v2-96.png",
   "assets/farm/ui-v3/gold-currency-v2-96.png",
   ...["garden-paths","rain-barrel","seed-ledger","compost-bin","deep-beds","glass-cloche","market-cart","pollinator-garden","moon-irrigation","ancient-greenhouse"]
-    .map((id) => `assets/farm/upgrades-v3/${id}-192.png`)
+    .map((id) => id === "compost-bin" ? TOPDOWN_ASSETS.compostBin : id === "deep-beds" ? TOPDOWN_ASSETS.deepBeds : `assets/farm/upgrades-v3/${id}-192.png`)
 ];
 for (const asset of uiV3Assets) {
   if (!fs.existsSync(asset)) throw new Error(`Missing Meadowstep v3 asset: ${asset}`);
@@ -240,7 +305,7 @@ for (const asset of uiV3Assets) {
 for (const hook of ["assetTransforms", "layoutAssetSelect", "prepareAssetLayouts", "upgradeSettings"]) {
   if (!html.includes(hook)) throw new Error(`Missing Meadowstep v3 layout hook: ${hook}`);
 }
-for (const farmHook of ["FARM_CURRENCY_ICONS", "farm-view", "compactFmt", "step-ring-icon", "weather-status", "planter-front", "bed-plaque", "bed-ready-banner"]) {
+for (const farmHook of ["FARM_CURRENCY_ICONS", "farm-view", "compactFmt", "step-ring-icon", "weather-status", "bed-plaque", "bed-ready-banner"]) {
   if (!html.includes(farmHook) && !theme.includes(farmHook)) {
     throw new Error(`Missing Farm reference redesign hook: ${farmHook}`);
   }
@@ -271,8 +336,8 @@ if (!html.includes('.bottom-nav{') ||
 if (html.includes('class="brand"') || !html.includes('class="account-summary" aria-label="Account"') || !html.includes('class="wallet" aria-label="Steps and gold"')) {
   throw new Error("The top bar must show the account and level on the left with currencies on the right");
 }
-if (!html.includes("width:min(104%,180px)") || !html.includes("border:0;border-radius:0;color:var(--soil);background:transparent;box-shadow:none")) {
-  throw new Error("Unlocked planter art must be enlarged and shown without surrounding plot cards");
+if (!html.includes("border:0;border-radius:0;color:var(--soil);background:transparent;box-shadow:none")) {
+  throw new Error("Unlocked soil plots must remain integrated without surrounding plot cards");
 }
 for (const id of ["toggleAssetPreview", "assetPreviewPanel", "assetPreviewGrid"]) {
   if (!ids.includes(id)) throw new Error(`Missing asset preview control: ${id}`);
@@ -342,7 +407,7 @@ if (!html.includes('class="farm-hero"') || !html.includes('class="garden-panel"'
 if (!html.includes("#farm .bed-scene,.placement-bed-scene{") ||
     !html.includes("#farm .crop-visual,.placement-bed-scene .crop-visual{") ||
     !html.includes('class="placement-bed-scene"') ||
-    !html.includes(".placement-preview .bed-art{pointer-events:none") ||
+    !html.includes(".placement-preview .plot-surface{pointer-events:none") ||
     !html.includes("preview.onpointerdown=event=>") ||
     !html.includes("preview.ontouchstart=event=>") ||
     !html.includes('<option value="seed">Seed packet</option>') ||
@@ -356,12 +421,25 @@ if (!html.includes('id="moveAllCrops"') ||
     !html.includes('state.globalCropPlacement={...placementDraft}')) {
   throw new Error("The crop editor must support moving every crop image together");
 }
-if (!html.includes('class="bed empty"') ||
+const placementPreviewSource = functionSource("renderPlacementPreview");
+if (!script[1].includes(`const PLANTER_ART="${soilPlotAsset}"`) ||
+    !html.includes('class="bed empty"') ||
     !html.includes('class="bed-scene bed-action"') ||
     !html.includes('class="bed-plaque"><strong>Empty</strong>') ||
-    !html.includes('assets/farm/planter-bed-complete-v7-256x232.webp') ||
-    !html.includes('planterArt("planter-front")')) {
-  throw new Error("Empty planters must preserve the occupied bed geometry after harvesting");
+    !renderBedSource.includes('${planterArt()}<div class="crop-visual"') ||
+    !placementPreviewSource.includes('${planterArt()}<div class="crop-visual editing"') ||
+    renderBedSource.includes('planterArt("planter-front")') ||
+    placementPreviewSource.includes('planterArt("planter-front")') ||
+    html.includes("planter-front") ||
+    theme.includes("planter-front") ||
+    theme.includes("--planter-front-cut")) {
+  throw new Error("Soil plots must use one perspective-safe ground layer with crops anchored above it in gameplay and placement previews");
+}
+const removedCropGroundHooks = ["CROP_GROUND_Y", "cropGroundY", "--crop-ground-y"];
+if (removedCropGroundHooks.some((hook) => html.includes(hook) || theme.includes(hook)) ||
+    /data-center-axis\s*=\s*["']x["']/.test(html) ||
+    !/transform:\s*translate\(-50%,-50%\)\s*translate\(var\(--crop-x,0px\),var\(--crop-y,0px\)\)\s*scale\(var\(--crop-scale,1\)\)/.test(theme)) {
+  throw new Error("Top-down crop sprites must share a true centred anchor without legacy ground-Y offsets or horizontal-only alpha centring");
 }
 if (!html.includes("background:linear-gradient(180deg,#fff,#f7f3e9)") || !html.includes('id="detailQualityLine"') || !html.includes("Quality · ${QUALITY_LABELS[selectedItem.quality]||\"Standard\"}")) {
   throw new Error("Gear cards must use neutral backplates with quality shown beneath the description");
@@ -415,6 +493,15 @@ if (farm.FERTILISERS.length !== 8 || fertiliserFamilies.size !== 2 || fertiliser
 }
 if (farm.FARM_UPGRADES.length < 8 || farm.FARM_UPGRADES.some((item) => !item.level || !item.gold)) {
   throw new Error("Farmhouse upgrades must be one-time, level-gated purchases");
+}
+const compostBin = farm.FARM_UPGRADES.find((upgrade) => upgrade.id === "compost-bin");
+if (!compostBin || compostBin.level !== 5 || compostBin.gold !== 350 ||
+    compostBin.effect?.quality !== 5 || Object.keys(compostBin.effect || {}).length !== 1 ||
+    farm.FARM_UPGRADE_ART?.["compost-bin"] !== TOPDOWN_ASSETS.compostBin) {
+  throw new Error("The Compost Bin must remain the level-5, 350-gold, +5% quality upgrade with approved top-down artwork");
+}
+if (farm.FARM_UPGRADE_ART?.["deep-beds"] !== TOPDOWN_ASSETS.deepBeds) {
+  throw new Error("Deep Beds must use approved top-down artwork");
 }
 if (farm.dailyQuests().length !== 3 || !farm.dailyQuests().some((quest) => quest.reward.type === "gear")) {
   throw new Error("Three deterministic daily NPC quests including a gear trade are required");
