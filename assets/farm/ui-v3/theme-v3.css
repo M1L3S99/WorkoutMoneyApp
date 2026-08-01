@@ -1985,3 +1985,336 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
   #farmOverview{--hero-weather-gap:24px}
   #farmOverview .weather-card{grid-template-columns:42px minmax(0,1fr) auto}
 }
+
+/* Scalable planting picker v45. */
+body.modal-open{overflow:hidden;overscroll-behavior:none}
+#plantModal{
+  padding:max(8px,env(safe-area-inset-top)) 8px max(8px,env(safe-area-inset-bottom));
+}
+#plantModal .planting-modal-card{
+  display:grid;
+  grid-template-rows:auto auto auto minmax(0,1fr) auto;
+  width:min(100%,456px);
+  height:min(92dvh,720px);
+  max-height:calc(100dvh - 16px - env(safe-area-inset-top));
+  padding:0;
+  overflow:hidden;
+  border-radius:25px;
+}
+#plantModal .planting-modal-head{
+  min-height:62px;
+  margin:0;
+  padding:14px 16px 9px;
+}
+#plantModal .planting-modal-head h2{font-size:21px;line-height:1.05}
+#plantModal .planting-modal-head small{
+  display:block;
+  margin-top:4px;
+  color:#756344;
+  font-size:9px;
+  font-weight:800;
+}
+.planting-selection{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 24px minmax(0,1fr);
+  align-items:center;
+  gap:5px;
+  padding:0 14px 10px;
+}
+.planting-selection-item{
+  display:grid;
+  grid-template-columns:42px minmax(0,1fr);
+  align-items:center;
+  gap:7px;
+  min-width:0;
+  min-height:58px;
+  padding:6px 7px;
+  border:1px solid var(--paper-edge);
+  border-radius:15px;
+  background:linear-gradient(150deg,#fff8df,#ecdfbe);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.88);
+}
+.planting-selection-art{
+  display:grid;
+  place-items:center;
+  width:42px;
+  height:42px;
+  overflow:hidden;
+  border-radius:12px;
+  background:rgba(213,226,178,.72);
+}
+.planting-selection-art img{width:40px;height:40px;object-fit:contain}
+.planting-selection-none{color:#6d7854;font-size:22px;font-weight:900}
+.planting-selection-item>span:last-child{min-width:0}
+.planting-selection-item small,
+.planting-selection-item b,
+.planting-selection-item em{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.planting-selection-item small{color:#6c7c51;font-size:6.5px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.planting-selection-item b{margin-top:1px;color:#3d3321;font-size:10px}
+.planting-selection-item em{margin-top:2px;color:#786645;font-size:7px;font-style:normal}
+.planting-selection-plus{
+  display:grid;
+  place-items:center;
+  width:24px;
+  height:24px;
+  border-radius:50%;
+  color:#fff8dc;
+  background:#527d3f;
+  font-size:15px;
+  font-weight:900;
+}
+.plant-picker-tabs{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6px;
+  padding:0 14px 9px;
+}
+.plant-picker-tabs>button{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  min-height:40px;
+  padding:6px 9px;
+  border:1px solid #b7a47e;
+  border-radius:12px;
+  color:#5f563f;
+  background:rgba(247,237,211,.78);
+  font-size:9px;
+  font-weight:900;
+  cursor:pointer;
+}
+.plant-picker-tabs>button span{
+  display:grid;
+  place-items:center;
+  min-width:20px;
+  height:20px;
+  padding:0 5px;
+  border-radius:999px;
+  color:#fff7dc;
+  background:#879371;
+  font-size:7px;
+}
+.plant-picker-tabs>button.active{
+  border-color:#4d763c;
+  color:#fff;
+  background:linear-gradient(180deg,#5e9147,#3f7138);
+  box-shadow:0 3px 0 rgba(43,78,37,.22),inset 0 1px 0 rgba(255,255,255,.2);
+}
+.plant-picker-tabs>button.active span{color:#3d6a34;background:#f5e6b7}
+.plant-picker-body{min-height:0;overflow:hidden;border-top:1px solid rgba(157,131,84,.34)}
+.plant-picker-panel{
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr);
+  width:100%;
+  height:100%;
+  min-height:0;
+  overflow:hidden;
+}
+.plant-picker-panel[hidden]{display:none!important}
+.plant-picker-tools{
+  position:relative;
+  z-index:2;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:7px;
+  padding:10px 14px 8px;
+  background:linear-gradient(180deg,rgba(255,249,226,.98),rgba(246,232,199,.96));
+  box-shadow:0 5px 12px rgba(70,59,35,.08);
+}
+.plant-search{
+  display:grid;
+  grid-template-columns:24px minmax(0,1fr);
+  align-items:center;
+  min-width:0;
+  min-height:40px;
+  padding:0 9px;
+  border:1px solid #bca880;
+  border-radius:12px;
+  color:#65804e;
+  background:#fffaf0;
+}
+.plant-search>span[aria-hidden="true"]{font-size:19px;font-weight:900;line-height:1}
+.plant-search input{
+  width:100%;
+  min-width:0;
+  height:38px;
+  padding:0;
+  border:0;
+  outline:0;
+  color:#3f3421;
+  background:transparent;
+  font:800 16px "DM Sans",sans-serif;
+}
+.plant-search input::placeholder{color:#90846a;opacity:1}
+.plant-filter-row{
+  grid-column:1/-1;
+  display:flex;
+  gap:6px;
+  max-width:100%;
+  overflow-x:auto;
+  padding:1px 0 2px;
+  scrollbar-width:none;
+  overscroll-behavior-inline:contain;
+}
+.plant-filter-row::-webkit-scrollbar{display:none}
+.plant-filter-row button{
+  flex:0 0 auto;
+  min-height:29px;
+  padding:5px 9px;
+  border:1px solid #b8a57f;
+  border-radius:999px;
+  color:#685b40;
+  background:#fff8e7;
+  font-size:7px;
+  font-weight:900;
+  cursor:pointer;
+}
+.plant-filter-row button.active{border-color:#4f7a3e;color:#fff;background:#568442}
+.plant-result-count{color:#75684f;font-size:7px;font-weight:900;white-space:nowrap}
+#plantModal .plant-picker-results{
+  min-height:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  scroll-padding-block:8px 24px;
+  padding:10px 14px 18px;
+}
+#plantModal .plant-choice{
+  grid-template-columns:repeat(auto-fill,minmax(92px,1fr));
+  align-content:start;
+  gap:8px;
+}
+#plantModal .plant-option{
+  position:relative;
+  display:grid;
+  align-content:center;
+  justify-items:center;
+  min-width:0;
+  min-height:100px;
+  padding:8px 5px;
+  border-width:1px;
+  border-radius:14px;
+}
+#plantModal .plant-option i .pixel-sprite{width:43px;height:43px}
+#plantModal .plant-option b{
+  width:100%;
+  overflow:hidden;
+  margin-top:3px;
+  font-size:8px;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+#plantModal .plant-option small{font-size:6.5px}
+.plant-option-check{
+  position:absolute;
+  top:5px;
+  right:5px;
+  display:grid;
+  place-items:center;
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  color:#fff;
+  background:#4e7e3d;
+  font-size:9px;
+  opacity:0;
+  transform:scale(.7);
+}
+#plantModal .plant-option.selected{
+  border-color:#47763a;
+  background:linear-gradient(150deg,#eff3d7,#dbe9b8);
+  box-shadow:0 0 0 2px rgba(76,119,57,.16),inset 0 1px 0 #fff;
+}
+#plantModal .plant-option.selected .plant-option-check{opacity:1;transform:scale(1)}
+#plantModal .plant-option:disabled{opacity:.48;cursor:not-allowed}
+#plantModal .fert-options{align-content:start;gap:8px}
+#plantModal .fert-option{
+  width:100%;
+  min-height:65px;
+  padding:9px 10px;
+  text-align:left;
+}
+#plantModal .fert-option>span{min-width:0}
+#plantModal .fert-option .fert-title span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#plantModal .fert-option.selected{border-color:#47763a;box-shadow:0 0 0 2px rgba(76,119,57,.16),inset 0 1px 0 #fff}
+.fert-none-icon{
+  display:grid;
+  place-items:center;
+  flex:0 0 40px;
+  width:40px;
+  height:40px;
+  border-radius:12px;
+  color:#647553;
+  background:#e5e8ce;
+  font-size:18px;
+  font-weight:900;
+}
+.plant-picker-empty{
+  grid-column:1/-1;
+  display:grid;
+  place-items:center;
+  align-content:center;
+  min-height:150px;
+  padding:18px;
+  border:1px dashed #ae9a70;
+  border-radius:16px;
+  color:#66593f;
+  background:rgba(255,249,229,.58);
+  text-align:center;
+}
+.plant-picker-empty b,.plant-picker-empty small{display:block}
+.plant-picker-empty b{font-family:"Fraunces",Georgia,serif;font-size:15px}
+.plant-picker-empty small{max-width:210px;margin-top:5px;color:#85765b;font-size:8px;line-height:1.4}
+.planting-footer{
+  position:relative;
+  z-index:3;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:10px;
+  min-height:68px;
+  padding:9px 14px max(10px,env(safe-area-inset-bottom));
+  border-top:1px solid var(--paper-edge);
+  background:var(--paper-surface);
+  box-shadow:0 -8px 20px rgba(44,63,39,.12);
+}
+.planting-footer>span{overflow:hidden;color:#6d6048;font-size:8px;font-weight:900;text-overflow:ellipsis;white-space:nowrap}
+#plantModal #confirmPlant{
+  width:auto;
+  min-width:150px;
+  min-height:48px;
+  margin:0!important;
+  padding-inline:18px;
+}
+#plantModal :is(.close-btn,.plant-picker-tabs button,.plant-filter-row button,.plant-option,.fert-option,#confirmPlant):focus-visible{
+  outline:3px solid #f2c84c;
+  outline-offset:2px;
+}
+
+@media(max-width:370px){
+  #plantModal .planting-modal-card{height:min(94dvh,720px)}
+  #plantModal .planting-modal-head{padding-inline:12px}
+  .planting-selection{padding-inline:10px}
+  .plant-picker-tabs{padding-inline:10px}
+  .plant-picker-tools{padding-inline:10px}
+  #plantModal .plant-picker-results{padding-inline:10px}
+  .planting-footer{padding-inline:10px;gap:7px}
+  #plantModal #confirmPlant{min-width:138px;padding-inline:12px}
+}
+
+@media(max-height:620px){
+  #plantModal .planting-modal-card{height:calc(100dvh - 12px)}
+  #plantModal .planting-modal-head{min-height:52px;padding-block:9px 6px}
+  #plantModal .planting-modal-head h2{font-size:18px}
+  .planting-selection{padding-bottom:7px}
+  .planting-selection-item{min-height:50px}
+  .planting-selection-art{width:36px;height:36px}
+  .planting-selection-art img{width:35px;height:35px}
+  .planting-selection-item em{display:none}
+  .plant-picker-tabs{padding-bottom:6px}
+  .plant-picker-tabs>button{min-height:35px}
+  .planting-footer{min-height:58px;padding-block:6px}
+  #plantModal #confirmPlant{min-height:44px}
+}

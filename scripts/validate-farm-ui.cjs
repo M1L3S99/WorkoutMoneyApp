@@ -255,8 +255,8 @@ if (!html.includes(backgroundAssets[0][0]) ||
     !theme.includes("../ui/crop-area-ground-v1.webp") ||
     theme.includes("crop-area-scene-v2-432x864.webp") ||
     serviceWorker.includes("crop-area-scene-v2-432x864.webp") ||
-    !serviceWorker.includes("ironbound-farm-v44")) {
-  throw new Error("The top-down Farm backgrounds or v44 offline cache are not fully integrated");
+    !serviceWorker.includes("ironbound-farm-v45")) {
+  throw new Error("The top-down Farm backgrounds or v45 offline cache are not fully integrated");
 }
 const farmOverviewStart = html.indexOf('<div class="farm-overview" id="farmOverview">');
 const farmPlotsStart = html.indexOf('<section class="farm-plots" id="cropArea" role="region" aria-label="Farm plots">');
@@ -300,7 +300,7 @@ const obsoleteOfflineArt = [
 if (!html.includes(soilPlotAsset) ||
     Object.values(TOPDOWN_ASSETS).some((asset) => offlineAssets.filter((cached) => cached === `./${asset}`).length !== 1) ||
     obsoleteOfflineArt.some((asset) => offlineAssets.includes(asset))) {
-  throw new Error("The v44 cache must contain each approved Farm asset exactly once and exclude superseded radish and perspective art");
+  throw new Error("The v45 cache must contain each approved Farm asset exactly once and exclude superseded radish and perspective art");
 }
 const uiV3Assets = [
   "assets/farm/ui-v3/theme-v3.css",
@@ -449,8 +449,51 @@ if (!/\.app img,\s*\.modal img\s*\{[^}]*image-rendering:auto!important/s.test(th
   throw new Error("Foreground icons, crops, and character portraits must use smooth browser scaling");
 }
 if (ids.includes("plantBedNumber") || /Plant bed\s/i.test(html) || script[1].includes('$("#plantBedNumber")') ||
-    !html.includes('<h2 id="plantModalTitle">Choose seeds</h2>')) {
-  throw new Error("The seed picker must use a generic Choose seeds heading without a plot number");
+    !html.includes('<h2 id="plantModalTitle">Choose what to plant</h2>')) {
+  throw new Error("The planting picker must use a generic heading without a plot number");
+}
+const scalablePlantingIds = [
+  "plantTargetSummary", "plantSelectionCrop", "plantSelectionFertiliser",
+  "plantSeedsTab", "plantFertiliserTab", "plantSeedCount", "plantFertiliserCount",
+  "plantSeedsPanel", "plantFertiliserPanel", "plantSeedSearch", "plantFertiliserSearch",
+  "plantSeedFilters", "plantFertiliserFilters", "plantSeedResultCount",
+  "plantFertiliserResultCount", "plantingFooterSummary"
+];
+for (const id of scalablePlantingIds) {
+  if (!ids.includes(id)) throw new Error(`Missing scalable planting-picker control: ${id}`);
+}
+if (!html.includes('class="plant-picker-tabs" role="tablist"') ||
+    !html.includes('id="plantSeedsTab" type="button" role="tab"') ||
+    !html.includes('aria-controls="plantSeedsPanel"') ||
+    !html.includes('id="plantFertiliserTab" type="button" role="tab"') ||
+    !html.includes('aria-controls="plantFertiliserPanel"') ||
+    !html.includes('id="plantSeedsPanel" role="tabpanel"') ||
+    !html.includes('aria-labelledby="plantSeedsTab"') ||
+    !html.includes('id="plantFertiliserPanel" role="tabpanel"') ||
+    !html.includes('aria-labelledby="plantFertiliserTab" hidden')) {
+  throw new Error("The planting picker must expose accessible tabs and matching tab panels");
+}
+const scalablePlantingHooks = [
+  "function plantableCrops", "function plantSearchMatches", "function plantTargetCount",
+  "function plantableCount", "function setPlantPickerTab", 'data-seed-scope="${scope}"',
+  'data-fert-family="${family}"', '$("#plantSeedSearch").oninput',
+  '$("#plantFertiliserSearch").oninput', 'event.key==="Escape"', 'event.key!=="Tab"',
+  'document.body.classList.add("modal-open")', "possibleCount=plantableCount"
+];
+if (scalablePlantingHooks.some((hook) => !script[1].includes(hook)) ||
+    !/#plantModal \.planting-modal-card\s*\{[^}]*display:grid;[^}]*grid-template-rows:auto auto auto minmax\(0,1fr\) auto;[^}]*overflow:hidden;/s.test(theme) ||
+    !/#plantModal \.plant-picker-results\s*\{[^}]*overflow-y:auto;[^}]*overscroll-behavior:contain;/s.test(theme) ||
+    !theme.includes("grid-template-columns:repeat(auto-fill,minmax(92px,1fr))") ||
+    !theme.includes(".planting-footer{") ||
+    !theme.includes("body.modal-open{overflow:hidden")) {
+  throw new Error("The planting picker must remain searchable, filterable, internally scrollable, and ready for larger catalogues");
+}
+const plantIntoSource = functionSource("plantInto");
+if (!plantIntoSource.includes("Number.isInteger(index)") ||
+    !plantIntoSource.includes("index>=state.unlockedBeds") ||
+    !plantIntoSource.includes("crop.level>levelInfo().level") ||
+    !plantIntoSource.includes("fertiliserId&&!fertiliser")) {
+  throw new Error("Planting must reject invalid plots, locked crops, and unknown fertilisers");
 }
 if (!html.includes('class="farm-hero"') || !html.includes('class="garden-panel"') || !html.includes("#farm .farm-hero") || !html.includes('class="bed ${status}"') ||
     html.includes("WALK-POWERED FARM") || html.includes("MOVE TO GROW") || html.includes("Walk. Grow. Harvest.")) {
@@ -517,8 +560,9 @@ if (questNpcs.length !== 3 || questNpcs.some((quest) => !quest.image?.includes(`
   throw new Error("Every quest NPC must use a generated portrait");
 }
 generatedArtPaths.push(...questNpcs.map((quest) => quest.image));
-if (generatedArtPaths.length !== 123 || new Set(generatedArtPaths).size !== 123) {
-  throw new Error(`Expected 123 unique generated production sprites, received ${new Set(generatedArtPaths).size}`);
+const expectedGeneratedArtCount = farm.CROPS.length * 4 + farm.ITEMS.length + farm.FERTILISERS.length + questNpcs.length;
+if (generatedArtPaths.length !== expectedGeneratedArtCount || new Set(generatedArtPaths).size !== expectedGeneratedArtCount) {
+  throw new Error(`Expected ${expectedGeneratedArtCount} unique generated production sprites, received ${new Set(generatedArtPaths).size}`);
 }
 let generatedBytes = 0;
 for (const asset of generatedArtPaths) {
@@ -526,7 +570,8 @@ for (const asset of generatedArtPaths) {
   if (size < 250 || size > 30000) throw new Error(`Generated sprite has an unexpected size: ${asset} (${size} bytes)`);
   generatedBytes += size;
 }
-if (generatedBytes > 1_500_000 || !serviceWorker.includes("const GENERATED_ART") || !serviceWorker.includes("...GENERATED_ART")) {
+const generatedByteBudget = generatedArtPaths.length * 12_500;
+if (generatedBytes > generatedByteBudget || !serviceWorker.includes("const GENERATED_ART") || !serviceWorker.includes("...GENERATED_ART")) {
   throw new Error(`The generated art catalogue is not efficiently compressed and cached (${generatedBytes} bytes)`);
 }
 if (!html.includes('spriteMarkup(item,"gear-sprite")') || !html.includes('spriteMarkup(quest,"npc-sprite")') || !fs.existsSync("scripts/build_generated_farm_art.py")) {
@@ -539,8 +584,14 @@ if (farm.CROPS.length < 20) {
   throw new Error("The crop catalogue must include at least twenty crops");
 }
 const fertiliserFamilies = new Set(farm.FERTILISERS.map((item) => item.family));
-const fertiliserTiers = new Set(farm.FERTILISERS.map((item) => item.tier));
-if (farm.FERTILISERS.length !== 8 || fertiliserFamilies.size !== 2 || fertiliserFamilies.has("double") || fertiliserTiers.size !== 4 || !farm.FERTILISERS.some((item) => item.id === "quality-iridium" && item.guaranteed === "iridium")) {
+const baselineFertilisers = [
+  "speed-bronze", "speed-silver", "speed-gold", "speed-iridium",
+  "quality-bronze", "quality-silver", "quality-gold", "quality-iridium"
+];
+if (farm.FERTILISERS.length < baselineFertilisers.length ||
+    baselineFertilisers.some((id) => !farm.FERTILISERS.some((item) => item.id === id)) ||
+    fertiliserFamilies.has("double") ||
+    !farm.FERTILISERS.some((item) => item.id === "quality-iridium" && item.guaranteed === "iridium")) {
   throw new Error("Speed Grow and Quality Fertiliser must each offer Bronze through Iridium tiers");
 }
 if (farm.FARM_UPGRADES.length < 8 || farm.FARM_UPGRADES.some((item) => !item.level || !item.gold)) {
