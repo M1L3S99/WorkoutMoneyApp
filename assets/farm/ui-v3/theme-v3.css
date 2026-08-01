@@ -134,58 +134,117 @@ body:before{
   transition:width .3s ease;
 }
 .wallet{
-  flex:1 1 176px;
-  gap:10px;
+  position:relative;
+  isolation:isolate;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 18px minmax(0,1fr);
+  align-items:center;
+  flex:1 1 212px;
+  min-width:0;
+  min-height:48px;
+  gap:0;
+  padding:4px 8px;
+  border:2px solid #c9983c;
+  border-radius:18px;
+  background:
+    radial-gradient(circle at 22% 0,rgba(193,226,122,.2),transparent 42%),
+    repeating-linear-gradient(103deg,rgba(255,255,255,.026) 0 1px,transparent 1px 7px),
+    linear-gradient(180deg,#427b38 0%,#2c6435 52%,#19492e 100%);
+  box-shadow:
+    0 3px 0 #79572e,
+    0 6px 12px rgba(47,61,33,.2),
+    inset 0 1px 0 rgba(255,255,255,.35),
+    inset 0 0 0 2px rgba(247,220,129,.2);
+}
+.wallet:before{
+  content:"";
+  position:absolute;
+  z-index:0;
+  inset:3px;
+  border:1px solid rgba(255,232,152,.42);
+  border-radius:13px;
+  pointer-events:none;
 }
 .wallet-pill{
+  position:relative;
+  z-index:1;
   display:flex;
   flex:1 1 0;
   align-items:center;
-  justify-content:flex-end;
+  justify-content:center;
   width:auto;
   min-width:0;
-  min-height:44px;
+  min-height:36px;
   padding:0;
   border:0;
   border-radius:0;
   background:transparent;
   box-shadow:none;
 }
+.wallet-divider{
+  position:relative;
+  z-index:1;
+  display:block;
+  width:18px;
+  height:30px;
+  pointer-events:none;
+}
+.wallet-divider:before{
+  content:"";
+  position:absolute;
+  top:3px;
+  bottom:3px;
+  left:50%;
+  width:1px;
+  background:linear-gradient(transparent,#e3bf63 18%,#f7df93 50%,#e3bf63 82%,transparent);
+  box-shadow:1px 0 0 rgba(41,76,42,.5);
+}
+.wallet-divider:after{
+  content:"";
+  position:absolute;
+  top:11px;
+  left:5px;
+  width:8px;
+  height:8px;
+  border:1px solid #f0cf72;
+  border-radius:70% 12% 70% 12%;
+  background:#bc9840;
+  box-shadow:0 0 0 2px #2d6335;
+  transform:rotate(45deg);
+}
 .wallet-value{
-  width:auto;
+  width:100%;
   max-width:100%;
-  gap:4px;
+  justify-content:center;
+  gap:5px;
 }
 .wallet-pill b{
   flex:0 1 auto;
   min-width:0;
   overflow:visible;
-  color:#fffdf4;
+  color:#fff4c9;
   font-family:"Arial Black","DM Sans",system-ui,sans-serif;
-  font-size:16px;
+  font-size:18px;
   font-variant-numeric:tabular-nums;
   font-weight:900;
-  letter-spacing:-.025em;
+  letter-spacing:-.035em;
   line-height:1;
+  -webkit-text-stroke:.35px rgba(17,55,31,.88);
   text-shadow:
-    -1px -1px 0 #173b27,
-    1px -1px 0 #173b27,
-    -1px 1px 0 #173b27,
-    1px 1px 0 #173b27,
-    0 2px 0 #173b27,
-    0 3px 4px rgba(20,48,31,.28);
+    0 2px 0 #123b25,
+    0 3px 4px rgba(8,31,18,.34);
   text-overflow:clip;
   white-space:nowrap;
 }
 .currency-icon-default{display:none}
-.currency-icon-farm{
+.wallet-pill .currency-icon-farm{
   display:block;
-  width:31px;
-  height:31px;
-  flex:0 0 31px;
+  width:34px;
+  height:34px;
+  flex:0 0 34px;
   object-fit:contain;
   image-rendering:auto!important;
-  filter:drop-shadow(0 2px 1px rgba(25,52,32,.24));
+  filter:drop-shadow(0 2px 1px rgba(8,37,20,.42));
 }
 .wallet-label{display:none!important}
 .wallet-accessible{
@@ -295,7 +354,7 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
 .app.farm-view .account-summary small{color:#3f6f33}
 .app.farm-view .account-level-track{height:6px;background:#d7c498;box-shadow:inset 0 1px 2px rgba(74,50,24,.2)}
 .app.farm-view .account-level-track i{background:linear-gradient(90deg,#4f9b32,#9fca3f)}
-.app.farm-view .wallet{gap:10px}
+.app.farm-view .wallet{gap:0}
 
 #farm{
   --farm-gutter:13px;
@@ -1303,22 +1362,6 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
 }
 
 @media(max-width:370px){
-  .topbar{padding-inline:9px}
-  .account-summary{grid-template-columns:40px minmax(0,1fr);gap:7px}
-  .account-avatar{width:40px;height:40px;border-radius:13px}
-  .account-avatar img{width:44px;height:44px}
-  .account-summary b{max-width:87px;font-size:12px}
-  .wallet{gap:6px}
-  .wallet-pill{width:auto;min-width:0;min-height:40px;padding:0}
-  .wallet-value{gap:3px}
-  .wallet-pill b{font-size:12px}
-  .currency-icon-farm{width:24px;height:24px;flex-basis:24px}
-  .app.farm-view .topbar{gap:6px;padding-inline:7px}
-  .app.farm-view .account-summary{grid-template-columns:38px minmax(0,1fr);gap:6px}
-  .app.farm-view .account-avatar{width:38px;height:38px}
-  .app.farm-view .account-avatar img{width:42px;height:42px}
-  .app.farm-view .account-summary b{max-width:68px;font-size:11px}
-  .app.farm-view .wallet{gap:6px}
   main{padding-inline:10px}
   #farm{--farm-gutter:10px;margin-inline:-10px;padding-inline:10px}
   #farm .farm-hero{min-height:210px;padding-top:5px}
@@ -1930,13 +1973,11 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
 .modal img{image-rendering:auto!important}
 
 @media(max-width:370px){
-  .app.farm-view .account-summary{grid-template-columns:44px minmax(0,1fr)}
-  .app.farm-view .account-avatar{width:44px;height:44px}
   #farmOverview{--hero-weather-gap:24px}
   #farmOverview .weather-card{grid-template-columns:42px minmax(0,1fr) auto}
 }
 
-/* Farm-market frame, compact Shop header, and plot expansion sheet v47. */
+/* Farm-market frame, compact Shop header, and plot expansion sheet v48. */
 .app.shop-view{background:transparent}
 .app.shop-view main{
   padding:0 0 calc(88px + env(safe-area-inset-bottom));
@@ -1966,7 +2007,7 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
   box-shadow:inset 0 1px 2px rgba(74,50,24,.2);
 }
 .app.shop-view .account-level-track i{background:linear-gradient(90deg,#4f9b32,#9fca3f)}
-.app.shop-view .wallet{gap:10px}
+.app.shop-view .wallet{gap:0}
 
 #shop{
   position:relative;
@@ -2489,12 +2530,6 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
 #plotUnlockModal #confirmUnlockPlot{min-height:48px}
 
 @media(max-width:370px){
-  .app.shop-view .topbar{gap:6px;padding-inline:7px}
-  .app.shop-view .account-summary{grid-template-columns:38px minmax(0,1fr);gap:6px}
-  .app.shop-view .account-avatar{width:38px;height:38px}
-  .app.shop-view .account-avatar img{width:42px;height:42px}
-  .app.shop-view .account-summary b{max-width:68px;font-size:11px}
-  .app.shop-view .wallet{gap:6px}
   #shop{padding:12px 6px 22px}
   .shop-sign{grid-template-columns:22px minmax(0,1fr) 22px;height:82px;min-height:82px;max-height:82px;margin-inline:3px;padding:6px 8px;border-width:4px;border-radius:22px 22px 18px 18px}
   .shop-sign h1{font-size:clamp(20px,6.5vw,24px)}
@@ -2852,7 +2887,7 @@ body.modal-open{overflow:hidden;overscroll-behavior:none}
   #plantModal #confirmPlant{min-height:44px}
 }
 
-/* Plot unlock v47: markup-driven lock and readable action plaque. */
+/* Plot unlock v48: markup-driven lock and readable action plaque. */
 #cropArea .bed.locked .bed-scene:before,
 #cropArea .bed.locked .bed-scene:after{content:none;display:none}
 #cropArea .bed.locked .bed-plaque{display:none}
@@ -2971,4 +3006,66 @@ body.modal-open{overflow:hidden;overscroll-behavior:none}
 
 @media(max-width:350px){
   .planting-selection-art>.seed-packet-art{width:35px;height:35px}
+}
+
+/* Shared wallet rail sizing stays continuous across compact phone headers. */
+@media(max-width:420px){
+  .topbar,
+  .app.farm-view .topbar,
+  .app.shop-view .topbar{gap:7px;padding-inline:9px}
+  .account-summary,
+  .app.farm-view .account-summary,
+  .app.shop-view .account-summary{grid-template-columns:40px minmax(0,1fr);flex:0 0 112px;gap:7px}
+  .account-avatar,
+  .app.farm-view .account-avatar,
+  .app.shop-view .account-avatar{width:40px;height:40px;border-radius:13px}
+  .account-avatar img,
+  .app.farm-view .account-avatar img,
+  .app.shop-view .account-avatar img{width:44px;height:44px}
+  .account-summary b,
+  .app.farm-view .account-summary b,
+  .app.shop-view .account-summary b{max-width:65px;font-size:12px}
+  .account-level-track,
+  .app.farm-view .account-level-track,
+  .app.shop-view .account-level-track{width:65px}
+  .wallet,
+  .app.farm-view .wallet,
+  .app.shop-view .wallet{grid-template-columns:minmax(0,1fr) 14px minmax(0,1fr);min-height:44px;gap:0;padding:3px 6px;border-radius:16px}
+  .wallet:before{inset:2px;border-radius:12px}
+  .wallet-pill{min-height:34px}
+  .wallet-divider{width:14px;height:28px}
+  .wallet-divider:after{top:10px;left:4px;width:6px;height:6px}
+  .wallet-value{gap:4px}
+  .wallet-pill b{font-size:clamp(12px,3.8vw,15px)}
+  .wallet-pill .currency-icon-farm{width:28px;height:28px;flex-basis:28px}
+}
+
+@media(max-width:320px){
+  .topbar,
+  .app.farm-view .topbar,
+  .app.shop-view .topbar{gap:6px;padding-inline:7px}
+  .account-summary,
+  .app.farm-view .account-summary,
+  .app.shop-view .account-summary{grid-template-columns:36px minmax(0,1fr);flex-basis:92px;gap:5px}
+  .account-avatar,
+  .app.farm-view .account-avatar,
+  .app.shop-view .account-avatar{width:36px;height:36px;border-radius:12px}
+  .account-avatar img,
+  .app.farm-view .account-avatar img,
+  .app.shop-view .account-avatar img{width:40px;height:40px}
+  .account-summary b,
+  .app.farm-view .account-summary b,
+  .app.shop-view .account-summary b{max-width:50px;font-size:11px}
+  .account-summary small{font-size:7px}
+  .account-level-track,
+  .app.farm-view .account-level-track,
+  .app.shop-view .account-level-track{width:50px}
+  .wallet,
+  .app.farm-view .wallet,
+  .app.shop-view .wallet{grid-template-columns:minmax(0,1fr) 12px minmax(0,1fr);min-height:42px;padding:3px 5px;border-radius:15px}
+  .wallet-divider{width:12px;height:26px}
+  .wallet-divider:after{left:3px}
+  .wallet-value{gap:3px}
+  .wallet-pill b{font-size:clamp(10px,3.6vw,12px)}
+  .wallet-pill .currency-icon-farm{width:25px;height:25px;flex-basis:25px}
 }
