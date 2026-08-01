@@ -7,6 +7,11 @@ flat `#ff00ff` chroma-key backgrounds. The installed
 the requested square canvas with nearest-neighbour resampling, reduces the
 palette without dithering, and saves optimized RGBA PNGs.
 
+`seed-packet-frame-v1.png` is the intentional smooth-art exception. It was
+generated as a reusable high-resolution packet shell, keyed to alpha, then
+resampled to 384×384 with Lanczos filtering so its edges stay clean in the
+Shop, detail sheet, and planting picker.
+
 ## Production outputs
 
 | Output | Size | ImageGen source |
@@ -18,6 +23,7 @@ palette without dithering, and saves optimized RGBA PNGs.
 | `nav-silo-64.png` | 64×64 | `call_TM3KOprR49xdNdGBffPEHjW2.png` |
 | `nav-upgrade-64.png` | 64×64 | `call_ErRgyEPNTNHv8xL35iN4PF7o.png` |
 | `weather-partly-sunny-64.png` | 64×64 | `call_e0Z2FBSNvKyWsw5zCBDVYDZ8.png` |
+| `seed-packet-frame-v1.png` | 384×384 | `exec-994d6924-2169-4042-9919-105f021d1121.png` |
 | `../upgrades-v3/garden-paths-192.png` | 192×192 | `call_mEG1GYvqQebfHjD1CenIh3Ld.png` |
 | `../upgrades-v3/rain-barrel-192.png` | 192×192 | `call_cvWtPGD0vqzdVOa866wQne3x.png` |
 | `../upgrades-v3/deep-beds-192.png` | 192×192 | `call_akXtBLPbFaH3kaWx7rq0GxYE.png` |
@@ -44,6 +50,22 @@ palette without dithering, and saves optimized RGBA PNGs.
 The avatar, navigation icons, Garden Paths, and Rain Barrel sources were
 generated earlier in the same Meadowstep UI design pass. The three prompts
 added to complete the production pack are recorded below.
+
+## Reusable seed packet prompt
+
+> Create one reusable seed packet UI asset for a cozy mobile walking-and-farming
+> game. Single front-facing seed packet, centered, upright, near-rectangular
+> with gently rounded folded paper corners. Warm ivory kraft-paper body,
+> consistent deep meadow-green top seal and bottom seal, very thin muted-gold
+> piping, subtle hand-painted paper texture, polished storybook game
+> illustration, smooth antialiased edges, high readability at 96 px. Leave the
+> large central label completely blank and uncluttered so a separate crop
+> illustration can be layered there later. No crop, no leaves, no seeds, no
+> text, no letters, no numbers, no logo, no emblem, no badge, no watermark. No
+> cast shadow and no ground plane. Surround the object with generous padding.
+> Use a perfectly flat solid `#FF00FF` chroma-key background with no gradients,
+> texture, lighting, or shadows in the background. Not pixel art, not
+> photorealistic. Square asset.
 
 ## Deep Beds prompt
 

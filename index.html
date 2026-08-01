@@ -371,13 +371,6 @@
       width:var(--seed-shop-size);height:var(--seed-shop-size);
       filter:drop-shadow(0 2px 2px rgba(55,43,27,.14))
     }
-    .positioned-seed{
-      transform:
-        translate(var(--crop-x,0px),var(--crop-y,0px))
-        translate(var(--sprite-auto-x,0%),calc(var(--sprite-auto-y,0%) + var(--sprite-center-y,0px)))
-        scale(var(--crop-scale,1));
-      transform-origin:50% 50%
-    }
     .seed-row-copy{display:grid;align-content:center;gap:3px;min-width:0}
     .seed-row-name{
       min-width:0;overflow:hidden;font-family:"DM Sans",system-ui,sans-serif;font-size:15px;font-weight:800;
@@ -463,8 +456,8 @@
     .placement-preview .plot-surface{pointer-events:none;user-select:none}
     .placement-preview .crop-visual.editing{z-index:3;outline:2px solid #416a49;outline-offset:4px;border-radius:10px;background:rgba(255,255,255,.3);pointer-events:none;touch-action:none}
     .seed-placement-scene{display:grid;place-items:center;width:104px;height:104px;border:1px solid #d7dfcf;border-radius:21px;background:rgba(255,255,255,.86);box-shadow:0 10px 22px rgba(48,76,53,.1)}
-    .seed-placement-scene .positioned-seed{width:84px;height:84px;pointer-events:none}
-    .seed-placement-scene .positioned-seed.editing{outline:2px solid #416a49;outline-offset:5px;border-radius:12px}
+    .seed-placement-scene>.seed-packet-art{width:84px;height:84px;pointer-events:none}
+    .seed-placement-scene>.seed-packet-art.editing{outline:2px solid #416a49;outline-offset:5px;border-radius:12px}
     .drag-hint{position:absolute;z-index:4;top:9px;left:50%;transform:translateX(-50%);padding:5px 9px;border-radius:99px;background:#304c35;color:#fff;font-size:8px;font-weight:900;pointer-events:none}
     .placement-controls{display:grid;gap:9px;margin-top:13px}
     .placement-control{display:grid;grid-template-columns:52px 36px 1fr 36px 42px;align-items:center;gap:7px;color:var(--muted);font-size:9px}
@@ -560,7 +553,7 @@
     .asset-size-samples{display:flex;align-items:end;justify-content:center;gap:9px;min-height:74px;margin-top:8px}
     .asset-size-samples span{display:grid;place-items:center;gap:3px;color:var(--muted);font-size:6px}
     .asset-sample{object-fit:contain}
-    .asset-sample.currency-sample{image-rendering:auto}
+    .asset-sample.currency-sample,.asset-sample.smooth-sample{image-rendering:auto}
     .asset-sample.pixel-sample{image-rendering:pixelated}
     .detail-quality{color:var(--quality);font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.1em}
     .detail-effect,.detail-list{margin:10px 0;padding:5px 12px;border:1px solid var(--line);border-radius:14px;background:var(--paper);color:var(--muted);font-size:11px;line-height:1.45}
@@ -606,7 +599,7 @@
       #farm .step-copy .mini-progress i,#farm .bed-progress i{transition:none}
     }
   </style>
-  <link rel="stylesheet" href="assets/farm/ui-v3/theme-v3.css">
+  <link rel="stylesheet" href="assets/farm/ui-v3/theme-v3.css?v=47">
 </head>
 <body>
   <div class="app farm-view">
@@ -619,18 +612,20 @@
       </div>
       <div class="wallet" aria-label="Steps and gold">
         <div class="wallet-pill">
-          <span class="wallet-value">
+          <span class="wallet-accessible" id="stepsBalanceExact">0 steps</span>
+          <span class="wallet-value" aria-hidden="true">
+            <b id="stepsBalance">0</b>
             <img class="currency-icon currency-icon-default" src="assets/farm/ui/step-token-64.png" alt="">
             <img class="currency-icon currency-icon-farm" src="assets/farm/ui-v3/step-currency-v2-96.png" alt="">
-            <b id="stepsBalance">0</b>
           </span>
           <small class="wallet-label">Steps</small>
         </div>
         <div class="wallet-pill">
-          <span class="wallet-value">
+          <span class="wallet-accessible" id="goldBalanceExact">120 gold</span>
+          <span class="wallet-value" aria-hidden="true">
+            <b id="goldBalance">120</b>
             <img class="currency-icon currency-icon-default" src="assets/farm/ui/gold-coin-64.png" alt="">
             <img class="currency-icon currency-icon-farm" src="assets/farm/ui-v3/gold-currency-v2-96.png" alt="">
-            <b id="goldBalance">120</b>
           </span>
           <small class="wallet-label">Gold</small>
         </div>
@@ -990,8 +985,11 @@
       const fmt = value => number(value).toLocaleString();
       const compactFmt = value => {
         const safe=number(value);
-        if(safe<100000)return fmt(safe);
-        return new Intl.NumberFormat(undefined,{notation:"compact",maximumFractionDigits:1}).format(safe);
+        if(safe<1000)return fmt(safe);
+        const million=safe>=999500;
+        const scaled=safe/(million?1000000:1000);
+        const decimals=scaled<100&&!Number.isInteger(scaled)?1:0;
+        return `${scaled.toFixed(decimals).replace(/\.0$/,'')}${million?"M":"K"}`;
       };
       const clamp = (value,min,max) => Math.min(max,Math.max(min,value));
 
@@ -1025,7 +1023,6 @@
         return {
           ...crop,
           image:`assets/farm/crops/${crop.id}-crop-64.png`,
-          seedImage:`assets/farm/crops/${crop.id}-seeds-96.png`,
           stages:{
             planted:crop.id==="radish"?"assets/farm/crops/radish-planted-meadow-v3-64.png":`assets/farm/crops/${crop.id}-planted-64.png`,
             grown:crop.id==="radish"?"assets/farm/crops/radish-grown-meadow-v3-64.png":`assets/farm/crops/${crop.id}-grown-64.png`
@@ -1121,7 +1118,7 @@
           equipment:{boots:null,gloves:null,tools:null},fertilisers:{},
           cropRateLevel:0,qualityLevel:0,saleLevel:0,farmUpgrades:[],cropPlacements:{},globalCropPlacement:{x:0,y:0,scale:1},imageCenterY:{},assetTransforms:{},trackingStatus:"checking",
           bedPlans:Array.from({length:MAX_BEDS},()=>null),questDate:todayKey(),completedQuests:[],weeklyQuestKey:"",completedWeeklyQuests:[],
-          weather:null,weatherLocation:null,adminMode:false,profileName:"Farmer",characterProfile:"farmer",seedShopSize:40,shopLayoutVersion:7,farmArtVersion:2,plotArtVersion:2,cropArtVersion:3,perkDate:todayKey(),doubleStepUsed:0,doubleGoldSalesUsed:0
+          weather:null,weatherLocation:null,adminMode:false,profileName:"Farmer",characterProfile:"farmer",seedShopSize:40,shopLayoutVersion:7,farmArtVersion:2,plotArtVersion:2,cropArtVersion:3,seedArtVersion:1,perkDate:todayKey(),doubleStepUsed:0,doubleGoldSalesUsed:0
         };
       }
       function loadState(){
@@ -1159,9 +1156,13 @@
             delete merged.cropPlacements["radish:planted"];
             delete merged.cropPlacements["radish:grown"];
           }
+          if(saved.seedArtVersion!==1){
+            Object.keys(merged.cropPlacements).filter(key=>key.endsWith(":seed")).forEach(key=>delete merged.cropPlacements[key]);
+          }
           merged.farmArtVersion=2;
           merged.plotArtVersion=2;
           merged.cropArtVersion=3;
+          merged.seedArtVersion=1;
           merged.farmUpgrades=[...new Set(saved.farmUpgrades||[])];
           merged.completedQuests=saved.questDate===todayKey()?[...new Set(saved.completedQuests||[])]:[];
           merged.questDate=todayKey();
@@ -1225,21 +1226,28 @@
       function itemById(id){return ITEMS.find(i=>i.id===id)}
       const CURRENCY_ICONS={gold:"assets/farm/ui/gold-coin-64.png",steps:"assets/farm/ui/step-token-64.png"};
       const FARM_CURRENCY_ICONS={gold:"assets/farm/ui-v3/gold-currency-v2-96.png",steps:"assets/farm/ui-v3/step-currency-v2-96.png"};
+      const SEED_PACKET_FRAME="assets/farm/ui-v3/seed-packet-frame-v1.png";
       function currencyMarkup(type,amount){
-        const value=amount===Infinity?"∞":fmt(amount);
+        const value=amount===Infinity?"∞":type==="steps"?compactFmt(amount):fmt(amount);
         const label=type==="gold"?"Gold":"Steps";
         return `<span class="currency"><img class="currency-icon" src="${CURRENCY_ICONS[type]}" alt="${label}">${value}</span>`;
       }
       function farmCurrencyMarkup(type,amount){
-        const value=amount===Infinity?"∞":fmt(amount);
+        const value=amount===Infinity?"∞":type==="steps"?compactFmt(amount):fmt(amount);
         const label=type==="gold"?"Gold":"Steps";
         return `<span class="currency farm-currency"><img class="currency-icon" src="${FARM_CURRENCY_ICONS[type]}" alt="${label}">${value}</span>`;
       }
+      function seedPacketMarkup(crop,className="pixel-sprite",placement){
+        if(!crop?.image)return crop?.icon||"🌱";
+        const classes=[className,"seed-packet-art"].filter(Boolean).join(" ");
+        const style=cropPlacementStyle(crop.id,"seed",placement||cropPlacement(crop.id,"seed"));
+        return `<span class="${classes}" data-seed-packet="${crop.id}" aria-hidden="true"><img class="seed-packet-frame" src="${SEED_PACKET_FRAME}" alt="" draggable="false"><img class="seed-packet-crop auto-centered-sprite" data-center-src="${crop.image}" ${style?`style="${style}"`:""} src="${crop.image}" alt="" draggable="false"></span>`;
+      }
       function cropIconMarkup(crop,seed=false,className="pixel-sprite",placement){
-        const image=seed?crop?.seedImage:crop?.image;
-        const classes=[className,"pixel-sprite","auto-centered-sprite",seed?"positioned-seed":""].filter(Boolean).join(" ");
-        const style=seed?cropPlacementStyle(crop.id,"seed",placement||cropPlacement(crop.id,"seed")):"";
-        return image?`<img class="${classes}" data-center-src="${image}" ${style?`style="${style}"`:""} src="${image}" alt="" draggable="false">`:crop?.icon||"🌱";
+        if(seed)return seedPacketMarkup(crop,className,placement);
+        const image=crop?.image;
+        const classes=[className,"pixel-sprite","auto-centered-sprite"].filter(Boolean).join(" ");
+        return image?`<img class="${classes}" data-center-src="${image}" src="${image}" alt="" draggable="false">`:crop?.icon||"🌱";
       }
       const GEAR_TYPES = [["boots","Boots"],["gloves","Gloves"],["tools","Tools"]];
       const ITEM_UPGRADE_MAX = 3;
@@ -1281,7 +1289,7 @@
         if(effect.xp)parts.push(`+${value("xp")}% harvest XP`);
         if(effect.sale)parts.push(`+${value("sale")}% sale gold`);
         if(effect.iridium)parts.push(`+${value("iridium")}% Iridium chance`);
-        if(effect.doubleStepCap)parts.push(`first ${fmt(value("doubleStepCap"))} daily steps count twice`);
+        if(effect.doubleStepCap)parts.push(`first ${compactFmt(value("doubleStepCap"))} daily steps count twice`);
         if(effect.doubleGoldSales)parts.push(`first ${fmt(value("doubleGoldSales"))} daily crop sales pay double`);
         return parts;
       }
@@ -1500,12 +1508,12 @@
         $("#accountLevelProgress").style.width=`${clamp(level.current/Math.max(1,level.next)*100,0,100)}%`;
         $("#accountAvatar").src=profile.image;
         $("#profileButton").setAttribute("aria-label",`Choose character profile. Current: ${profile.name}`);
-        const stepsText=state.adminMode?"∞":activeScreen==="farm"?compactFmt(state.stepBalance):fmt(state.stepBalance);
-        const goldText=state.adminMode?"∞":activeScreen==="farm"?compactFmt(state.gold):fmt(state.gold);
+        const stepsText=state.adminMode?"∞":compactFmt(state.stepBalance);
+        const goldText=state.adminMode?"∞":compactFmt(state.gold);
         $("#stepsBalance").textContent=stepsText;
         $("#goldBalance").textContent=goldText;
-        $("#stepsBalance").setAttribute("aria-label",state.adminMode?"Unlimited steps":`${fmt(state.stepBalance)} steps`);
-        $("#goldBalance").setAttribute("aria-label",state.adminMode?"Unlimited gold":`${fmt(state.gold)} gold`);
+        $("#stepsBalanceExact").textContent=state.adminMode?"Unlimited steps":`${fmt(state.stepBalance)} steps`;
+        $("#goldBalanceExact").textContent=state.adminMode?"Unlimited gold":`${fmt(state.gold)} gold`;
       }
       function weatherFromCurrent(current={}){
         const code=number(current.weather_code),temperature=Number(current.temperature_2m)||0,precipitation=Number(current.precipitation)||0;
@@ -1570,7 +1578,7 @@
         stepRing.setAttribute("aria-valuemax",String(goal));
         stepRing.setAttribute("aria-valuenow",String(Math.min(state.todaySteps,goal)));
         stepRing.setAttribute("aria-valuetext",`${fmt(state.todaySteps)} of ${fmt(goal)} steps today`);
-        $("#dailyGoalLabel").textContent=`/ ${fmt(goal)}`;
+        $("#dailyGoalLabel").textContent=`/ ${compactFmt(goal)}`;
         $("#bedCount").textContent=`${state.unlockedBeds} / ${MAX_BEDS} PLOTS`;
         $("#growingCount").textContent=String(growingBeds.length);
         $("#readyCount").textContent=String(readyBeds.length);
@@ -1604,7 +1612,7 @@
         const stage=status==="ready"?"grown":"planted";
         const footer=status==="ready"
           ? `<span class="bed-ready-banner">Ready to harvest!</span>`
-          : `<span class="bed-progress"><i style="width:${progress}%"></i><b>${fmt(Math.floor(bed.growth))} / ${fmt(crop.steps)}</b></span>`;
+          : `<span class="bed-progress"><i style="width:${progress}%"></i><b>${compactFmt(Math.floor(bed.growth))} / ${compactFmt(crop.steps)}</b></span>`;
         const content=`${planterArt()}<div class="crop-visual" style="${cropPlacementStyle(crop.id,stage)}">${cropStageMarkup(crop,stage)}</div><span class="bed-plaque"><strong>${crop.name}</strong><span class="bed-state">${status==="ready"?"Ready":`${Math.floor(progress)}%`}</span></span>${footer}`;
         const scene=status==="ready"
           ? `<button class="bed-scene harvest-target" data-harvest-bed="${index}" aria-label="Harvest ${crop.name} from plot ${index+1}">${content}</button>`
@@ -1837,7 +1845,8 @@
       function shopPriceMarkup(type,amount,label=type){
         const icon=FARM_CURRENCY_ICONS[type]||CURRENCY_ICONS[type];
         const alt=type==="gold"?"Gold":"Steps";
-        return `<span class="shop-price-pill"><img src="${icon}" alt="${alt}"><strong>${fmt(amount)}</strong><small>${label}</small></span>`;
+        const value=type==="steps"?compactFmt(amount):fmt(amount);
+        return `<span class="shop-price-pill"><img src="${icon}" alt="${alt}"><strong>${value}</strong><small>${label}</small></span>`;
       }
       function renderShop(){
         const titles={seeds:"Seed Shop",gear:"Gear Shop",fertiliser:"Fertiliser Shop"};
@@ -1867,7 +1876,7 @@
           grid.innerHTML=crops.map(crop=>`<article class="shop-product-row seed-product quality-base">
             <button class="shop-product-main" type="button" data-seed-view="${crop.id}" aria-label="View ${crop.name} seed details">
               <span class="shop-product-art seed-row-icon">${cropIconMarkup(crop,true,"shop-product-sprite")}</span>
-              <span class="shop-product-copy"><strong>${crop.name}</strong><small>Seed packet · Level ${crop.level}</small><span class="shop-product-stat"><img src="${FARM_CURRENCY_ICONS.steps}" alt="Steps">${fmt(crop.steps)} steps to grow</span></span>
+              <span class="shop-product-copy"><strong>${crop.name}</strong><small>Seed packet · Level ${crop.level}</small><span class="shop-product-stat"><img src="${FARM_CURRENCY_ICONS.steps}" alt="Steps">${compactFmt(crop.steps)} steps to grow</span></span>
             </button>
             <span class="shop-product-action">${shopPriceMarkup("gold",crop.seedCost,"gold")}<button class="shop-row-buy shop-buy-button" type="button" data-seed-buy="${crop.id}" aria-label="Buy one ${crop.name} seed for ${fmt(crop.seedCost)} gold" ${canSpendGold(crop.seedCost)?"":"disabled"}>Buy</button></span>
           </article>`).join("");
@@ -2058,7 +2067,7 @@
         delete state.itemUpgrades[selectedItem.id];
         state.stepBalance+=value;
         const name=selectedItem.name;selectedItem=null;
-        save();closeModals();renderAll();toast(`${name} sold for ${fmt(value)} steps`);
+        save();closeModals();renderAll();toast(`${name} sold for ${compactFmt(value)} steps`);
       }
       function upgradeSelectedItem(){
         if(!selectedItem||!state.ownedItems.includes(selectedItem.id))return;
@@ -2103,12 +2112,12 @@
         if(quest.reward.type==="gear"){
           const item=itemById(quest.reward.item);
           if(state.ownedItems.includes(item.id)){
-            const steps=Math.round(item.cost*.35);state.stepBalance+=steps;toast(`${fmt(steps)} steps received`);
+            const steps=Math.round(item.cost*.35);state.stepBalance+=steps;toast(`${compactFmt(steps)} steps received`);
           }else{
             state.ownedItems.push(item.id);toast(`${item.name} received`);
           }
         }else{
-          state.stepBalance+=quest.reward.amount;toast(`${fmt(quest.reward.amount)} steps received`);
+          state.stepBalance+=quest.reward.amount;toast(`${compactFmt(quest.reward.amount)} steps received`);
         }
         completedIds.push(id);
         if(activeQuestPeriod==="weekly")state.completedWeeklyQuests=completedIds;
@@ -2172,7 +2181,7 @@
         if(!fertiliser||(state.fertilisers[id]||0)<1)return;
         const value=Math.max(1,Math.round(fertiliser.cost*.5));
         state.fertilisers[id]--;state.stepBalance+=value;
-        save();renderAll();toast(`${fertiliser.name} sold for ${fmt(value)} steps`);
+        save();renderAll();toast(`${fertiliser.name} sold for ${compactFmt(value)} steps`);
       }
       function renderUpgrades(){
         const progress=levelInfo(),level=progress.level;
@@ -2201,10 +2210,9 @@
       function imageCenterAssets(){
         const assets=[
           ...CROPS.flatMap(crop=>[
-            {label:`${crop.name} · seed`,src:crop.seedImage},
             {label:`${crop.name} · planted`,src:crop.stages?.planted},
             {label:`${crop.name} · ready`,src:crop.stages?.grown},
-            {label:`${crop.name} · harvested`,src:crop.image}
+            {label:`${crop.name} · crop and packet art`,src:crop.image}
           ]),
           ...ITEMS.map(item=>({label:`Gear · ${item.name}`,src:item.image})),
           ...FERTILISERS.map(fert=>({label:`Fertiliser · ${fert.name} · ${QUALITY_LABELS[fert.tier]}`,src:fert.image})),
@@ -2306,10 +2314,7 @@
         CROPS.forEach(crop=>{
           add("Farm",`${crop.name} · planted`,crop.stages?.planted);
           add("Farm",`${crop.name} · ready`,crop.stages?.grown);
-          add("Shop",`${crop.name} · seeds`,crop.seedImage);
           add("Silo",`${crop.name} · crop`,crop.image);
-          add("Detail · seed",`${crop.name} · seed detail`,crop.seedImage);
-          add("Detail · plant",`${crop.name} · planting`,crop.seedImage);
         });
         ITEMS.forEach(item=>{
           add("Shop",`${item.name} · shop`,item.image);
@@ -2325,7 +2330,7 @@
         dailyQuests().forEach(quest=>add("Quests",`${quest.npc} · portrait`,quest.image));
         FARM_UPGRADES.forEach(upgrade=>add("Upgrades",`${upgrade.name} · upgrade`,FARM_UPGRADE_ART[upgrade.id]));
         $$("img").forEach(image=>{
-          if(image.classList.contains("currency-icon")||image.classList.contains("plot-surface")||image.closest(".asset-layout-card,.placement-card,.image-centre-card,.asset-preview-panel"))return;
+          if(image.classList.contains("currency-icon")||image.classList.contains("plot-surface")||image.closest(".seed-packet-art,.asset-layout-card,.placement-card,.image-centre-card,.asset-preview-panel"))return;
           const src=image.getAttribute("src");
           if(src)add(assetContextFor(image),assetLabel(src),src);
         });
@@ -2341,7 +2346,7 @@
       }
       function prepareAssetLayouts(){
         $$("img").forEach(image=>{
-          if(image.classList.contains("currency-icon")||image.classList.contains("plot-surface")||image.closest(".asset-layout-card,.placement-card,.image-centre-card,.asset-preview-panel"))return;
+          if(image.classList.contains("currency-icon")||image.classList.contains("plot-surface")||image.closest(".seed-packet-art,.asset-layout-card,.placement-card,.image-centre-card,.asset-preview-panel"))return;
           const src=image.getAttribute("src");
           if(!src)return;
           const context=assetContextFor(image),key=assetKey(context,src),layout=assetLayoutValue(key);
@@ -2425,7 +2430,7 @@
         const assets=[
           {id:"gold",name:"Gold",src:CURRENCY_ICONS.gold,kind:"currency",sizes:[["Header",20],["Inline",13]]},
           {id:"steps",name:"Steps",src:CURRENCY_ICONS.steps,kind:"currency",sizes:[["Header",20],["Inline",13]]},
-          {id:"radish-seed",name:"Seed pack",src:"assets/farm/crops/radish-seeds-96.png",kind:"pixel",sizes:[["Shop",64],["Plant",34]]}
+          {id:"seed-packet-frame",name:"Seed packet frame",src:SEED_PACKET_FRAME,kind:"smooth",sizes:[["Shop",64],["Plant",34]]}
         ];
         $("#assetPreviewGrid").innerHTML=assets.map(asset=>`<article class="asset-preview-card"><b>${asset.name}</b><div class="asset-size-samples">${asset.sizes.map(([label,size])=>`<span><img class="asset-sample ${asset.kind}-sample" data-preview-asset="${asset.id}" src="${asset.src}" alt="" style="width:${size}px;height:${size}px">${label} ${size}px</span>`).join("")}</div><small id="asset-meta-${asset.id}">Reading file…</small></article>`).join("");
         assets.forEach(asset=>{
@@ -2538,7 +2543,7 @@
         updatePlacementPreview();
       }
       function updatePlacementPreview(){
-        const crop=cropById(placementCropId),sprite=$("#placementPreview .crop-visual, #placementPreview .positioned-seed");
+        const crop=cropById(placementCropId),sprite=$("#placementPreview .crop-visual, #placementPreview .seed-packet-crop");
         if(!crop||!sprite||!placementDraft)return;
         const local=state.cropPlacements?.[`${crop.id}:${placementStage}`]||defaultCropPlacement(crop.id,placementStage);
         const previewPlacement=placementAllCrops
@@ -2548,7 +2553,9 @@
               scale:(Number(local.scale)||1)*(Number(placementDraft.scale)||1)
             }
           : placementDraft;
-        sprite.style.cssText=cropPlacementStyle(crop.id,placementStage,previewPlacement);
+        sprite.style.setProperty("--crop-x",`${clamp(Number(previewPlacement.x)||0,-70,70)}px`);
+        sprite.style.setProperty("--crop-y",`${clamp(Number(previewPlacement.y)||0,-55,55)}px`);
+        sprite.style.setProperty("--crop-scale",String(clamp(Number(previewPlacement.scale)||1,.4,2.2)));
         $("#placementScale").value=String(Math.round(placementDraft.scale*100));
         $("#placementScaleValue").textContent=`${Math.round(placementDraft.scale*100)}%`;
       }

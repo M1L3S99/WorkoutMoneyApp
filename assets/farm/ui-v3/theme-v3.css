@@ -80,6 +80,7 @@ body:before{
   display:grid;
   grid-template-columns:44px minmax(0,1fr);
   align-items:center;
+  flex:0 1 132px;
   gap:9px;
   min-width:0;
 }
@@ -132,18 +133,72 @@ body:before{
   background:linear-gradient(90deg,#f0ca69,#d9ed84);
   transition:width .3s ease;
 }
-.wallet{gap:5px}
-.wallet-pill{
-  min-width:64px;
-  min-height:40px;
-  padding:6px 8px;
-  border:1px solid rgba(255,255,255,.16);
-  border-radius:14px;
-  background:rgba(11,31,19,.25);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
+.wallet{
+  flex:1 1 176px;
+  gap:10px;
 }
-.wallet-pill b{font-size:12px}
-.wallet-value{gap:4px}
+.wallet-pill{
+  display:flex;
+  flex:1 1 0;
+  align-items:center;
+  justify-content:flex-end;
+  width:auto;
+  min-width:0;
+  min-height:44px;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+.wallet-value{
+  width:auto;
+  max-width:100%;
+  gap:4px;
+}
+.wallet-pill b{
+  flex:0 1 auto;
+  min-width:0;
+  overflow:visible;
+  color:#fffdf4;
+  font-family:"Arial Black","DM Sans",system-ui,sans-serif;
+  font-size:16px;
+  font-variant-numeric:tabular-nums;
+  font-weight:900;
+  letter-spacing:-.025em;
+  line-height:1;
+  text-shadow:
+    -1px -1px 0 #173b27,
+    1px -1px 0 #173b27,
+    -1px 1px 0 #173b27,
+    1px 1px 0 #173b27,
+    0 2px 0 #173b27,
+    0 3px 4px rgba(20,48,31,.28);
+  text-overflow:clip;
+  white-space:nowrap;
+}
+.currency-icon-default{display:none}
+.currency-icon-farm{
+  display:block;
+  width:31px;
+  height:31px;
+  flex:0 0 31px;
+  object-fit:contain;
+  image-rendering:auto!important;
+  filter:drop-shadow(0 2px 1px rgba(25,52,32,.24));
+}
+.wallet-label{display:none!important}
+.wallet-accessible{
+  position:absolute;
+  width:1px;
+  height:1px;
+  padding:0;
+  overflow:hidden;
+  clip:rect(0,0,0,0);
+  clip-path:inset(50%);
+  border:0;
+  white-space:nowrap;
+}
 .currency-icon{flex:0 0 auto}
 
 main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
@@ -218,7 +273,6 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
 .btn:disabled{opacity:.42;filter:saturate(.55);box-shadow:none}
 
 /* Farm — full-bleed orchard redesign. Everything stays scoped to the Farm view. */
-.currency-icon-farm,.wallet-label{display:none}
 .app.farm-view{background:transparent}
 .app.farm-view .topbar{
   min-height:86px;
@@ -241,46 +295,7 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
 .app.farm-view .account-summary small{color:#3f6f33}
 .app.farm-view .account-level-track{height:6px;background:#d7c498;box-shadow:inset 0 1px 2px rgba(74,50,24,.2)}
 .app.farm-view .account-level-track i{background:linear-gradient(90deg,#4f9b32,#9fca3f)}
-.app.farm-view .wallet{gap:7px}
-.app.farm-view .wallet-pill{
-  flex:0 0 74px;
-  width:74px;
-  min-width:0;
-  min-height:57px;
-  padding:5px 7px 4px;
-  border:2px solid #d0b67e;
-  border-radius:16px;
-  background:linear-gradient(160deg,#fff9e7,#f2e3bf);
-  box-shadow:inset 0 1px 0 #fff,0 3px 7px rgba(94,67,34,.1);
-}
-.app.farm-view .wallet-value{width:100%;min-width:0;gap:3px}
-.app.farm-view .wallet-pill b{
-  min-width:0;
-  overflow:hidden;
-  color:#352719;
-  font-size:13px;
-  font-variant-numeric:tabular-nums;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-.app.farm-view .currency-icon-default{display:none}
-.app.farm-view .currency-icon-farm{
-  display:block;
-  width:29px;
-  height:29px;
-  object-fit:contain;
-  image-rendering:pixelated;
-}
-.app.farm-view .wallet-label{
-  display:block;
-  margin-top:1px;
-  color:#477238;
-  font-size:7px;
-  font-weight:900;
-  letter-spacing:.07em;
-  line-height:1;
-  text-transform:uppercase;
-}
+.app.farm-view .wallet{gap:10px}
 
 #farm{
   --farm-gutter:13px;
@@ -1177,7 +1192,7 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
   --layout-y:0px;
   --layout-scale:1;
 }
-.layout-adjustable.auto-centered-sprite:not(.positioned-seed){
+.layout-adjustable.auto-centered-sprite{
   transform:
     translate(var(--sprite-auto-x,0%),calc(var(--sprite-auto-y,0%) + var(--sprite-center-y,0px)))
     translate(var(--layout-x),var(--layout-y))
@@ -1194,14 +1209,6 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
   background:
     linear-gradient(rgba(255,250,229,.08),rgba(55,85,32,.06)),
     url("../ui/crop-area-ground-v1.webp") center/192px auto repeat;
-}
-.positioned-seed.layout-adjustable{
-  transform:
-    translate(var(--crop-x,0px),var(--crop-y,0px))
-    translate(var(--sprite-auto-x,0%),calc(var(--sprite-auto-y,0%) + var(--sprite-center-y,0px)))
-    translate(var(--layout-x),var(--layout-y))
-    scale(var(--crop-scale,1))
-    scale(var(--layout-scale));
 }
 .account-avatar img.layout-adjustable,.nav-btn img.layout-adjustable,.weather-icon img.layout-adjustable{
   transform:translate(var(--layout-x),var(--layout-y)) scale(var(--layout-scale));
@@ -1301,17 +1308,17 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
   .account-avatar{width:40px;height:40px;border-radius:13px}
   .account-avatar img{width:44px;height:44px}
   .account-summary b{max-width:87px;font-size:12px}
-  .wallet-pill{min-width:56px;padding-inline:6px}
+  .wallet{gap:6px}
+  .wallet-pill{width:auto;min-width:0;min-height:40px;padding:0}
+  .wallet-value{gap:3px}
+  .wallet-pill b{font-size:12px}
+  .currency-icon-farm{width:24px;height:24px;flex-basis:24px}
   .app.farm-view .topbar{gap:6px;padding-inline:7px}
   .app.farm-view .account-summary{grid-template-columns:38px minmax(0,1fr);gap:6px}
   .app.farm-view .account-avatar{width:38px;height:38px}
   .app.farm-view .account-avatar img{width:42px;height:42px}
   .app.farm-view .account-summary b{max-width:68px;font-size:11px}
-  .app.farm-view .wallet{gap:4px}
-  .app.farm-view .wallet-pill{flex-basis:65px;width:65px;min-height:52px;padding-inline:5px}
-  .app.farm-view .currency-icon-farm{width:25px;height:25px}
-  .app.farm-view .wallet-pill b{font-size:11px}
-  .app.farm-view .wallet-label{font-size:6px}
+  .app.farm-view .wallet{gap:6px}
   main{padding-inline:10px}
   #farm{--farm-gutter:10px;margin-inline:-10px;padding-inline:10px}
   #farm .farm-hero{min-height:210px;padding-top:5px}
@@ -1929,7 +1936,7 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
   #farmOverview .weather-card{grid-template-columns:42px minmax(0,1fr) auto}
 }
 
-/* Farm-market frame, reference Shop and plot expansion sheet v46. */
+/* Farm-market frame, compact Shop header, and plot expansion sheet v47. */
 .app.shop-view{background:transparent}
 .app.shop-view main{
   padding:0 0 calc(88px + env(safe-area-inset-bottom));
@@ -1959,45 +1966,7 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
   box-shadow:inset 0 1px 2px rgba(74,50,24,.2);
 }
 .app.shop-view .account-level-track i{background:linear-gradient(90deg,#4f9b32,#9fca3f)}
-.app.shop-view .wallet{gap:7px}
-.app.shop-view .wallet-pill{
-  flex:0 0 74px;
-  width:74px;
-  min-width:0;
-  min-height:57px;
-  padding:5px 7px 4px;
-  border:2px solid #d0b67e;
-  border-radius:16px;
-  background:linear-gradient(160deg,#fff9e7,#f2e3bf);
-  box-shadow:inset 0 1px 0 #fff,0 3px 7px rgba(94,67,34,.1);
-}
-.app.shop-view .wallet-value{width:100%;min-width:0;gap:3px}
-.app.shop-view .wallet-pill b{
-  min-width:0;
-  overflow:hidden;
-  color:#352719;
-  font-size:13px;
-  font-variant-numeric:tabular-nums;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-.app.shop-view .currency-icon-default{display:none}
-.app.shop-view .currency-icon-farm{
-  display:block;
-  width:29px;
-  height:29px;
-  object-fit:contain;
-}
-.app.shop-view .wallet-label{
-  display:block;
-  margin-top:1px;
-  color:#477238;
-  font-size:7px;
-  font-weight:900;
-  letter-spacing:.07em;
-  line-height:1;
-  text-transform:uppercase;
-}
+.app.shop-view .wallet{gap:10px}
 
 #shop{
   position:relative;
@@ -2025,14 +1994,16 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
 .shop-sign{
   position:relative;
   display:grid;
-  grid-template-columns:38px minmax(0,1fr) 38px;
+  grid-template-columns:28px minmax(0,1fr) 28px;
   align-items:center;
-  min-height:126px;
-  margin:0 5px 13px;
-  padding:15px clamp(8px,3vw,16px);
+  height:94px;
+  min-height:94px;
+  max-height:94px;
+  margin:0 5px 10px;
+  padding:8px 12px;
   overflow:hidden;
-  border:6px solid #80502d;
-  border-radius:34px 34px 27px 27px;
+  border:5px solid #80502d;
+  border-radius:28px 28px 23px 23px;
   color:#254a2e;
   background:
     radial-gradient(circle at 50% -35%,rgba(255,255,255,.88),transparent 52%),
@@ -2049,44 +2020,49 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
 .shop-sign:after{
   content:"";
   position:absolute;
-  top:11px;
-  width:56px;
-  height:15px;
+  top:7px;
+  width:44px;
+  height:12px;
   border-radius:50%;
-  border-top:5px solid #6e8737;
+  border-top:4px solid #6e8737;
   opacity:.9;
 }
 .shop-sign:before{left:12px;transform:rotate(-14deg)}
 .shop-sign:after{right:12px;transform:rotate(14deg)}
-.shop-sign>div{min-width:0}
+.shop-sign>div{min-width:0;overflow:hidden}
 .shop-sign .screen-kicker{
   display:block;
-  margin-bottom:4px;
+  margin-bottom:3px;
   color:#728547;
   font-size:8px;
+  white-space:nowrap;
 }
 .shop-sign h1{
   margin:0;
   color:#234829;
   font-family:"Fraunces",Georgia,serif;
-  font-size:clamp(31px,10vw,45px);
-  line-height:.94;
-  letter-spacing:.035em;
+  font-size:clamp(21px,6.2vw,30px);
+  line-height:1;
+  letter-spacing:.02em;
   text-shadow:0 2px 0 #fff7d8,0 4px 0 rgba(62,82,35,.12);
   text-transform:uppercase;
+  white-space:nowrap;
 }
 .shop-sign small{
   display:block;
-  margin-top:7px;
+  margin-top:5px;
+  overflow:hidden;
   color:#816b40;
   font-size:8px;
   font-weight:900;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }
 .shop-sign-leaf{
   position:relative;
   z-index:2;
   color:#55742f;
-  font-size:35px;
+  font-size:26px;
   line-height:1;
   text-shadow:0 2px 0 rgba(51,78,34,.16);
 }
@@ -2518,15 +2494,11 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
   .app.shop-view .account-avatar{width:38px;height:38px}
   .app.shop-view .account-avatar img{width:42px;height:42px}
   .app.shop-view .account-summary b{max-width:68px;font-size:11px}
-  .app.shop-view .wallet{gap:4px}
-  .app.shop-view .wallet-pill{flex-basis:65px;width:65px;min-height:52px;padding-inline:5px}
-  .app.shop-view .currency-icon-farm{width:25px;height:25px}
-  .app.shop-view .wallet-pill b{font-size:11px}
-  .app.shop-view .wallet-label{font-size:6px}
+  .app.shop-view .wallet{gap:6px}
   #shop{padding:12px 6px 22px}
-  .shop-sign{grid-template-columns:25px minmax(0,1fr) 25px;min-height:106px;margin-inline:3px;border-width:4px;border-radius:25px}
-  .shop-sign h1{font-size:clamp(27px,9.5vw,35px)}
-  .shop-sign-leaf{font-size:27px}
+  .shop-sign{grid-template-columns:22px minmax(0,1fr) 22px;height:82px;min-height:82px;max-height:82px;margin-inline:3px;padding:6px 8px;border-width:4px;border-radius:22px 22px 18px 18px}
+  .shop-sign h1{font-size:clamp(20px,6.5vw,24px)}
+  .shop-sign-leaf{font-size:22px}
   .shop-shell{padding:7px 5px 10px;border-width:4px}
   #shop #shopTabs{top:calc(86px + env(safe-area-inset-top))}
   #shop #shopTabs .tab{min-height:44px;font-size:9px}
@@ -2880,7 +2852,7 @@ body.modal-open{overflow:hidden;overscroll-behavior:none}
   #plantModal #confirmPlant{min-height:44px}
 }
 
-/* Plot unlock v46: markup-driven lock and readable action plaque. */
+/* Plot unlock v47: markup-driven lock and readable action plaque. */
 #cropArea .bed.locked .bed-scene:before,
 #cropArea .bed.locked .bed-scene:after{content:none;display:none}
 #cropArea .bed.locked .bed-plaque{display:none}
@@ -2952,3 +2924,51 @@ body.modal-open{overflow:hidden;overscroll-behavior:none}
   box-shadow:0 3px 0 #1c4e2a,inset 0 1px 0 rgba(255,255,255,.25);
 }
 #cropArea .bed.locked-future .bed-unlock-summary{filter:saturate(.75)}
+
+/* One reusable packet shell keeps every current and future crop consistent. */
+.seed-packet-art{
+  position:relative;
+  display:block;
+  width:100%;
+  height:100%;
+  aspect-ratio:1;
+  isolation:isolate;
+  transform-origin:50% 50%;
+}
+.seed-packet-art>img{
+  position:absolute!important;
+  inset:0;
+  display:block;
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  object-fit:contain!important;
+  image-rendering:auto!important;
+  pointer-events:none;
+}
+.seed-packet-art>.seed-packet-frame{z-index:1;transform:none!important}
+.seed-packet-art>.seed-packet-crop{
+  z-index:2;
+  inset:25% 23% 23%;
+  width:54%!important;
+  height:52%!important;
+  filter:drop-shadow(0 3px 2px rgba(71,48,25,.24));
+  transform:
+    translate(var(--crop-x,0px),var(--crop-y,0px))
+    translate(var(--sprite-auto-x,0%),calc(var(--sprite-auto-y,0%) + var(--sprite-center-y,0px)))
+    scale(var(--crop-scale,1))!important;
+  transform-origin:50% 50%;
+}
+#shop .shop-product-art>.seed-packet-art{
+  width:94%;
+  height:94%;
+  filter:drop-shadow(0 6px 5px rgba(71,50,26,.2));
+}
+#plantModal .plant-option i>.seed-packet-art{width:43px;height:43px;margin:auto}
+.planting-selection-art>.seed-packet-art{width:40px;height:40px}
+#seedDetailArt>.seed-packet-art{width:min(96px,90%);height:min(96px,90%)}
+.seed-placement-scene>.seed-packet-art{width:84px;height:84px}
+
+@media(max-width:350px){
+  .planting-selection-art>.seed-packet-art{width:35px;height:35px}
+}
