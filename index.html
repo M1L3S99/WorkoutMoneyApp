@@ -612,7 +612,9 @@
   <div class="app farm-view">
     <header class="topbar">
       <div class="account-summary" aria-label="Account">
-        <span class="account-avatar"><img src="assets/farm/ui-v3/avatar-96.png" alt="" draggable="false"></span>
+        <button class="account-avatar" id="profileButton" type="button" aria-label="Choose character profile" aria-haspopup="dialog" aria-controls="profileModal">
+          <img id="accountAvatar" src="assets/farm/ui-v3/avatar-96.png" alt="" draggable="false">
+        </button>
         <span class="account-copy"><b id="accountName">Farmer</b><small>LV <span id="accountLevel">1</span></small><span class="account-level-track" aria-hidden="true"><i id="accountLevelProgress"></i></span></span>
       </div>
       <div class="wallet" aria-label="Steps and gold">
@@ -661,24 +663,7 @@
             <span class="visually-hidden" id="bedCount">1 / 20 plots</span>
             <div class="crop-area-controls" aria-label="Farm plot actions">
               <div class="farm-actions"><button class="btn secondary" id="plantAll">Plant all</button><button class="btn secondary" id="replantAll">Replant all</button></div>
-              <button class="plot-layout-open" id="openPlotLayout" type="button" aria-controls="plotLayoutEditor" aria-expanded="false"><span aria-hidden="true">↔</span> Arrange</button>
             </div>
-            <section class="plot-layout-editor" id="plotLayoutEditor" aria-label="Plot layout editor" hidden>
-              <div class="plot-layout-editor-head">
-                <div><b>Arrange plots</b><small>Tap a plot number, drag to move, or use the sliders.</small></div>
-                <label class="plot-layout-picker" for="plotLayoutSelect">Plot <select id="plotLayoutSelect" aria-label="Plot to adjust"></select></label>
-              </div>
-              <div class="plot-layout-sliders">
-                <div class="plot-layout-control"><label for="plotLayoutX">Left / right</label><input id="plotLayoutX" type="range" min="-80" max="80" step="1" value="0"><output id="plotLayoutXValue" for="plotLayoutX">0px</output></div>
-                <div class="plot-layout-control"><label for="plotLayoutY">Up / down</label><input id="plotLayoutY" type="range" min="-70" max="70" step="1" value="0"><output id="plotLayoutYValue" for="plotLayoutY">0px</output></div>
-                <div class="plot-layout-control"><label for="plotLayoutScale">Size</label><input id="plotLayoutScale" type="range" min="55" max="160" step="1" value="100"><output id="plotLayoutScaleValue" for="plotLayoutScale">100%</output></div>
-              </div>
-              <div class="plot-layout-actions">
-                <button id="resetPlotLayout" type="button">Reset plot</button>
-                <button id="resetAllPlotLayouts" type="button">Reset all</button>
-                <button id="savePlotLayout" type="button">Save &amp; exit</button>
-              </div>
-            </section>
             <div class="garden-panel">
               <div class="garden-status" aria-label="Garden status" hidden>
                 <span><i></i><b id="growingCount">0</b> growing</span>
@@ -872,9 +857,17 @@
     </nav>
   </div>
 
-  <div class="modal" id="plantModal" role="dialog" aria-modal="true">
+  <div class="modal" id="profileModal" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle">
+    <div class="modal-card profile-modal-card">
+      <div class="modal-head"><div><span class="modal-kicker">Your farmer</span><h2 id="profileModalTitle">Choose a character</h2></div><button class="close-btn" data-close-modal aria-label="Close character picker">×</button></div>
+      <p class="profile-intro">Pick the portrait shown on your farm. You can change it whenever you like.</p>
+      <div class="profile-choices" id="profileChoices"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="plantModal" role="dialog" aria-modal="true" aria-labelledby="plantModalTitle">
     <div class="modal-card">
-      <div class="modal-head"><h2>Plant bed <span id="plantBedNumber">1</span></h2><button class="close-btn" data-close-modal>×</button></div>
+      <div class="modal-head"><h2 id="plantModalTitle">Choose seeds</h2><button class="close-btn" data-close-modal aria-label="Close seed picker">×</button></div>
       <div class="plant-choice" id="plantChoices"></div>
       <div class="modal-label">Fertiliser</div>
       <div class="fert-options" id="fertChoices"></div>
@@ -1069,6 +1062,12 @@
         "moon-irrigation":"assets/farm/upgrades-v3/moon-irrigation-192.png",
         "ancient-greenhouse":"assets/farm/upgrades-v3/ancient-greenhouse-192.png"
       };
+      const CHARACTER_PROFILES = [
+        {id:"farmer",name:"Farmer",image:"assets/farm/ui-v3/avatar-96.png"},
+        {id:"tilda",name:"Tilda",image:"assets/farm/npcs/tilda-96.png"},
+        {id:"bram",name:"Bram",image:"assets/farm/npcs/bram-96.png"},
+        {id:"nia",name:"Nia",image:"assets/farm/npcs/nia-96.png"}
+      ];
 
       function freshState(){
         return {
@@ -1076,9 +1075,9 @@
           nativeDate:todayKey(),lastNativeToday:0,nativeLifetime:0,xp:0,unlockedBeds:1,
           beds:Array.from({length:MAX_BEDS},()=>null),inventory:{},seeds:{radish:4},ownedItems:[],itemUpgrades:{},
           equipment:{boots:null,gloves:null,tools:null},fertilisers:{},
-          cropRateLevel:0,qualityLevel:0,saleLevel:0,farmUpgrades:[],cropPlacements:{},globalCropPlacement:{x:0,y:0,scale:1},plotLayouts:Array.from({length:MAX_BEDS},()=>({x:0,y:0,scale:1})),imageCenterY:{},assetTransforms:{},trackingStatus:"checking",
+          cropRateLevel:0,qualityLevel:0,saleLevel:0,farmUpgrades:[],cropPlacements:{},globalCropPlacement:{x:0,y:0,scale:1},imageCenterY:{},assetTransforms:{},trackingStatus:"checking",
           bedPlans:Array.from({length:MAX_BEDS},()=>null),questDate:todayKey(),completedQuests:[],weeklyQuestKey:"",completedWeeklyQuests:[],
-          weather:null,weatherLocation:null,adminMode:false,profileName:"Farmer",seedShopSize:40,shopLayoutVersion:6,farmArtVersion:2,plotArtVersion:2,cropArtVersion:3,perkDate:todayKey(),doubleStepUsed:0,doubleGoldSalesUsed:0
+          weather:null,weatherLocation:null,adminMode:false,profileName:"Farmer",characterProfile:"farmer",seedShopSize:40,shopLayoutVersion:6,farmArtVersion:2,plotArtVersion:2,cropArtVersion:3,perkDate:todayKey(),doubleStepUsed:0,doubleGoldSalesUsed:0
         };
       }
       function loadState(){
@@ -1108,14 +1107,8 @@
           });
           merged.imageCenterY=saved.imageCenterY&&typeof saved.imageCenterY==="object"?{...saved.imageCenterY}:{};
           merged.assetTransforms=saved.assetTransforms&&typeof saved.assetTransforms==="object"?{...saved.assetTransforms}:{};
-          merged.plotLayouts=Array.from({length:MAX_BEDS},(_,index)=>{
-            const layout=saved.plotLayouts?.[index]||{};
-            return {
-              x:clamp(Number(layout.x)||0,-80,80),
-              y:clamp(Number(layout.y)||0,-70,70),
-              scale:clamp(Number(layout.scale)||1,.55,1.6)
-            };
-          });
+          merged.characterProfile=CHARACTER_PROFILES.some(profile=>profile.id===saved.characterProfile)?saved.characterProfile:base.characterProfile;
+          delete merged.plotLayouts;
           merged.cropPlacements=saved.cropPlacements&&typeof saved.cropPlacements==="object"?{...saved.cropPlacements}:{};
           if(saved.cropArtVersion!==3){
             delete merged.cropPlacements["radish:planted"];
@@ -1161,11 +1154,6 @@
       const imageCenterCache=new Map();
       let selectedLayoutAsset=null;
       let assetLayoutDraft={x:0,y:0,scale:1};
-      let plotLayoutEditing=false;
-      let selectedPlotLayout=0;
-      let plotLayoutDrafts=[];
-      let plotLayoutDrag=null;
-
       function save(){
         clearTimeout(saveTimer);
         saveTimer=setTimeout(()=>localStorage.setItem(STORAGE_KEY,JSON.stringify(state)),120);
@@ -1429,13 +1417,35 @@
         return false;
       }
 
+      function characterProfile(id=state.characterProfile){
+        return CHARACTER_PROFILES.find(profile=>profile.id===id)||CHARACTER_PROFILES[0];
+      }
+      function renderProfileChoices(){
+        const container=$("#profileChoices");
+        if(!container)return;
+        container.innerHTML=CHARACTER_PROFILES.map(profile=>`<button class="profile-choice ${state.characterProfile===profile.id?"selected":""}" type="button" data-profile-choice="${profile.id}" aria-pressed="${state.characterProfile===profile.id}"><span class="profile-choice-art"><img src="${profile.image}" alt="" draggable="false"></span><b>${profile.name}</b><small>${state.characterProfile===profile.id?"Selected":"Choose"}</small></button>`).join("");
+        $$('[data-profile-choice]').forEach(button=>button.onclick=()=>selectCharacterProfile(button.dataset.profileChoice));
+      }
+      function openProfilePicker(){
+        renderProfileChoices();
+        $("#profileModal").classList.add("show");
+        requestAnimationFrame(()=>$("#profileChoices .selected")?.focus({preventScroll:true}));
+      }
+      function selectCharacterProfile(id){
+        const profile=characterProfile(id);
+        state.characterProfile=profile.id;
+        saveNow();renderHeader();closeModals();toast(`${profile.name} selected`);
+      }
       function renderHeader(){
         const account=window.WMB?.user;
         const accountName=account?.displayName||account?.email?.split("@")[0]||state.profileName||"Farmer";
         const level=levelInfo();
+        const profile=characterProfile();
         $("#accountName").textContent=accountName;
         $("#accountLevel").textContent=String(level.level);
         $("#accountLevelProgress").style.width=`${clamp(level.current/Math.max(1,level.next)*100,0,100)}%`;
+        $("#accountAvatar").src=profile.image;
+        $("#profileButton").setAttribute("aria-label",`Choose character profile. Current: ${profile.name}`);
         const stepsText=state.adminMode?"∞":activeScreen==="farm"?compactFmt(state.stepBalance):fmt(state.stepBalance);
         const goldText=state.adminMode?"∞":activeScreen==="farm"?compactFmt(state.gold):fmt(state.gold);
         $("#stepsBalance").textContent=stepsText;
@@ -1493,155 +1503,6 @@
           }
         },{enableHighAccuracy:false,timeout:12000,maximumAge:1800000});
       }
-      function normalisePlotLayout(layout={}){
-        return {
-          x:clamp(Number(layout.x)||0,-80,80),
-          y:clamp(Number(layout.y)||0,-70,70),
-          scale:clamp(Number(layout.scale)||1,.55,1.6)
-        };
-      }
-      function plotLayoutValue(index){
-        const layouts=plotLayoutEditing?plotLayoutDrafts:state.plotLayouts;
-        return normalisePlotLayout(layouts?.[index]);
-      }
-      function plotLayoutStyle(index){
-        const layout=plotLayoutValue(index);
-        return `--plot-x:${layout.x}px;--plot-y:${layout.y}px;--plot-scale:${layout.scale}`;
-      }
-      function plotLayoutTarget(index){
-        return `<button class="plot-layout-target" type="button" data-plot-layout-target="${index}" aria-label="Select and move plot ${index+1}"><span aria-hidden="true">${index+1}</span></button>`;
-      }
-      function applyPlotLayoutToBed(index){
-        const bed=$(`#bedsGrid [data-bed-index="${index}"]`);
-        if(!bed)return;
-        const layout=plotLayoutValue(index);
-        bed.style.setProperty("--plot-x",`${layout.x}px`);
-        bed.style.setProperty("--plot-y",`${layout.y}px`);
-        bed.style.setProperty("--plot-scale",String(layout.scale));
-      }
-      function syncPlotLayoutControls(){
-        if(!plotLayoutEditing)return;
-        const layout=plotLayoutValue(selectedPlotLayout);
-        $("#plotLayoutX").value=String(layout.x);
-        $("#plotLayoutY").value=String(layout.y);
-        $("#plotLayoutScale").value=String(Math.round(layout.scale*100));
-        $("#plotLayoutXValue").textContent=`${layout.x}px`;
-        $("#plotLayoutYValue").textContent=`${layout.y}px`;
-        $("#plotLayoutScaleValue").textContent=`${Math.round(layout.scale*100)}%`;
-      }
-      function renderPlotLayoutEditor(){
-        const editor=$("#plotLayoutEditor"),opener=$("#openPlotLayout"),cropArea=$("#cropArea");
-        if(!editor||!opener||!cropArea)return;
-        editor.hidden=!plotLayoutEditing;
-        opener.setAttribute("aria-expanded",String(plotLayoutEditing));
-        cropArea.classList.toggle("plot-layout-editing",plotLayoutEditing);
-        if(!plotLayoutEditing)return;
-        selectedPlotLayout=clamp(Math.trunc(selectedPlotLayout)||0,0,MAX_BEDS-1);
-        const select=$("#plotLayoutSelect");
-        select.innerHTML=Array.from({length:MAX_BEDS},(_,index)=>{
-          const status=index<state.unlockedBeds?"unlocked":index===state.unlockedBeds?"next":"locked";
-          return `<option value="${index}">Plot ${index+1} · ${status}</option>`;
-        }).join("");
-        select.value=String(selectedPlotLayout);
-        $$("#bedsGrid .bed").forEach(bed=>bed.classList.toggle("plot-layout-selected",Number(bed.dataset.bedIndex)===selectedPlotLayout));
-        syncPlotLayoutControls();
-      }
-      function selectPlotLayout(index,reveal=false){
-        if(!plotLayoutEditing)return;
-        selectedPlotLayout=clamp(Math.trunc(Number(index))||0,0,MAX_BEDS-1);
-        renderPlotLayoutEditor();
-        if(reveal){
-          const reducedMotion=globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-          requestAnimationFrame(()=>{
-            const bed=$("#bedsGrid")?.querySelector(`[data-bed-index="${selectedPlotLayout}"]`);
-            if(!bed)return;
-            bed.scrollIntoView({block:"center",behavior:reducedMotion?"auto":"smooth"});
-            setTimeout(()=>{
-              const editor=$("#plotLayoutEditor"),bedRect=bed.getBoundingClientRect(),editorRect=editor?.getBoundingClientRect();
-              if(!editorRect||bedRect.bottom<=editorRect.top-12)return;
-              window.scrollBy({top:bedRect.bottom-editorRect.top+12,behavior:reducedMotion?"auto":"smooth"});
-            },reducedMotion?0:260);
-          });
-        }
-      }
-      function updatePlotLayoutDraft(field,value){
-        if(!plotLayoutEditing)return;
-        const layout=plotLayoutValue(selectedPlotLayout);
-        if(field==="scale")layout.scale=clamp(Number(value)/100,.55,1.6);
-        else if(field==="x")layout.x=clamp(Math.round(Number(value)||0),-80,80);
-        else if(field==="y")layout.y=clamp(Math.round(Number(value)||0),-70,70);
-        plotLayoutDrafts[selectedPlotLayout]=layout;
-        applyPlotLayoutToBed(selectedPlotLayout);
-        syncPlotLayoutControls();
-      }
-      function setPlotLayoutEditor(open){
-        plotLayoutEditing=Boolean(open);
-        plotLayoutDrag=null;
-        if(plotLayoutEditing){
-          plotLayoutDrafts=Array.from({length:MAX_BEDS},(_,index)=>normalisePlotLayout(state.plotLayouts?.[index]));
-          selectedPlotLayout=clamp(selectedPlotLayout,0,MAX_BEDS-1);
-        }else plotLayoutDrafts=[];
-        renderFarm();
-        requestAnimationFrame(()=>$(plotLayoutEditing?"#plotLayoutSelect":"#openPlotLayout")?.focus({preventScroll:true}));
-      }
-      function resetSelectedPlotLayout(){
-        if(!plotLayoutEditing)return;
-        plotLayoutDrafts[selectedPlotLayout]={x:0,y:0,scale:1};
-        applyPlotLayoutToBed(selectedPlotLayout);
-        syncPlotLayoutControls();
-        toast(`Plot ${selectedPlotLayout+1} reset`);
-      }
-      function resetAllPlotLayouts(){
-        if(!plotLayoutEditing)return;
-        plotLayoutDrafts=Array.from({length:MAX_BEDS},()=>({x:0,y:0,scale:1}));
-        $$("#bedsGrid .bed").forEach((_,index)=>applyPlotLayoutToBed(index));
-        syncPlotLayoutControls();
-        toast("All plot positions reset. Save to keep this layout");
-      }
-      function savePlotLayoutEditor(){
-        if(!plotLayoutEditing)return;
-        state.plotLayouts=Array.from({length:MAX_BEDS},(_,index)=>normalisePlotLayout(plotLayoutDrafts[index]));
-        saveNow();
-        plotLayoutEditing=false;plotLayoutDrafts=[];plotLayoutDrag=null;
-        renderFarm();
-        requestAnimationFrame(()=>$("#openPlotLayout")?.focus({preventScroll:true}));
-        toast("Plot layout saved");
-      }
-      function bindPlotLayoutEditor(){
-        const grid=$("#bedsGrid");
-        $("#openPlotLayout").onclick=()=>setPlotLayoutEditor(true);
-        $("#plotLayoutSelect").onchange=event=>selectPlotLayout(event.target.value,true);
-        $("#plotLayoutX").oninput=event=>updatePlotLayoutDraft("x",event.target.value);
-        $("#plotLayoutY").oninput=event=>updatePlotLayoutDraft("y",event.target.value);
-        $("#plotLayoutScale").oninput=event=>updatePlotLayoutDraft("scale",event.target.value);
-        $("#resetPlotLayout").onclick=resetSelectedPlotLayout;
-        $("#resetAllPlotLayouts").onclick=resetAllPlotLayouts;
-        $("#savePlotLayout").onclick=savePlotLayoutEditor;
-        grid.addEventListener("click",event=>{
-          const target=event.target.closest("[data-plot-layout-target]");
-          if(!plotLayoutEditing||!target)return;
-          event.preventDefault();event.stopPropagation();selectPlotLayout(target.dataset.plotLayoutTarget);
-        });
-        grid.addEventListener("pointerdown",event=>{
-          const target=event.target.closest("[data-plot-layout-target]");
-          if(!plotLayoutEditing||!target)return;
-          event.preventDefault();event.stopPropagation();
-          selectPlotLayout(target.dataset.plotLayoutTarget);
-          const layout=plotLayoutValue(selectedPlotLayout);
-          plotLayoutDrag={id:event.pointerId,index:selectedPlotLayout,x:event.clientX,y:event.clientY,startX:layout.x,startY:layout.y,target};
-          try{target.setPointerCapture(event.pointerId)}catch{}
-        });
-        grid.addEventListener("pointermove",event=>{
-          if(!plotLayoutEditing||!plotLayoutDrag||plotLayoutDrag.id!==event.pointerId)return;
-          const layout=plotLayoutValue(plotLayoutDrag.index);
-          layout.x=clamp(Math.round(plotLayoutDrag.startX+event.clientX-plotLayoutDrag.x),-80,80);
-          layout.y=clamp(Math.round(plotLayoutDrag.startY+event.clientY-plotLayoutDrag.y),-70,70);
-          plotLayoutDrafts[plotLayoutDrag.index]=layout;
-          applyPlotLayoutToBed(plotLayoutDrag.index);syncPlotLayoutControls();
-        });
-        const finishDrag=event=>{if(plotLayoutDrag?.id===event.pointerId)plotLayoutDrag=null};
-        grid.addEventListener("pointerup",finishDrag);grid.addEventListener("pointercancel",finishDrag);
-      }
       function renderFarm(){
         const goal=Math.max(1,state.dailyGoal);
         const percent=clamp(state.todaySteps/goal*100,0,100);
@@ -1666,24 +1527,22 @@
         $$("[data-harvest-bed]").forEach(button=>button.onclick=()=>harvestBed(Number(button.dataset.harvestBed)));
         $("#plantAll").disabled=!state.beds.slice(0,state.unlockedBeds).some(bed=>!bed);
         $("#replantAll").disabled=!state.beds.slice(0,state.unlockedBeds).some((bed,index)=>!bed&&state.bedPlans[index]);
-        renderPlotLayoutEditor();
       }
       const PLANTER_ART="assets/farm/soil-plot-topdown-v2-256x192.png";
       function planterArt(){
         return `<img class="plot-surface pixel-sprite" src="${PLANTER_ART}" alt="" draggable="false" aria-hidden="true">`;
       }
       function renderBed(index){
-        const style=plotLayoutStyle(index),layoutTarget=plotLayoutTarget(index);
         if(index>=state.unlockedBeds){
           const next=index===state.unlockedBeds;
           if(next){
             const requirement=BED_REQUIREMENTS[index];
-            return `<article class="bed locked next-unlock" data-bed-index="${index}" style="${style}"><button class="bed-scene bed-action" data-unlock-bed="${index}">${planterArt()}<span class="bed-plaque"><strong>Plot ${index+1}</strong></span><span class="bed-unlock-banner"><b>Unlock</b>${farmCurrencyMarkup("gold",BED_COSTS[index])}${requirement?`<small>${cropRequirementText(requirement)}</small>`:""}</span></button>${layoutTarget}</article>`;
+            return `<article class="bed locked next-unlock" data-bed-index="${index}"><button class="bed-scene bed-action" data-unlock-bed="${index}">${planterArt()}<span class="bed-plaque"><strong>Plot ${index+1}</strong></span><span class="bed-unlock-banner"><b>Unlock</b>${farmCurrencyMarkup("gold",BED_COSTS[index])}${requirement?`<small>${cropRequirementText(requirement)}</small>`:""}</span></button></article>`;
           }
-          return `<article class="bed locked locked-future" data-bed-index="${index}" style="${style}"><div class="bed-scene" aria-hidden="true">${planterArt()}<span class="bed-plaque"><strong>Plot ${index+1}</strong></span><span class="bed-unlock-banner"><b>Locked</b><small>Unlock plot ${index} first</small></span></div>${layoutTarget}</article>`;
+          return `<article class="bed locked locked-future" data-bed-index="${index}"><div class="bed-scene" aria-hidden="true">${planterArt()}<span class="bed-plaque"><strong>Plot ${index+1}</strong></span><span class="bed-unlock-banner"><b>Locked</b><small>Unlock plot ${index} first</small></span></div></article>`;
         }
         const bed=state.beds[index];
-        if(!bed)return `<article class="bed empty" data-bed-index="${index}" style="${style}"><button class="bed-scene bed-action" data-plant-bed="${index}" aria-label="Plant crop in plot ${index+1}">${planterArt()}<span class="bed-plaque"><strong>Empty</strong></span></button>${layoutTarget}</article>`;
+        if(!bed)return `<article class="bed empty" data-bed-index="${index}"><button class="bed-scene bed-action" data-plant-bed="${index}" aria-label="Plant crop in plot ${index+1}">${planterArt()}<span class="bed-plaque"><strong>Empty</strong></span></button></article>`;
         const crop=cropById(bed.cropId);
         const status=bedState(bed);
         const progress=clamp(bed.growth/crop.steps*100,0,100);
@@ -1695,7 +1554,7 @@
         const scene=status==="ready"
           ? `<button class="bed-scene harvest-target" data-harvest-bed="${index}" aria-label="Harvest ${crop.name} from plot ${index+1}">${content}</button>`
           : `<div class="bed-scene" role="img" aria-label="${crop.name} growing in plot ${index+1}, ${fmt(Math.floor(bed.growth))} of ${fmt(crop.steps)} steps">${content}</div>`;
-        return `<article class="bed ${status}" data-bed-index="${index}" style="${style}">${scene}${layoutTarget}</article>`;
+        return `<article class="bed ${status}" data-bed-index="${index}">${scene}</article>`;
       }
       function unlockBed(index){
         const cost=BED_COSTS[index],requirement=BED_REQUIREMENTS[index];
@@ -1709,7 +1568,6 @@
         const level=levelInfo().level;
         if(!state.adminMode&&cropById(selectedCrop).level>level)selectedCrop=CROPS.find(c=>c.level<=level)?.id||CROPS[0].id;
         selectedFertiliser=null;
-        $("#plantBedNumber").textContent=index==="all"?"all empty beds":index+1;
         renderPlantModal();
         $("#plantModal").classList.add("show");
       }
@@ -2196,7 +2054,7 @@
           const key=assetKey(context,src);
           if(!definitions.some(entry=>entry.key===key))definitions.push({key,context,label,src});
         };
-        add("Header","Farmer avatar","assets/farm/ui-v3/avatar-96.png");
+        CHARACTER_PROFILES.forEach(profile=>add("Header",`${profile.name} avatar`,profile.image));
         [["farm","Farm"],["shop","Shop"],["quests","Quests"],["barn","Silo"],["upgrades","Upgrade"]].forEach(([id,label])=>add(`Navigation · ${id}`,`${label} navigation icon`,`assets/farm/ui-v3/nav-${id==="barn"?"silo":id==="upgrades"?"upgrade":id}-64.png`));
         add("Farm","Weather icon","assets/farm/ui-v3/weather-partly-sunny-64.png");
         CROPS.forEach(crop=>{
@@ -2481,7 +2339,6 @@
         requestAnimationFrame(()=>{applyImageCentering();prepareAssetLayouts()});
       }
       function navigate(screen){
-        if(plotLayoutEditing)savePlotLayoutEditor();
         activeScreen=screen;
         $(".app").classList.toggle("farm-view",screen==="farm");
         renderHeader();
@@ -2516,7 +2373,7 @@
       }
 
       $$(".nav-btn").forEach(button=>button.onclick=()=>navigate(button.dataset.screen));
-      bindPlotLayoutEditor();
+      $("#profileButton").onclick=openProfilePicker;
       $$("#shopTabs .tab").forEach(tab=>tab.onclick=()=>{activeShopTab=tab.dataset.shopTab;renderShop()});
       $$("#gearViewTabs .tab").forEach(tab=>tab.onclick=()=>{activeGearView=tab.dataset.gearView;renderShop()});
       $$("#fertTierTabs .tab").forEach(tab=>tab.onclick=()=>{selectedFertiliserTier=tab.dataset.fertTier;renderShop()});
