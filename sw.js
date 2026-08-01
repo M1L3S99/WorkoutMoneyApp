@@ -1,5 +1,5 @@
 /* Ironbound service worker — farming app shell for offline + home-screen install */
-const CACHE = 'ironbound-farm-v45';
+const CACHE = 'ironbound-farm-v46';
 const CROP_IDS = [
   'radish','lettuce','spinach','carrot','onion','beetroot','blueberry','peas','potato','strawberry','pepper',
   'tomato','corn','eggplant','cabbage','broccoli','pumpkin','grapes','melon','dragonfruit','starfruit','ancient-root'
@@ -57,6 +57,7 @@ const ASSETS = [
   './assets/farm/ui/farm-ground-sand-v6.webp',
   './assets/farm/ui/farm-overview-scene-v1.webp',
   './assets/farm/ui/crop-area-ground-v1.webp',
+  './assets/farm/ui/farm-meadow-background-v1.webp',
   './assets/farm/ui/gold-coin-64.png',
   './assets/farm/ui/step-token-64.png',
   ...UI_V3_ART,
