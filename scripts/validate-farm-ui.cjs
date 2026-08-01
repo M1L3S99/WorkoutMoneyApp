@@ -188,8 +188,8 @@ for (const id of [
   "bedsGrid",
   "farmOverview",
   "cropArea",
-  "openCropArea",
-  "closeCropArea",
+  "plantAll",
+  "replantAll",
 ]) {
   if (!ids.includes(id)) throw new Error(`Missing modern Farm control: ${id}`);
 }
@@ -253,20 +253,25 @@ if (!html.includes(backgroundAssets[0][0]) ||
     !theme.includes("../ui/crop-area-ground-v1.webp") ||
     theme.includes("crop-area-scene-v2-432x864.webp") ||
     serviceWorker.includes("crop-area-scene-v2-432x864.webp") ||
-    !serviceWorker.includes("ironbound-farm-v42")) {
-  throw new Error("The top-down Farm backgrounds or v42 offline cache are not fully integrated");
+    !serviceWorker.includes("ironbound-farm-v43")) {
+  throw new Error("The top-down Farm backgrounds or v43 offline cache are not fully integrated");
 }
-if (!html.includes('id="farmOverview"') ||
-    !html.includes('id="cropArea"') ||
-    !html.includes('aria-labelledby="cropAreaTitle" hidden') ||
-    !html.includes('aria-controls="cropArea"') ||
-    !script[1].includes('let farmSubview="overview"') ||
-    !script[1].includes("function setFarmSubview(view)") ||
-    !script[1].includes('$("#openCropArea").onclick') ||
-    !script[1].includes('$("#closeCropArea").onclick') ||
-    !theme.includes("#farm .farm-subview[hidden]") ||
-    !theme.includes("#farm.crop-area-open:before")) {
-  throw new Error("Farm Overview and Crop Area must remain separate interactive views");
+const farmOverviewStart = html.indexOf('<div class="farm-overview" id="farmOverview">');
+const farmPlotsStart = html.indexOf('<section class="farm-plots" id="cropArea" role="region" aria-label="Farm plots">');
+if (farmOverviewStart < 0 || farmPlotsStart <= farmOverviewStart ||
+    html.includes('id="openCropArea"') ||
+    html.includes('id="closeCropArea"') ||
+    html.includes('class="farm-subview') ||
+    html.includes("Enter Crop Area") ||
+    script[1].includes("farmSubview") ||
+    script[1].includes("syncFarmSubview") ||
+    script[1].includes("setFarmSubview") ||
+    !/#farm\s*\{[^}]*height:\s*auto;[^}]*overflow:\s*visible;/s.test(theme) ||
+    !/#cropArea \.beds-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,/s.test(theme) ||
+    !theme.includes('url("../ui/crop-area-ground-v1.webp")') ||
+    ["crop-area-entry","farm-overview-landmark","farm-subview","crop-area-open"].some((hook) => html.includes(hook) || theme.includes(hook)) ||
+    ["Back to Farm","cropAreaTitle"].some((hook) => html.includes(hook))) {
+  throw new Error("The Farm hero, weather and all plots must share one continuous main screen without a Crop Area gateway");
 }
 const renderBedSource = functionSource("renderBed");
 if (!script[1].includes('Array.from({length:MAX_BEDS},(_,index)=>renderBed(index)).join("")') ||
@@ -310,7 +315,7 @@ const obsoleteOfflineArt = [
 if (!html.includes(soilPlotAsset) ||
     Object.values(TOPDOWN_ASSETS).some((asset) => offlineAssets.filter((cached) => cached === `./${asset}`).length !== 1) ||
     obsoleteOfflineArt.some((asset) => offlineAssets.includes(asset))) {
-  throw new Error("The v42 cache must contain each approved Farm asset exactly once and exclude superseded radish and perspective art");
+  throw new Error("The v43 cache must contain each approved Farm asset exactly once and exclude superseded radish and perspective art");
 }
 const uiV3Assets = [
   "assets/farm/ui-v3/theme-v3.css",
