@@ -1,5 +1,5 @@
 /* Ironbound service worker — farming app shell for offline + home-screen install */
-const CACHE = 'ironbound-farm-v38';
+const CACHE = 'ironbound-farm-v41';
 const CROP_IDS = [
   'radish','lettuce','spinach','carrot','onion','beetroot','blueberry','peas','potato','strawberry','pepper',
   'tomato','corn','eggplant','cabbage','broccoli','pumpkin','grapes','melon','dragonfruit','starfruit','ancient-root'
@@ -13,11 +13,14 @@ const FERTILISER_ART_IDS = [
   'speed-bronze','speed-silver','speed-gold','speed-iridium',
   'quality-bronze','quality-silver','quality-gold','quality-iridium'
 ];
+const CROP_STAGE_ART = (id, stage) => id === 'radish'
+  ? `./assets/farm/crops/radish-${stage}-topdown-v2-64.png`
+  : `./assets/farm/crops/${id}-${stage}-64.png`;
 const GENERATED_ART = [
   ...CROP_IDS.flatMap((id) => [
     `./assets/farm/crops/${id}-seeds-96.png`,
-    `./assets/farm/crops/${id}-planted-64.png`,
-    `./assets/farm/crops/${id}-grown-64.png`,
+    CROP_STAGE_ART(id, 'planted'),
+    CROP_STAGE_ART(id, 'grown'),
     `./assets/farm/crops/${id}-crop-64.png`
   ]),
   ...GEAR_IDS.map((id) => `./assets/farm/gear/${id}-96.png`),
@@ -36,7 +39,11 @@ const UI_V3_ART = [
   './assets/farm/ui-v3/step-currency-v2-96.png',
   './assets/farm/ui-v3/gold-currency-v2-96.png',
   ...['garden-paths','rain-barrel','seed-ledger','compost-bin','deep-beds','glass-cloche','market-cart','pollinator-garden','moon-irrigation','ancient-greenhouse']
-    .map((id) => `./assets/farm/upgrades-v3/${id}-192.png`)
+    .map((id) => id === 'compost-bin'
+      ? './assets/farm/upgrades-v3/compost-bin-topdown-v2-192.png'
+      : id === 'deep-beds'
+        ? './assets/farm/upgrades-v3/deep-beds-topdown-v2-192.png'
+        : `./assets/farm/upgrades-v3/${id}-192.png`)
 ];
 const ASSETS = [
   './',
@@ -44,13 +51,11 @@ const ASSETS = [
   './app-backend.js',
   './manifest.webmanifest',
   './icon.svg',
-  './assets/farm/fertiliser-compost-64.png',
-  './assets/farm/planter-bed-complete-v7-256x232.webp',
+  './assets/farm/soil-plot-topdown-v2-256x192.png',
   './assets/farm/ui/farm-background-v2.webp',
   './assets/farm/ui/farm-background-master-v6.webp',
   './assets/farm/ui/farm-ground-sand-v6.webp',
   './assets/farm/ui/farm-overview-scene-v1.webp',
-  './assets/farm/ui/crop-area-scene-v1.webp',
   './assets/farm/ui/crop-area-ground-v1.webp',
   './assets/farm/ui/gold-coin-64.png',
   './assets/farm/ui/step-token-64.png',

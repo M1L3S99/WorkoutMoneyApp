@@ -560,11 +560,11 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
   text-align:center;
 }
 #farm .bed-scene,
-#farm .bed-action{
-  --soil-line:61%;
-  --planter-front-cut:61%;
-  --planter-width:104%;
-  --crop-size:52%;
+#farm .bed-action,
+.placement-bed-scene{
+  --plot-surface-width:102%;
+  --crop-anchor-y:41.34%;
+  --crop-size:53%;
   position:relative;
   display:block;
   width:100%;
@@ -578,44 +578,53 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
   color:inherit;
   isolation:isolate;
 }
-#farm .bed-scene .bed-art,
-#farm .bed.empty .bed-art{
+#farm .bed-scene>.plot-surface,
+.placement-bed-scene>.plot-surface{
   position:absolute;
   z-index:1;
   top:0;
   left:50%;
-  width:var(--planter-width);
+  display:block;
+  width:var(--plot-surface-width);
   max-width:none;
   height:auto;
-  transform:translateX(-50%) translate(var(--sprite-auto-x,0%),calc(var(--sprite-auto-y,0%) + var(--sprite-center-y,0px)));
+  aspect-ratio:4/3;
+  transform:translateX(-50%);
   filter:none;
   pointer-events:none;
-  transform-origin:50% 100%;
+  user-select:none;
+  -webkit-user-drag:none;
+  transform-origin:50% 50%;
 }
-#farm .bed-scene .planter-front{
-  z-index:3;
-  clip-path:inset(var(--planter-front-cut) 0 0);
-  filter:none;
-}
-#farm .crop-visual{
+#farm .bed-scene>.crop-visual,
+.placement-bed-scene>.crop-visual{
   position:absolute;
   z-index:2;
-  top:var(--soil-line);
+  top:var(--crop-anchor-y);
   left:50%;
   display:grid;
   place-items:center;
   width:var(--crop-size);
   height:auto;
   aspect-ratio:1;
-  transform:translate(-50%,-100%) translate(var(--crop-x,0px),var(--crop-y,0px)) scale(var(--crop-scale,1));
-  transform-origin:50% 100%;
-  filter:drop-shadow(0 2px 0 rgba(45,27,10,.3));
+  transform:translate(-50%,-50%) translate(var(--crop-x,0px),var(--crop-y,0px)) scale(var(--crop-scale,1));
+  transform-origin:50% 50%;
+  filter:none;
+  overflow:visible;
 }
-#farm .crop-stage-sprite{width:100%;height:100%;object-fit:contain}
+#farm .crop-stage-sprite,
+.placement-bed-scene .crop-stage-sprite{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  pointer-events:none;
+  user-select:none;
+  -webkit-user-drag:none;
+}
 #farm .bed-plaque{
   position:absolute;
   z-index:4;
-  top:65%;
+  top:70%;
   right:24%;
   bottom:auto;
   left:24%;
@@ -717,8 +726,6 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
   text-overflow:ellipsis;
   white-space:nowrap;
 }
-#farm .bed.locked .bed-art,
-#farm .bed.ready .planter-back{filter:none}
 #farm .harvest-target{cursor:pointer;touch-action:manipulation}
 #farm .bed-head,#farm .bed-foot,#farm .empty-head-spacer{display:none}
 
@@ -1174,57 +1181,18 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
     translate(var(--layout-x),var(--layout-y))
     scale(var(--layout-scale));
 }
-#farm .bed-scene .bed-art.layout-adjustable{
-  transform:
-    translateX(-50%)
-    translate(var(--sprite-auto-x,0%),calc(var(--sprite-auto-y,0%) + var(--sprite-center-y,0px)))
-    translate(var(--layout-x),var(--layout-y))
-    scale(var(--layout-scale));
-}
-.placement-bed-scene .bed-art.layout-adjustable{
-  transform:
-    translateX(-50%)
-    translate(var(--sprite-auto-x,0%),calc(var(--sprite-auto-y,0%) + var(--sprite-center-y,0px)))
-    translate(var(--layout-x),var(--layout-y))
-    scale(var(--layout-scale));
-}
 .placement-bed-scene{
-  --soil-line:61%;
-  --planter-front-cut:61%;
-  position:relative;
-  width:min(72%,256px);
+  width:min(68%,192px);
   height:auto;
-  aspect-ratio:256/232;
+  aspect-ratio:1.04;
   flex:0 0 auto;
-  isolation:isolate;
 }
-.placement-bed-scene .bed-art{
-  position:absolute;
-  z-index:1;
-  top:0;
-  left:50%;
-  width:100%;
-  max-width:none;
-  height:auto;
-  filter:none;
-  transform:translateX(-50%) translate(var(--sprite-auto-x,0%),calc(var(--sprite-auto-y,0%) + var(--sprite-center-y,0px)));
-  transform-origin:50% 100%;
+.placement-preview{
+  overflow:visible;
+  background:
+    linear-gradient(rgba(255,250,229,.08),rgba(55,85,32,.06)),
+    url("../ui/crop-area-ground-v1.webp") center/192px auto repeat;
 }
-.placement-bed-scene .planter-front{
-  z-index:3;
-  clip-path:inset(var(--planter-front-cut) 0 0);
-  filter:none;
-}
-.placement-bed-scene .crop-visual{
-  top:var(--soil-line);
-  width:52%;
-  height:auto;
-  aspect-ratio:1;
-  transform:translate(-50%,-100%) translate(var(--crop-x,0px),var(--crop-y,0px)) scale(var(--crop-scale,1));
-  transform-origin:50% 100%;
-  filter:drop-shadow(0 2px 0 rgba(45,27,10,.3));
-}
-.placement-bed-scene .crop-stage-sprite{width:100%;height:100%;object-fit:contain}
 .positioned-seed.layout-adjustable{
   transform:
     translate(var(--crop-x,0px),var(--crop-y,0px))
@@ -1412,11 +1380,10 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
 #farm.crop-area-open:before{
   background-image:
     linear-gradient(180deg,rgba(255,250,229,.018),rgba(55,85,32,.025)),
-    url("../ui/crop-area-scene-v1.webp"),
     url("../ui/crop-area-ground-v1.webp");
-  background-position:center top,center top,center top;
-  background-size:100% 100%,100% auto,100% auto;
-  background-repeat:no-repeat,no-repeat,repeat-y;
+  background-position:center,center top;
+  background-size:100% 100%,100% auto;
+  background-repeat:no-repeat,repeat-y;
 }
 #farm>.farm-subview{position:relative;z-index:1}
 #farmOverview{
@@ -1977,7 +1944,7 @@ main{padding:14px 13px calc(96px + env(safe-area-inset-bottom))}
   #cropArea .bed,
   #cropArea .bed.empty,
   #cropArea .bed.locked,
-  #cropArea .bed.ready{aspect-ratio:1.01}
+  #cropArea .bed.ready{aspect-ratio:1.04}
   #cropArea #plotLayoutEditor{
     width:calc(100% - 16px);
     padding:8px;

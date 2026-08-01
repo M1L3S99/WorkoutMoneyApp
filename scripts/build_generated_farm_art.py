@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import shutil
 from pathlib import Path
 
 from PIL import Image, ImageDraw
@@ -106,7 +107,7 @@ def save_sprite(image: Image.Image, path: Path) -> None:
     image.save(path, "PNG", optimize=True, compress_level=9)
 
 
-def build_crops(sheets_dir: Path, output_dir: Path) -> list[Path]:
+def build_crops(sheets_dir: Path, output_dir: Path, hand_authored_dir: Path) -> list[Path]:
     created: list[Path] = []
     crops_dir = output_dir / "crops"
     for sheet_name, crop_ids in CROP_SHEETS:
@@ -115,6 +116,16 @@ def build_crops(sheets_dir: Path, output_dir: Path) -> list[Path]:
             grid_rows = 3 if sheet_name == "crop-6.png" else 4
             for row, crop_id in enumerate(crop_ids):
                 for column, kind in enumerate(CROP_COLUMNS):
+                    if crop_id == "radish" and kind in {"planted", "grown"}:
+                        path = crops_dir / f"radish-{kind}-topdown-v2-64.png"
+                        source = hand_authored_dir / path.name
+                        if not source.exists():
+                            raise FileNotFoundError(f"Missing hand-authored top-down radish stage: {source}")
+                        path.parent.mkdir(parents=True, exist_ok=True)
+                        if source.resolve() != path.resolve():
+                            shutil.copyfile(source, path)
+                        created.append(path)
+                        continue
                     target = 96 if kind == "seeds" else 64
                     content = 88 if kind == "seeds" else 60
                     suffix = {
@@ -192,11 +203,17 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--sheets-dir", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument(
+        "--hand-authored-dir",
+        type=Path,
+        default=Path(__file__).resolve().parents[1] / "assets" / "farm" / "crops",
+        help="Directory containing hand-authored top-down crop stages.",
+    )
     parser.add_argument("--preview", type=Path)
     args = parser.parse_args()
 
     created = [
-        *build_crops(args.sheets_dir, args.output_dir),
+        *build_crops(args.sheets_dir, args.output_dir, args.hand_authored_dir),
         *build_gear(args.sheets_dir, args.output_dir),
         *build_fertilisers(args.sheets_dir, args.output_dir),
         *build_npcs(args.sheets_dir, args.output_dir),

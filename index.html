@@ -232,15 +232,10 @@
       position:relative;display:grid;place-items:end center;width:100%;height:116px;margin:0;padding:0;
       border:0;background:transparent
     }
-    #farm .bed-art,.placement-bed-scene .bed-art{
-      width:min(104%,180px);max-width:none;height:auto;
-      filter:drop-shadow(0 6px 5px rgba(34,21,12,.27))
+    #farm .plot-surface,.placement-bed-scene .plot-surface{
+      position:absolute;top:0;left:50%;width:min(102%,192px);max-width:none;height:auto;
+      transform:translateX(-50%);filter:none;pointer-events:none
     }
-    #farm .bed-scene .bed-art{
-      position:absolute;top:0;left:50%;
-      transform:translateX(-50%) translate(var(--sprite-auto-x,0%),calc(var(--sprite-auto-y,0%) + var(--sprite-center-y,0px)))
-    }
-    #farm .bed.empty .bed-art{width:min(104%,180px);height:auto}
     #farm .crop-visual,.placement-bed-scene .crop-visual{
       position:absolute;z-index:2;left:50%;top:-8px;display:grid;place-items:center;width:64px;height:64px;
       transform:translateX(-50%) translate(var(--crop-x,0px),var(--crop-y,0px)) scale(var(--crop-scale,1));
@@ -264,7 +259,7 @@
     #farm .bed.ready{
       border:0;background:transparent;box-shadow:none
     }
-    #farm .bed.ready .bed-art{filter:drop-shadow(0 6px 5px rgba(34,21,12,.27)) drop-shadow(0 0 9px rgba(215,164,60,.4))}
+    #farm .bed.ready .plot-surface{filter:none}
     #farm .bed.ready .bed-state{background:#f4c85d;color:#614817}
     .btn{
       min-height:44px;padding:10px 15px;border:1px solid transparent;border-radius:14px;
@@ -464,9 +459,8 @@
     .placement-preview{position:relative;display:flex;align-items:center;justify-content:center;height:190px;overflow:hidden;border:2px dashed #8ba17e;border-radius:18px;background:#eef3e7;cursor:grab;touch-action:none}
     .placement-preview:active{cursor:grabbing}
     .placement-bed-scene{width:calc(50% + 1.6px);flex:0 0 auto;isolation:isolate}
-    .placement-bed-scene .bed-art{position:absolute;z-index:1;top:2px;left:50%;width:100%;filter:drop-shadow(0 2px 1px rgba(45,27,10,.22))}
-    .placement-bed-scene .planter-front{z-index:3;clip-path:inset(45% 0 0);filter:none}
-    .placement-preview .bed-art{pointer-events:none;user-select:none}
+    .placement-bed-scene .plot-surface{position:absolute;z-index:1;top:0;left:50%;width:102%;transform:translateX(-50%)}
+    .placement-preview .plot-surface{pointer-events:none;user-select:none}
     .placement-preview .crop-visual.editing{z-index:3;outline:2px solid #416a49;outline-offset:4px;border-radius:10px;background:rgba(255,255,255,.3);pointer-events:none;touch-action:none}
     .seed-placement-scene{display:grid;place-items:center;width:104px;height:104px;border:1px solid #d7dfcf;border-radius:21px;background:rgba(255,255,255,.86);box-shadow:0 10px 22px rgba(48,76,53,.1)}
     .seed-placement-scene .positioned-seed{width:84px;height:84px;pointer-events:none}
@@ -681,10 +675,10 @@
             <div class="farm-actions"><button class="btn secondary" id="plantAll">Plant all</button><button class="btn secondary" id="replantAll">Replant all</button></div>
             <button class="plot-layout-open" id="openPlotLayout" type="button" aria-controls="plotLayoutEditor" aria-expanded="false"><span aria-hidden="true">↔</span> Arrange</button>
           </div>
-          <section class="plot-layout-editor" id="plotLayoutEditor" aria-label="Planter layout editor" hidden>
+          <section class="plot-layout-editor" id="plotLayoutEditor" aria-label="Plot layout editor" hidden>
             <div class="plot-layout-editor-head">
               <div><b>Arrange plots</b><small>Tap a plot number, drag to move, or use the sliders.</small></div>
-              <label class="plot-layout-picker" for="plotLayoutSelect">Plot <select id="plotLayoutSelect" aria-label="Planter to adjust"></select></label>
+              <label class="plot-layout-picker" for="plotLayoutSelect">Plot <select id="plotLayoutSelect" aria-label="Plot to adjust"></select></label>
             </div>
             <div class="plot-layout-sliders">
               <div class="plot-layout-control"><label for="plotLayoutX">Left / right</label><input id="plotLayoutX" type="range" min="-80" max="80" step="1" value="0"><output id="plotLayoutXValue" for="plotLayoutX">0px</output></div>
@@ -998,8 +992,8 @@
           image:`assets/farm/crops/${crop.id}-crop-64.png`,
           seedImage:`assets/farm/crops/${crop.id}-seeds-96.png`,
           stages:{
-            planted:`assets/farm/crops/${crop.id}-planted-64.png`,
-            grown:`assets/farm/crops/${crop.id}-grown-64.png`
+            planted:crop.id==="radish"?"assets/farm/crops/radish-planted-topdown-v2-64.png":`assets/farm/crops/${crop.id}-planted-64.png`,
+            grown:crop.id==="radish"?"assets/farm/crops/radish-grown-topdown-v2-64.png":`assets/farm/crops/${crop.id}-grown-64.png`
           },
           levelMultiplier,stepEfficiency,sellValue,seedCost:Math.max(5,Math.round(sellValue*.32))
         };
@@ -1069,8 +1063,8 @@
         "garden-paths":"assets/farm/upgrades-v3/garden-paths-192.png",
         "rain-barrel":"assets/farm/upgrades-v3/rain-barrel-192.png",
         "seed-ledger":"assets/farm/upgrades-v3/seed-ledger-192.png",
-        "compost-bin":"assets/farm/upgrades-v3/compost-bin-192.png",
-        "deep-beds":"assets/farm/upgrades-v3/deep-beds-192.png",
+        "compost-bin":"assets/farm/upgrades-v3/compost-bin-topdown-v2-192.png",
+        "deep-beds":"assets/farm/upgrades-v3/deep-beds-topdown-v2-192.png",
         "glass-cloche":"assets/farm/upgrades-v3/glass-cloche-192.png",
         "market-cart":"assets/farm/upgrades-v3/market-cart-192.png",
         "pollinator-garden":"assets/farm/upgrades-v3/pollinator-garden-192.png",
@@ -1086,7 +1080,7 @@
           equipment:{boots:null,gloves:null,tools:null},fertilisers:{},
           cropRateLevel:0,qualityLevel:0,saleLevel:0,farmUpgrades:[],cropPlacements:{},globalCropPlacement:{x:0,y:0,scale:1},plotLayouts:Array.from({length:MAX_BEDS},()=>({x:0,y:0,scale:1})),imageCenterY:{},assetTransforms:{},trackingStatus:"checking",
           bedPlans:Array.from({length:MAX_BEDS},()=>null),questDate:todayKey(),completedQuests:[],weeklyQuestKey:"",completedWeeklyQuests:[],
-          weather:null,weatherLocation:null,adminMode:false,profileName:"Farmer",seedShopSize:40,shopLayoutVersion:6,farmArtVersion:1,perkDate:todayKey(),doubleStepUsed:0,doubleGoldSalesUsed:0
+          weather:null,weatherLocation:null,adminMode:false,profileName:"Farmer",seedShopSize:40,shopLayoutVersion:6,farmArtVersion:2,plotArtVersion:2,perkDate:todayKey(),doubleStepUsed:0,doubleGoldSalesUsed:0
         };
       }
       function loadState(){
@@ -1124,8 +1118,9 @@
               scale:clamp(Number(layout.scale)||1,.55,1.6)
             };
           });
-          merged.cropPlacements=saved.farmArtVersion===1?(saved.cropPlacements||{}):{};
-          merged.farmArtVersion=1;
+          merged.cropPlacements=saved.cropPlacements&&typeof saved.cropPlacements==="object"?{...saved.cropPlacements}:{};
+          merged.farmArtVersion=2;
+          merged.plotArtVersion=2;
           merged.farmUpgrades=[...new Set(saved.farmUpgrades||[])];
           merged.completedQuests=saved.questDate===todayKey()?[...new Set(saved.completedQuests||[])]:[];
           merged.questDate=todayKey();
@@ -1666,26 +1661,9 @@
         $("#replantAll").disabled=!state.beds.slice(0,state.unlockedBeds).some((bed,index)=>!bed&&state.bedPlans[index]);
         renderPlotLayoutEditor();
       }
-      const PREVIOUS_PLANTER_ART="assets/farm/planter-bed-terrain-v6-256x232.png";
-      const PLANTER_ART="assets/farm/planter-bed-complete-v7-256x232.webp";
-      function migratePlanterAssetSettings(){
-        let changed=false;
-        if(state.imageCenterY?.[PLANTER_ART]===undefined&&state.imageCenterY?.[PREVIOUS_PLANTER_ART]!==undefined){
-          state.imageCenterY={...(state.imageCenterY||{}),[PLANTER_ART]:state.imageCenterY[PREVIOUS_PLANTER_ART]};
-          changed=true;
-        }
-        const previousLayoutKey=`Farm|${PREVIOUS_PLANTER_ART}`;
-        const nextLayoutKey=`Farm|${PLANTER_ART}`;
-        if(state.assetTransforms?.[nextLayoutKey]===undefined&&state.assetTransforms?.[previousLayoutKey]!==undefined){
-          state.assetTransforms={...(state.assetTransforms||{}),[nextLayoutKey]:{...state.assetTransforms[previousLayoutKey]}};
-          changed=true;
-        }
-        if(changed)saveNow();
-      }
-      migratePlanterAssetSettings();
-      function planterArt(layer="planter-back"){
-        const front=layer==="planter-front";
-        return `<img class="bed-art ${layer} pixel-sprite auto-centered-sprite" data-center-src="${PLANTER_ART}" src="${PLANTER_ART}" alt="" draggable="false"${front?' aria-hidden="true"':""}>`;
+      const PLANTER_ART="assets/farm/soil-plot-topdown-v2-256x192.png";
+      function planterArt(){
+        return `<img class="plot-surface pixel-sprite" src="${PLANTER_ART}" alt="" draggable="false" aria-hidden="true">`;
       }
       function renderBed(index){
         const style=plotLayoutStyle(index),layoutTarget=plotLayoutTarget(index);
@@ -1706,7 +1684,7 @@
         const footer=status==="ready"
           ? `<span class="bed-ready-banner">Ready to harvest!</span>`
           : `<span class="bed-progress"><i style="width:${progress}%"></i><b>${fmt(Math.floor(bed.growth))} / ${fmt(crop.steps)}</b></span>`;
-        const content=`${planterArt()}<div class="crop-visual" style="${cropPlacementStyle(crop.id,stage)}">${cropStageMarkup(crop,stage)}</div>${planterArt("planter-front")}<span class="bed-plaque"><strong>${crop.name}</strong><span class="bed-state">${status==="ready"?"Ready":`${Math.floor(progress)}%`}</span></span>${footer}`;
+        const content=`${planterArt()}<div class="crop-visual" style="${cropPlacementStyle(crop.id,stage)}">${cropStageMarkup(crop,stage)}</div><span class="bed-plaque"><strong>${crop.name}</strong><span class="bed-state">${status==="ready"?"Ready":`${Math.floor(progress)}%`}</span></span>${footer}`;
         const scene=status==="ready"
           ? `<button class="bed-scene harvest-target" data-harvest-bed="${index}" aria-label="Harvest ${crop.name}">${content}</button>`
           : `<div class="bed-scene">${content}</div>`;
@@ -2111,7 +2089,6 @@
       }
       function imageCenterAssets(){
         const assets=[
-          {label:"Planter bed",src:PLANTER_ART},
           ...CROPS.flatMap(crop=>[
             {label:`${crop.name} · seed`,src:crop.seedImage},
             {label:`${crop.name} · planted`,src:crop.stages?.planted},
@@ -2160,8 +2137,9 @@
           const manual=clamp(Number(image.dataset.centerY??state.imageCenterY?.[src])||0,-40,40);
           image.style.setProperty("--sprite-center-y",`${manual}px`);
           const apply=offset=>{
-            image.style.setProperty("--sprite-auto-x",`${offset.x}%`);
-            image.style.setProperty("--sprite-auto-y",`${offset.y}%`);
+            const axis=image.dataset.centerAxis||"xy";
+            image.style.setProperty("--sprite-auto-x",`${axis==="y"?0:offset.x}%`);
+            image.style.setProperty("--sprite-auto-y",`${axis==="x"?0:offset.y}%`);
           };
           const calculate=()=>{
             if(imageCenterCache.has(src)){apply(imageCenterCache.get(src));return}
@@ -2213,7 +2191,6 @@
         };
         add("Header","Farmer avatar","assets/farm/ui-v3/avatar-96.png");
         [["farm","Farm"],["shop","Shop"],["quests","Quests"],["barn","Silo"],["upgrades","Upgrade"]].forEach(([id,label])=>add(`Navigation · ${id}`,`${label} navigation icon`,`assets/farm/ui-v3/nav-${id==="barn"?"silo":id==="upgrades"?"upgrade":id}-64.png`));
-        add("Farm","Planter bed",PLANTER_ART);
         add("Farm","Weather icon","assets/farm/ui-v3/weather-partly-sunny-64.png");
         CROPS.forEach(crop=>{
           add("Farm",`${crop.name} · planted`,crop.stages?.planted);
@@ -2237,7 +2214,7 @@
         dailyQuests().forEach(quest=>add("Quests",`${quest.npc} · portrait`,quest.image));
         FARM_UPGRADES.forEach(upgrade=>add("Upgrades",`${upgrade.name} · upgrade`,FARM_UPGRADE_ART[upgrade.id]));
         $$("img").forEach(image=>{
-          if(image.classList.contains("currency-icon")||image.closest(".asset-layout-card,.placement-card,.image-centre-card,.asset-preview-panel"))return;
+          if(image.classList.contains("currency-icon")||image.classList.contains("plot-surface")||image.closest(".asset-layout-card,.placement-card,.image-centre-card,.asset-preview-panel"))return;
           const src=image.getAttribute("src");
           if(src)add(assetContextFor(image),assetLabel(src),src);
         });
@@ -2253,7 +2230,7 @@
       }
       function prepareAssetLayouts(){
         $$("img").forEach(image=>{
-          if(image.classList.contains("currency-icon")||image.closest(".asset-layout-card,.placement-card,.image-centre-card,.asset-preview-panel"))return;
+          if(image.classList.contains("currency-icon")||image.classList.contains("plot-surface")||image.closest(".asset-layout-card,.placement-card,.image-centre-card,.asset-preview-panel"))return;
           const src=image.getAttribute("src");
           if(!src)return;
           const context=assetContextFor(image),key=assetKey(context,src),layout=assetLayoutValue(key);
@@ -2414,7 +2391,7 @@
         const seedStage=placementStage==="seed";
         const scene=seedStage
           ? `<div class="seed-placement-scene">${cropIconMarkup(crop,true,"editing",placementDraft)}</div>`
-          : `<div class="placement-bed-scene">${planterArt()}<div class="crop-visual editing" style="${cropPlacementStyle(crop.id,placementStage,placementDraft)}">${cropStageMarkup(crop,placementStage)}</div>${planterArt("planter-front")}</div>`;
+          : `<div class="placement-bed-scene">${planterArt()}<div class="crop-visual editing" style="${cropPlacementStyle(crop.id,placementStage,placementDraft)}">${cropStageMarkup(crop,placementStage)}</div></div>`;
         $("#placementPreview").innerHTML=`<span class="drag-hint">DRAG ${seedStage?"SEED":"CROP"}</span>${scene}`;
         const preview=$("#placementPreview");
         let drag=null;
