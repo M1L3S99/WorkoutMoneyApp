@@ -866,12 +866,42 @@
   </div>
 
   <div class="modal" id="plantModal" role="dialog" aria-modal="true" aria-labelledby="plantModalTitle">
-    <div class="modal-card">
-      <div class="modal-head"><h2 id="plantModalTitle">Choose seeds</h2><button class="close-btn" data-close-modal aria-label="Close seed picker">×</button></div>
-      <div class="plant-choice" id="plantChoices"></div>
-      <div class="modal-label">Fertiliser</div>
-      <div class="fert-options" id="fertChoices"></div>
-      <button class="btn wide" id="confirmPlant" style="margin-top:16px">Plant crop</button>
+    <div class="modal-card planting-modal-card">
+      <div class="modal-head planting-modal-head">
+        <div><span class="modal-kicker">Planting</span><h2 id="plantModalTitle">Choose what to plant</h2><small id="plantTargetSummary">One empty plot</small></div>
+        <button class="close-btn" data-close-modal aria-label="Close planting picker">×</button>
+      </div>
+      <div class="planting-selection" aria-label="Current planting selection" aria-live="polite">
+        <div class="planting-selection-item" id="plantSelectionCrop"></div>
+        <span class="planting-selection-plus" aria-hidden="true">+</span>
+        <div class="planting-selection-item" id="plantSelectionFertiliser"></div>
+      </div>
+      <div class="plant-picker-tabs" role="tablist" aria-label="Planting options">
+        <button class="active" id="plantSeedsTab" type="button" role="tab" data-plant-picker-tab="seeds" aria-selected="true" aria-controls="plantSeedsPanel">Seeds <span id="plantSeedCount">0</span></button>
+        <button id="plantFertiliserTab" type="button" role="tab" data-plant-picker-tab="fertiliser" aria-selected="false" aria-controls="plantFertiliserPanel">Fertiliser <span id="plantFertiliserCount">0</span></button>
+      </div>
+      <div class="plant-picker-body">
+        <section class="plant-picker-panel" id="plantSeedsPanel" role="tabpanel" aria-labelledby="plantSeedsTab">
+          <div class="plant-picker-tools">
+            <label class="plant-search" for="plantSeedSearch"><span aria-hidden="true">⌕</span><span class="visually-hidden">Search seeds</span><input id="plantSeedSearch" type="search" placeholder="Search seeds" autocomplete="off"></label>
+            <div class="plant-filter-row" id="plantSeedFilters" aria-label="Seed availability"></div>
+            <span class="plant-result-count" id="plantSeedResultCount" aria-live="polite">0 seeds</span>
+          </div>
+          <div class="plant-choice plant-picker-results" id="plantChoices"></div>
+        </section>
+        <section class="plant-picker-panel" id="plantFertiliserPanel" role="tabpanel" aria-labelledby="plantFertiliserTab" hidden>
+          <div class="plant-picker-tools">
+            <label class="plant-search" for="plantFertiliserSearch"><span aria-hidden="true">⌕</span><span class="visually-hidden">Search fertilisers</span><input id="plantFertiliserSearch" type="search" placeholder="Search fertilisers" autocomplete="off"></label>
+            <div class="plant-filter-row" id="plantFertiliserFilters" aria-label="Fertiliser family"></div>
+            <span class="plant-result-count" id="plantFertiliserResultCount" aria-live="polite">0 fertilisers</span>
+          </div>
+          <div class="fert-options plant-picker-results" id="fertChoices"></div>
+        </section>
+      </div>
+      <div class="planting-footer">
+        <span id="plantingFooterSummary">Ready to plant</span>
+        <button class="btn" id="confirmPlant">Plant crop</button>
+      </div>
     </div>
   </div>
 
@@ -1136,6 +1166,12 @@
       let plantingBed=0;
       let selectedCrop=CROPS[0].id;
       let selectedFertiliser=null;
+      let activePlantPickerTab="seeds";
+      let plantSeedQuery="";
+      let plantSeedScope="owned";
+      let plantFertiliserQuery="";
+      let plantFertiliserFamily="all";
+      let plantModalReturnFocus=null;
       let selectedItem=null;
       let selectedFromCatalogue=false;
       let selectedSeedCrop=null;
@@ -1563,29 +1599,113 @@
         if(!hasCropRequirement(requirement))return toast(`Requires ${cropRequirementText(requirement)}`);
         spendGold(cost);consumeCropRequirement(requirement);state.unlockedBeds++;save();renderAll();toast(`Bed ${index+1} unlocked`);
       }
+      function plantableCrops(){
+        const level=levelInfo().level;
+        return state.adminMode?CROPS:CROPS.filter(crop=>crop.level<=level);
+      }
+      function plantSearchMatches(values,query){
+        const terms=String(query||"").trim().toLowerCase().split(/\s+/).filter(Boolean);
+        if(!terms.length)return true;
+        const haystack=values.filter(Boolean).join(" ").toLowerCase();
+        return terms.every(term=>haystack.includes(term));
+      }
+      function plantFilterLabel(value){
+        return String(value||"other").replace(/[-_]+/g," ").replace(/\b\w/g,letter=>letter.toUpperCase());
+      }
+      function plantTargetCount(){
+        return plantingBed==="all"?state.beds.slice(0,state.unlockedBeds).filter(bed=>!bed).length:1;
+      }
+      function plantableCount(crop,fertiliser){
+        const targets=plantTargetCount();
+        if(state.adminMode)return targets;
+        const seedCount=state.seeds[crop?.id]||0;
+        const fertiliserCount=fertiliser?state.fertilisers[fertiliser.id]||0:targets;
+        return Math.max(0,Math.min(targets,seedCount,fertiliserCount));
+      }
       function openPlantModal(index){
         plantingBed=index;
-        const level=levelInfo().level;
-        if(!state.adminMode&&cropById(selectedCrop).level>level)selectedCrop=CROPS.find(c=>c.level<=level)?.id||CROPS[0].id;
+        activePlantPickerTab="seeds";
+        plantSeedQuery="";
+        plantFertiliserQuery="";
+        plantFertiliserFamily="all";
         selectedFertiliser=null;
+        const crops=plantableCrops();
+        const ownedCrops=state.adminMode?crops:crops.filter(crop=>(state.seeds[crop.id]||0)>0);
+        plantSeedScope=ownedCrops.length?"owned":"all";
+        if(!ownedCrops.some(crop=>crop.id===selectedCrop))selectedCrop=(ownedCrops[0]||crops[0]||CROPS[0]).id;
+        plantModalReturnFocus=document.activeElement;
         renderPlantModal();
+        document.body.classList.add("modal-open");
         $("#plantModal").classList.add("show");
+        requestAnimationFrame(()=>$("#plantSeedsTab")?.focus({preventScroll:true}));
+      }
+      function setPlantPickerTab(tab,focusTab=false){
+        activePlantPickerTab=tab==="fertiliser"?"fertiliser":"seeds";
+        renderPlantModal();
+        if(focusTab)requestAnimationFrame(()=>$(activePlantPickerTab==="seeds"?"#plantSeedsTab":"#plantFertiliserTab")?.focus({preventScroll:true}));
       }
       function renderPlantModal(){
-        const level=levelInfo().level;
-        const crops=state.adminMode?CROPS:CROPS.filter(crop=>crop.level<=level);
-        $("#plantChoices").innerHTML=crops.map(crop=>{
-          const seeds=state.seeds[crop.id]||0;
-          return `<button class="plant-option ${selectedCrop===crop.id?"selected":""}" data-crop-choice="${crop.id}" ${!state.adminMode&&seeds<1?"disabled":""}><i>${cropIconMarkup(crop,true)}</i><b>${crop.name} seeds</b><small>${state.adminMode?"∞ owned":`×${seeds} owned`}</small></button>`;
-        }).join("");
-        const noFert=`<button class="fert-option ${selectedFertiliser===null?"selected":""}" data-fert-choice=""><span><b>No fertiliser</b><small>Base Iridium chance: 1%</small></span><strong>Free</strong></button>`;
+        const crops=plantableCrops();
+        const ownedCrops=state.adminMode?crops:crops.filter(crop=>(state.seeds[crop.id]||0)>0);
+        if(plantSeedScope==="owned"&&!ownedCrops.length)plantSeedScope="all";
+        const seedPool=plantSeedScope==="owned"?ownedCrops:crops;
+        const filteredCrops=seedPool.filter(crop=>plantSearchMatches([crop.name,crop.id,"seeds"],plantSeedQuery));
         const availableFertilisers=state.adminMode?FERTILISERS:FERTILISERS.filter(fert=>(state.fertilisers[fert.id]||0)>0);
-        $("#fertChoices").innerHTML=noFert+(availableFertilisers.length?availableFertilisers.map(fert=>`<button class="fert-option quality-${fert.tier} ${selectedFertiliser===fert.id?"selected":""}" data-fert-choice="${fert.id}"><span><b class="fert-title">${spriteMarkup(fert)}<span>${fert.name}</span></b><small>${fert.effectText}</small></span><strong>${state.adminMode?"∞":`×${state.fertilisers[fert.id]||0}`}</strong></button>`).join(""):`<div class="empty-state">No fertiliser in your inventory.</div>`);
-        $$("[data-crop-choice]").forEach(button=>button.onclick=()=>{selectedCrop=button.dataset.cropChoice;renderPlantModal()});
-        $$("[data-fert-choice]").forEach(button=>button.onclick=()=>{selectedFertiliser=button.dataset.fertChoice||null;renderPlantModal()});
-        $("#confirmPlant").disabled=!state.adminMode&&(state.seeds[selectedCrop]||0)<1;
-        const crop=cropById(selectedCrop);
-        $("#confirmPlant").textContent=crop?`Plant ${crop.name}`:"Plant";
+        const fertiliserFamilies=[...new Set(availableFertilisers.map(fert=>fert.family).filter(Boolean))];
+        if(plantFertiliserFamily!=="all"&&!fertiliserFamilies.includes(plantFertiliserFamily))plantFertiliserFamily="all";
+        const filteredFertilisers=availableFertilisers.filter(fert=>(plantFertiliserFamily==="all"||fert.family===plantFertiliserFamily)&&plantSearchMatches([fert.name,fert.id,fert.family,fert.tier,fert.effectText],plantFertiliserQuery));
+        const showNoFertiliser=plantFertiliserFamily==="all"&&plantSearchMatches(["no fertiliser","none","free","base"],plantFertiliserQuery);
+        const crop=cropById(selectedCrop)||crops[0]||CROPS[0];
+        if(crop.id!==selectedCrop)selectedCrop=crop.id;
+        let fertiliser=selectedFertiliser?FERTILISERS.find(entry=>entry.id===selectedFertiliser)||null:null;
+        if(selectedFertiliser&&!fertiliser)selectedFertiliser=null;
+        const targetCount=plantTargetCount();
+        const possibleCount=plantableCount(crop,fertiliser);
+
+        $$("[data-plant-picker-tab]").forEach(button=>{
+          const active=button.dataset.plantPickerTab===activePlantPickerTab;
+          button.classList.toggle("active",active);
+          button.setAttribute("aria-selected",String(active));
+          button.tabIndex=active?0:-1;
+        });
+        $("#plantSeedsPanel").hidden=activePlantPickerTab!=="seeds";
+        $("#plantFertiliserPanel").hidden=activePlantPickerTab!=="fertiliser";
+        $("#plantSeedSearch").value=plantSeedQuery;
+        $("#plantFertiliserSearch").value=plantFertiliserQuery;
+        $("#plantSeedCount").textContent=String(ownedCrops.length);
+        $("#plantFertiliserCount").textContent=String(availableFertilisers.length);
+        $("#plantSeedFilters").innerHTML=[
+          ["owned",`Owned (${ownedCrops.length})`],
+          ["all",`All unlocked (${crops.length})`]
+        ].map(([scope,label])=>`<button type="button" data-seed-scope="${scope}" class="${plantSeedScope===scope?"active":""}" aria-pressed="${plantSeedScope===scope}">${label}</button>`).join("");
+        $("#plantFertiliserFilters").innerHTML=[["all","All"],...fertiliserFamilies.map(family=>[family,plantFilterLabel(family)])].map(([family,label])=>`<button type="button" data-fert-family="${family}" class="${plantFertiliserFamily===family?"active":""}" aria-pressed="${plantFertiliserFamily===family}">${label}</button>`).join("");
+        $("#plantSeedResultCount").textContent=`${filteredCrops.length} of ${seedPool.length} seeds`;
+        $("#plantFertiliserResultCount").textContent=`${filteredFertilisers.length+(showNoFertiliser?1:0)} of ${availableFertilisers.length+1} choices`;
+
+        if(activePlantPickerTab==="seeds"){
+          $("#plantChoices").innerHTML=filteredCrops.length?filteredCrops.map(entry=>{
+            const seeds=state.seeds[entry.id]||0;
+            const owned=state.adminMode?"Unlimited":`${seeds} owned`;
+            return `<button class="plant-option ${selectedCrop===entry.id?"selected":""}" type="button" data-crop-choice="${entry.id}" aria-pressed="${selectedCrop===entry.id}" aria-label="${entry.name} seeds, ${owned}" ${!state.adminMode&&seeds<1?"disabled":""}><span class="plant-option-check" aria-hidden="true">✓</span><i>${cropIconMarkup(entry,true)}</i><b>${entry.name}</b><small>${state.adminMode?"∞ owned":`×${seeds} owned`}</small></button>`;
+          }).join(""):`<div class="plant-picker-empty"><b>No matching seeds</b><small>Try another search or show all unlocked seeds.</small></div>`;
+          $("#fertChoices").innerHTML="";
+        }else{
+          const noFertiliser=showNoFertiliser?`<button class="fert-option no-fertiliser ${selectedFertiliser===null?"selected":""}" type="button" data-fert-choice="" aria-pressed="${selectedFertiliser===null}"><span class="fert-none-icon" aria-hidden="true">—</span><span><b>No fertiliser</b><small>Base Iridium chance: 1%</small></span><strong>Free</strong></button>`:"";
+          const fertiliserOptions=filteredFertilisers.map(entry=>`<button class="fert-option quality-${entry.tier} ${selectedFertiliser===entry.id?"selected":""}" type="button" data-fert-choice="${entry.id}" aria-pressed="${selectedFertiliser===entry.id}"><span><b class="fert-title">${spriteMarkup(entry)}<span>${entry.name}</span></b><small>${plantFilterLabel(entry.tier)} · ${entry.effectText}</small></span><strong>${state.adminMode?"∞":`×${state.fertilisers[entry.id]||0}`}</strong></button>`).join("");
+          $("#fertChoices").innerHTML=noFertiliser+fertiliserOptions||`<div class="plant-picker-empty"><b>No matching fertilisers</b><small>Try another search or family.</small></div>`;
+          $("#plantChoices").innerHTML="";
+        }
+
+        const cropOwned=state.adminMode?"Unlimited seeds":`${state.seeds[crop.id]||0} seeds owned`;
+        $("#plantSelectionCrop").innerHTML=`<span class="planting-selection-art">${cropIconMarkup(crop,true)}</span><span><small>Seed</small><b>${crop.name}</b><em>${cropOwned}</em></span>`;
+        $("#plantSelectionFertiliser").innerHTML=fertiliser
+          ? `<span class="planting-selection-art">${spriteMarkup(fertiliser)}</span><span><small>Fertiliser</small><b>${fertiliser.name}</b><em>${plantFilterLabel(fertiliser.tier)}</em></span>`
+          : `<span class="planting-selection-art planting-selection-none" aria-hidden="true">—</span><span><small>Fertiliser</small><b>None</b><em>Optional</em></span>`;
+        $("#plantTargetSummary").textContent=plantingBed==="all"?`${targetCount} empty plot${targetCount===1?"":"s"}`:"One empty plot";
+        $("#plantingFooterSummary").textContent=plantingBed==="all"?`Can plant ${possibleCount} of ${targetCount}`:`${fertiliser?fertiliser.name:"No fertiliser"}`;
+        $("#confirmPlant").disabled=!crop||possibleCount<1;
+        $("#confirmPlant").textContent=plantingBed==="all"?`Plant ${possibleCount} ${crop.name}`:`Plant ${crop.name}`;
+        requestAnimationFrame(applyImageCentering);
       }
       function plantCrop(){
         const crop=cropById(selectedCrop);
@@ -1602,15 +1722,17 @@
       }
       function plantInto(index,cropId,fertiliserId){
         const crop=cropById(cropId);
-        if(!crop||index>=state.unlockedBeds||state.beds[index])return false;
+        const fertiliser=fertiliserId?FERTILISERS.find(entry=>entry.id===fertiliserId):null;
+        if(!Number.isInteger(index)||index<0||!crop||index>=state.unlockedBeds||state.beds[index]||(fertiliserId&&!fertiliser))return false;
+        if(!state.adminMode&&crop.level>levelInfo().level)return false;
         if(!state.adminMode&&(state.seeds[crop.id]||0)<1)return false;
         if(fertiliserId&&!state.adminMode&&(state.fertilisers[fertiliserId]||0)<1)return false;
         if(!state.adminMode){
           state.seeds[crop.id]--;
           if(fertiliserId)state.fertilisers[fertiliserId]--;
         }
-        state.beds[index]={cropId:crop.id,growth:0,fertiliserId};
-        state.bedPlans[index]={cropId:crop.id,fertiliserId};
+        state.beds[index]={cropId:crop.id,growth:0,fertiliserId:fertiliser?.id||null};
+        state.bedPlans[index]={cropId:crop.id,fertiliserId:fertiliser?.id||null};
         return true;
       }
       function openPlantAll(){
@@ -2354,7 +2476,13 @@
         if(screen==="upgrades")renderAssetLayoutEditor();
         requestAnimationFrame(()=>{applyImageCentering();prepareAssetLayouts()});
       }
-      function closeModals(){$$(".modal").forEach(modal=>modal.classList.remove("show"))}
+      function closeModals(){
+        $$(".modal").forEach(modal=>modal.classList.remove("show"));
+        document.body.classList.remove("modal-open");
+        const returnFocus=plantModalReturnFocus;
+        plantModalReturnFocus=null;
+        if(returnFocus)requestAnimationFrame(()=>{if(returnFocus.isConnected)returnFocus.focus({preventScroll:true})});
+      }
       function toast(message){
         const el=$("#toast");el.textContent=message;el.classList.add("show");
         clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove("show"),2300);
@@ -2374,6 +2502,55 @@
 
       $$(".nav-btn").forEach(button=>button.onclick=()=>navigate(button.dataset.screen));
       $("#profileButton").onclick=openProfilePicker;
+      const plantPickerTabs=$$("[data-plant-picker-tab]");
+      plantPickerTabs.forEach((button,index)=>{
+        button.onclick=()=>setPlantPickerTab(button.dataset.plantPickerTab);
+        button.onkeydown=event=>{
+          if(!["ArrowLeft","ArrowRight","Home","End"].includes(event.key))return;
+          event.preventDefault();
+          const targetIndex=event.key==="Home"?0:event.key==="End"?plantPickerTabs.length-1:(index+(event.key==="ArrowRight"?1:-1)+plantPickerTabs.length)%plantPickerTabs.length;
+          setPlantPickerTab(plantPickerTabs[targetIndex].dataset.plantPickerTab,true);
+        };
+      });
+      $("#plantSeedSearch").oninput=event=>{plantSeedQuery=event.target.value;renderPlantModal()};
+      $("#plantFertiliserSearch").oninput=event=>{plantFertiliserQuery=event.target.value;renderPlantModal()};
+      $("#plantSeedFilters").onclick=event=>{
+        const button=event.target.closest("[data-seed-scope]");
+        if(!button)return;
+        plantSeedScope=button.dataset.seedScope==="all"?"all":"owned";
+        renderPlantModal();
+        requestAnimationFrame(()=>$$("[data-seed-scope]").find(entry=>entry.dataset.seedScope===plantSeedScope)?.focus({preventScroll:true}));
+      };
+      $("#plantFertiliserFilters").onclick=event=>{
+        const button=event.target.closest("[data-fert-family]");
+        if(!button)return;
+        plantFertiliserFamily=button.dataset.fertFamily||"all";
+        renderPlantModal();
+        requestAnimationFrame(()=>$$("[data-fert-family]").find(entry=>entry.dataset.fertFamily===plantFertiliserFamily)?.focus({preventScroll:true}));
+      };
+      $("#plantChoices").onclick=event=>{
+        const button=event.target.closest("[data-crop-choice]");
+        if(!button||button.disabled)return;
+        selectedCrop=button.dataset.cropChoice;
+        renderPlantModal();
+        requestAnimationFrame(()=>$$("[data-crop-choice]").find(entry=>entry.dataset.cropChoice===selectedCrop)?.focus({preventScroll:true}));
+      };
+      $("#fertChoices").onclick=event=>{
+        const button=event.target.closest("[data-fert-choice]");
+        if(!button||button.disabled)return;
+        selectedFertiliser=button.dataset.fertChoice||null;
+        renderPlantModal();
+        requestAnimationFrame(()=>$$("[data-fert-choice]").find(entry=>(entry.dataset.fertChoice||null)===selectedFertiliser)?.focus({preventScroll:true}));
+      };
+      $("#plantModal").onkeydown=event=>{
+        if(event.key==="Escape"){event.preventDefault();closeModals();return}
+        if(event.key!=="Tab")return;
+        const focusable=$$("#plantModal button:not([disabled]),#plantModal input:not([disabled])").filter(element=>element.offsetParent!==null&&!element.closest("[hidden]"));
+        if(!focusable.length)return;
+        const first=focusable[0],last=focusable[focusable.length-1];
+        if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
+        else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
+      };
       $$("#shopTabs .tab").forEach(tab=>tab.onclick=()=>{activeShopTab=tab.dataset.shopTab;renderShop()});
       $$("#gearViewTabs .tab").forEach(tab=>tab.onclick=()=>{activeGearView=tab.dataset.gearView;renderShop()});
       $$("#fertTierTabs .tab").forEach(tab=>tab.onclick=()=>{selectedFertiliserTier=tab.dataset.fertTier;renderShop()});
