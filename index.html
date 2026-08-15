@@ -433,14 +433,6 @@
     .crop-inline{display:inline-flex;align-items:center;gap:5px}.crop-inline .pixel-sprite{width:22px;height:22px}
     .unlock-requirement{display:block;margin-top:4px;color:var(--muted);font-size:7px;line-height:1.25}
     .empty-state{padding:30px 20px;border:1px dashed #c5bfad;border-radius:19px;color:var(--muted);text-align:center;font-size:11px}
-    .upgrade-card{padding:17px;margin-bottom:12px}
-    .upgrade-top{display:flex;align-items:start;justify-content:space-between;gap:12px}
-    .upgrade-icon{display:grid;place-items:center;width:48px;height:48px;flex:0 0 48px;border-radius:15px;background:#e5eddc;font-size:26px}
-    .upgrade-copy{flex:1}
-    .upgrade-copy h3{margin:0;font-family:"Fraunces",serif;color:var(--forest);font-size:17px}
-    .upgrade-copy p{margin:5px 0 0;color:var(--muted);font-size:10px;line-height:1.45}
-    .upgrade-level{color:var(--gold-dark);font-size:9px;font-weight:800}
-    .upgrade-card .btn{margin-top:14px}
     .settings-card{padding:16px;margin-top:18px}
     .placement-card{padding:16px;margin-top:18px}
     .placement-scope{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px}
@@ -503,7 +495,7 @@
     .catalogue-row em{font-style:normal;color:var(--gold-dark);font-size:8px;font-weight:900}
     .bottom-nav{
       position:fixed;z-index:80;left:50%;bottom:0;transform:translateX(-50%);
-      display:grid;grid-template-columns:repeat(5,1fr);gap:3px;width:min(100%,480px);
+      display:grid;grid-template-columns:repeat(4,1fr);gap:3px;width:min(100%,480px);
       min-height:calc(64px + env(safe-area-inset-bottom));padding:6px 8px calc(6px + env(safe-area-inset-bottom));
       border:1px solid rgba(255,255,255,.15);border-bottom:0;border-radius:22px 22px 0 0;background:rgba(43,69,48,.98);
       box-shadow:0 12px 34px rgba(32,45,32,.3);backdrop-filter:blur(14px)
@@ -599,7 +591,7 @@
       #farm .step-copy .mini-progress i,#farm .bed-progress i{transition:none}
     }
   </style>
-  <link rel="stylesheet" href="assets/farm/ui-v3/theme-v3.css?v=49">
+  <link rel="stylesheet" href="assets/farm/ui-v3/theme-v3.css?v=51">
 </head>
 <body>
   <div class="app farm-view">
@@ -611,7 +603,7 @@
         <span class="account-copy"><b id="accountName">Farmer</b><small>LV <span id="accountLevel">1</span></small><span class="account-level-track" aria-hidden="true"><i id="accountLevelProgress"></i></span></span>
       </div>
       <div class="wallet" role="group" aria-label="Steps and gold">
-        <button class="wallet-pill wallet-action" id="stepsWalletAction" type="button" aria-label="Go to the Farm to earn steps" aria-describedby="stepsBalanceExact">
+        <button class="wallet-pill wallet-action" id="stepsWalletAction" type="button" aria-label="View the Steps bundle preview in the Shop" aria-describedby="stepsBalanceExact">
           <span class="wallet-accessible" id="stepsBalanceExact">0 steps</span>
           <span class="wallet-value" aria-hidden="true">
             <b id="stepsBalance">0</b>
@@ -622,7 +614,7 @@
           <small class="wallet-label">Steps</small>
         </button>
         <span class="wallet-divider" aria-hidden="true"></span>
-        <button class="wallet-pill wallet-action" id="goldWalletAction" type="button" aria-label="Go to the Silo to sell crops for gold" aria-describedby="goldBalanceExact">
+        <button class="wallet-pill wallet-action" id="goldWalletAction" type="button" aria-label="View the Gold bundle preview in the Shop" aria-describedby="goldBalanceExact">
           <span class="wallet-accessible" id="goldBalanceExact">120 gold</span>
           <span class="wallet-value" aria-hidden="true">
             <b id="goldBalance">120</b>
@@ -696,6 +688,25 @@
             <button class="tab" type="button" data-fert-tier="iridium">Iridium</button>
           </div>
           <div class="shop-grid shop-product-list" id="shopGrid" role="tabpanel" aria-labelledby="shopSeedsTab"></div>
+          <section class="currency-store-preview" id="currencyStore" aria-labelledby="currencyStoreTitle">
+            <div class="currency-store-heading">
+              <div><span class="screen-kicker">Optional extras</span><h2 id="currencyStoreTitle">Extra Steps &amp; Gold</h2></div>
+              <span class="currency-preview-badge">Preview</span>
+            </div>
+            <p id="currencyStoreStatus" role="status" aria-live="polite">Purchases aren’t available yet. Walk to earn Steps and sell crops to earn Gold.</p>
+            <div class="currency-preview-grid">
+              <article class="currency-preview-card steps-preview" id="stepsBundlePreview" tabindex="-1">
+                <img src="assets/farm/ui-v3/step-currency-v2-96.png" alt="">
+                <div><b>Step bundles</b><small>Spendable Steps only — they do not count as walking, your daily goal, or crop growth.</small></div>
+                <button type="button" id="stepsBundlePreviewButton" aria-describedby="currencyStoreStatus" disabled>Coming soon</button>
+              </article>
+              <article class="currency-preview-card gold-preview" id="goldBundlePreview" tabindex="-1">
+                <img src="assets/farm/ui-v3/gold-currency-v2-96.png" alt="">
+                <div><b>Gold bundles</b><small>Gold is also earned by selling harvested crops.</small></div>
+                <button type="button" id="goldBundlePreviewButton" aria-describedby="currencyStoreStatus" disabled>Coming soon</button>
+              </article>
+            </div>
+          </section>
         </div>
       </section>
 
@@ -736,18 +747,11 @@
         </div>
       </section>
 
-      <section class="screen" id="upgrades">
+      <section class="screen" id="settings">
         <div class="screen-title-row">
-          <div><span class="screen-kicker">Grow your homestead</span><h1>Upgrades</h1></div>
-          <button class="round-settings-button" id="toggleUpgradeSettings" type="button" aria-label="Layout and app settings" aria-expanded="false" aria-controls="upgradeSettings">⚙</button>
+          <div><span class="screen-kicker">Your farm and app</span><h1>Settings</h1></div>
         </div>
-        <div class="upgrade-progress-card">
-          <span>Farm level <b id="upgradeLevel">1</b></span>
-          <span><b id="upgradeXp">0</b> / <span id="upgradeXpNext">100</span> XP</span>
-          <i><span id="upgradeXpBar"></span></i>
-        </div>
-        <div id="upgradeList"></div>
-        <div id="upgradeSettings" hidden>
+        <div id="settingsContent">
         <div class="settings-card card asset-layout-card">
           <div class="section-head"><h2>Asset studio</h2><small>Move and resize each screen asset</small></div>
           <label class="image-centre-select">Asset<select id="layoutAssetSelect"></select></label>
@@ -845,7 +849,6 @@
       <button class="nav-btn" data-screen="shop"><i><img src="assets/farm/ui-v3/nav-shop-64.png" alt="" draggable="false"></i><span>Shop</span></button>
       <button class="nav-btn" data-screen="quests"><i><img src="assets/farm/ui-v3/nav-quests-64.png" alt="" draggable="false"></i><span>Quests</span></button>
       <button class="nav-btn" data-screen="barn"><i><img src="assets/farm/ui-v3/nav-silo-64.png" alt="" draggable="false"></i><span>Silo</span></button>
-      <button class="nav-btn" data-screen="upgrades"><i><img src="assets/farm/ui-v3/nav-upgrade-64.png" alt="" draggable="false"></i><span>Upgrade</span></button>
     </nav>
   </div>
 
@@ -854,6 +857,7 @@
       <div class="modal-head"><div><span class="modal-kicker">Your farmer</span><h2 id="profileModalTitle">Choose a character</h2></div><button class="close-btn" data-close-modal aria-label="Close character picker">×</button></div>
       <p class="profile-intro">Pick the portrait shown on your farm. You can change it whenever you like.</p>
       <div class="profile-choices" id="profileChoices"></div>
+      <button class="btn wide secondary" id="openSettings" type="button" style="margin-top:12px">Settings</button>
     </div>
   </div>
 
@@ -894,7 +898,6 @@
       <div class="plant-picker-body">
         <section class="plant-picker-panel" id="plantSeedsPanel" role="tabpanel" aria-labelledby="plantSeedsTab">
           <div class="plant-picker-tools">
-            <label class="plant-search" for="plantSeedSearch"><span aria-hidden="true">⌕</span><span class="visually-hidden">Search seeds</span><input id="plantSeedSearch" type="search" placeholder="Search seeds" autocomplete="off"></label>
             <div class="plant-filter-row" id="plantSeedFilters" aria-label="Seed availability"></div>
             <span class="plant-result-count" id="plantSeedResultCount" aria-live="polite">0 seeds</span>
           </div>
@@ -902,7 +905,6 @@
         </section>
         <section class="plant-picker-panel" id="plantFertiliserPanel" role="tabpanel" aria-labelledby="plantFertiliserTab" hidden>
           <div class="plant-picker-tools">
-            <label class="plant-search" for="plantFertiliserSearch"><span aria-hidden="true">⌕</span><span class="visually-hidden">Search fertilisers</span><input id="plantFertiliserSearch" type="search" placeholder="Search fertilisers" autocomplete="off"></label>
             <div class="plant-filter-row" id="plantFertiliserFilters" aria-label="Fertiliser family"></div>
             <span class="plant-result-count" id="plantFertiliserResultCount" aria-live="polite">0 fertilisers</span>
           </div>
@@ -1083,29 +1085,17 @@
         return mapped&&String(mapped).startsWith("double-")?null:mapped;
       }
 
-      const FARM_UPGRADES = [
-        {id:"garden-paths",level:2,icon:"🪨",name:"Garden Paths",gold:100,effect:{growth:5},description:"+5% crop growth"},
-        {id:"rain-barrel",level:3,icon:"🛢️",name:"Rain Barrel",gold:180,effect:{growth:4,quality:2},description:"+4% crop growth · +2% quality"},
-        {id:"seed-ledger",level:4,icon:"📒",name:"Seed Ledger",gold:250,effect:{sale:5},description:"+5% crop sale value"},
-        {id:"compost-bin",level:5,icon:"🪱",name:"Compost Bin",gold:350,effect:{quality:5},description:"+5% crop quality chance"},
-        {id:"deep-beds",level:7,icon:"🌾",name:"Deep Beds",gold:700,requirement:{cropId:"carrot",quality:"bronze",amount:1},effect:{growth:8},description:"+8% crop growth"},
-        {id:"glass-cloche",level:14,icon:"🔔",name:"Glass Cloche",gold:1200,requirement:{cropId:"strawberry",quality:"silver",amount:1},effect:{quality:6,iridium:.2},description:"+6% quality · +0.2% Iridium chance"},
-        {id:"market-cart",level:18,icon:"🛒",name:"Market Cart",gold:2000,requirement:{cropId:"tomato",quality:"silver",amount:1},effect:{sale:10},description:"+10% crop sale value"},
-        {id:"pollinator-garden",level:20,icon:"🐝",name:"Pollinator Garden",gold:3500,requirement:{cropId:"corn",quality:"gold",amount:1},effect:{quality:8,iridium:.5},description:"+8% quality · +0.5% Iridium chance"},
-        {id:"moon-irrigation",level:28,icon:"🌙",name:"Moon Irrigation",gold:6000,requirement:{cropId:"pumpkin",quality:"gold",amount:1},effect:{growth:15},description:"+15% crop growth"},
-        {id:"ancient-greenhouse",level:42,icon:"🏡",name:"Ancient Greenhouse",gold:12000,requirement:{cropId:"ancient-root",quality:"iridium",amount:1},effect:{growth:15,sale:10},description:"+15% crop growth · +10% crop sale value"}
-      ];
-      const FARM_UPGRADE_ART = {
-        "garden-paths":"assets/farm/upgrades-v3/garden-paths-192.png",
-        "rain-barrel":"assets/farm/upgrades-v3/rain-barrel-192.png",
-        "seed-ledger":"assets/farm/upgrades-v3/seed-ledger-192.png",
-        "compost-bin":"assets/farm/upgrades-v3/compost-bin-topdown-v2-192.png",
-        "deep-beds":"assets/farm/upgrades-v3/deep-beds-topdown-v2-192.png",
-        "glass-cloche":"assets/farm/upgrades-v3/glass-cloche-192.png",
-        "market-cart":"assets/farm/upgrades-v3/market-cart-192.png",
-        "pollinator-garden":"assets/farm/upgrades-v3/pollinator-garden-192.png",
-        "moon-irrigation":"assets/farm/upgrades-v3/moon-irrigation-192.png",
-        "ancient-greenhouse":"assets/farm/upgrades-v3/ancient-greenhouse-192.png"
+      const RETIRED_FARM_UPGRADE_EFFECTS = {
+        "garden-paths":{growth:5},
+        "rain-barrel":{growth:4,quality:2},
+        "seed-ledger":{sale:5},
+        "compost-bin":{quality:5},
+        "deep-beds":{growth:8},
+        "glass-cloche":{quality:6,iridium:.2},
+        "market-cart":{sale:10},
+        "pollinator-garden":{quality:8,iridium:.5},
+        "moon-irrigation":{growth:15},
+        "ancient-greenhouse":{growth:15,sale:10}
       };
       const CHARACTER_PROFILES = [
         {id:"farmer",name:"Farmer",image:"assets/farm/ui-v3/avatar-96.png"},
@@ -1167,7 +1157,7 @@
           merged.plotArtVersion=2;
           merged.cropArtVersion=3;
           merged.seedArtVersion=1;
-          merged.farmUpgrades=[...new Set(saved.farmUpgrades||[])];
+          merged.farmUpgrades=[...new Set(Array.isArray(saved.farmUpgrades)?saved.farmUpgrades:[])];
           merged.completedQuests=saved.questDate===todayKey()?[...new Set(saved.completedQuests||[])]:[];
           merged.questDate=todayKey();
           if(saved.shopLayoutVersion!==7){merged.seedShopSize=40;merged.shopLayoutVersion=7}
@@ -1180,16 +1170,13 @@
       let activeGearView="daily";
       let activeQuestPeriod="daily";
       let activeSiloTab="gear";
-      let upgradeSettingsOpen=false;
       let selectedFertiliserTier="bronze";
       let renderedStockDate=todayKey();
       let plantingBed=0;
       let selectedCrop=CROPS[0].id;
       let selectedFertiliser=null;
       let activePlantPickerTab="seeds";
-      let plantSeedQuery="";
       let plantSeedScope="owned";
-      let plantFertiliserQuery="";
       let plantFertiliserFamily="all";
       let plantModalReturnFocus=null;
       let pendingUnlockBed=null;
@@ -1390,8 +1377,10 @@
         total.growth+=state.cropRateLevel*10;
         total.quality+=state.qualityLevel*2;
         total.sale+=state.saleLevel*4;
-        FARM_UPGRADES.filter(upgrade=>state.farmUpgrades.includes(upgrade.id)).forEach(upgrade=>{
-          Object.entries(upgrade.effect).forEach(([key,value])=>total[key]=(total[key]||0)+value);
+        (state.farmUpgrades||[]).forEach(id=>{
+          const effect=RETIRED_FARM_UPGRADE_EFFECTS[id];
+          if(!effect)return;
+          Object.entries(effect).forEach(([key,value])=>total[key]=(total[key]||0)+value);
         });
         return total;
       }
@@ -1406,6 +1395,7 @@
       function qualityOdds(fertiliserId){
         const gear=equippedEffects();
         const fert=FERTILISERS.find(f=>f.id===fertiliserId);
+        if(fert?.guaranteed)return {base:0,bronze:0,silver:0,gold:0,iridium:100};
         const boost=gear.quality+weatherBonus().quality+(fert?.quality||0);
         const iridiumExtra=gear.iridium+(fert?.iridium||0);
         const odds={
@@ -1419,6 +1409,19 @@
         const total=Object.values(odds).reduce((a,b)=>a+b,0);
         Object.keys(odds).forEach(key=>odds[key]=odds[key]/total*100);
         return odds;
+      }
+      function qualityChanceText(value){
+        const rounded=Math.round((Number(value)||0)*10)/10;
+        return `${Number.isInteger(rounded)?rounded:rounded.toFixed(1)}%`;
+      }
+      function qualityOddsMarkup(fertiliserId,variant=""){
+        const odds=qualityOdds(fertiliserId);
+        const entries=QUALITY_ORDER.map(quality=>{
+          const label=quality==="base"?"Base":QUALITY_LABELS[quality];
+          return {quality,label,value:qualityChanceText(odds[quality])};
+        });
+        const summary=entries.map(entry=>`${entry.label} ${entry.value}`).join(", ");
+        return `<div class="fertiliser-odds ${variant}" role="group" aria-label="Post-use harvest quality chances: ${summary}"><span class="fertiliser-odds-title">Harvest chances</span><span class="fertiliser-odds-grid">${entries.map(entry=>`<span class="fertiliser-odd quality-${entry.quality}"><small>${entry.label}</small><b>${entry.value}</b></span>`).join("")}</span></div>`;
       }
       function rollQuality(fertiliserId){
         const fertiliser=FERTILISERS.find(entry=>entry.id===fertiliserId);
@@ -1496,6 +1499,11 @@
         renderProfileChoices();
         $("#profileModal").classList.add("show");
         requestAnimationFrame(()=>$("#profileChoices .selected")?.focus({preventScroll:true}));
+      }
+      function openSettings(){
+        closeModals();
+        navigate("settings");
+        renderSettings();
       }
       function selectCharacterProfile(id){
         const profile=characterProfile(id);
@@ -1594,7 +1602,7 @@
         $("#plantAll").disabled=!state.beds.slice(0,state.unlockedBeds).some(bed=>!bed);
         $("#replantAll").disabled=!state.beds.slice(0,state.unlockedBeds).some((bed,index)=>!bed&&state.bedPlans[index]);
       }
-      const PLANTER_ART="assets/farm/soil-plot-topdown-v2-256x192.png";
+      const PLANTER_ART="assets/farm/ui-v3/stone-soil-plot-v1.webp";
       function planterArt(){
         return `<img class="plot-surface pixel-sprite" src="${PLANTER_ART}" alt="" draggable="false" aria-hidden="true">`;
       }
@@ -1683,12 +1691,6 @@
         const level=levelInfo().level;
         return state.adminMode?CROPS:CROPS.filter(crop=>crop.level<=level);
       }
-      function plantSearchMatches(values,query){
-        const terms=String(query||"").trim().toLowerCase().split(/\s+/).filter(Boolean);
-        if(!terms.length)return true;
-        const haystack=values.filter(Boolean).join(" ").toLowerCase();
-        return terms.every(term=>haystack.includes(term));
-      }
       function plantFilterLabel(value){
         return String(value||"other").replace(/[-_]+/g," ").replace(/\b\w/g,letter=>letter.toUpperCase());
       }
@@ -1705,8 +1707,6 @@
       function openPlantModal(index){
         plantingBed=index;
         activePlantPickerTab="seeds";
-        plantSeedQuery="";
-        plantFertiliserQuery="";
         plantFertiliserFamily="all";
         selectedFertiliser=null;
         const crops=plantableCrops();
@@ -1729,12 +1729,12 @@
         const ownedCrops=state.adminMode?crops:crops.filter(crop=>(state.seeds[crop.id]||0)>0);
         if(plantSeedScope==="owned"&&!ownedCrops.length)plantSeedScope="all";
         const seedPool=plantSeedScope==="owned"?ownedCrops:crops;
-        const filteredCrops=seedPool.filter(crop=>plantSearchMatches([crop.name,crop.id,"seeds"],plantSeedQuery));
+        const filteredCrops=seedPool;
         const availableFertilisers=state.adminMode?FERTILISERS:FERTILISERS.filter(fert=>(state.fertilisers[fert.id]||0)>0);
         const fertiliserFamilies=[...new Set(availableFertilisers.map(fert=>fert.family).filter(Boolean))];
         if(plantFertiliserFamily!=="all"&&!fertiliserFamilies.includes(plantFertiliserFamily))plantFertiliserFamily="all";
-        const filteredFertilisers=availableFertilisers.filter(fert=>(plantFertiliserFamily==="all"||fert.family===plantFertiliserFamily)&&plantSearchMatches([fert.name,fert.id,fert.family,fert.tier,fert.effectText],plantFertiliserQuery));
-        const showNoFertiliser=plantFertiliserFamily==="all"&&plantSearchMatches(["no fertiliser","none","free","base"],plantFertiliserQuery);
+        const filteredFertilisers=availableFertilisers.filter(fert=>plantFertiliserFamily==="all"||fert.family===plantFertiliserFamily);
+        const showNoFertiliser=plantFertiliserFamily==="all";
         const crop=cropById(selectedCrop)||crops[0]||CROPS[0];
         if(crop.id!==selectedCrop)selectedCrop=crop.id;
         let fertiliser=selectedFertiliser?FERTILISERS.find(entry=>entry.id===selectedFertiliser)||null:null;
@@ -1750,8 +1750,6 @@
         });
         $("#plantSeedsPanel").hidden=activePlantPickerTab!=="seeds";
         $("#plantFertiliserPanel").hidden=activePlantPickerTab!=="fertiliser";
-        $("#plantSeedSearch").value=plantSeedQuery;
-        $("#plantFertiliserSearch").value=plantFertiliserQuery;
         $("#plantSeedCount").textContent=String(ownedCrops.length);
         $("#plantFertiliserCount").textContent=String(availableFertilisers.length);
         $("#plantSeedFilters").innerHTML=[
@@ -1759,7 +1757,7 @@
           ["all",`All unlocked (${crops.length})`]
         ].map(([scope,label])=>`<button type="button" data-seed-scope="${scope}" class="${plantSeedScope===scope?"active":""}" aria-pressed="${plantSeedScope===scope}">${label}</button>`).join("");
         $("#plantFertiliserFilters").innerHTML=[["all","All"],...fertiliserFamilies.map(family=>[family,plantFilterLabel(family)])].map(([family,label])=>`<button type="button" data-fert-family="${family}" class="${plantFertiliserFamily===family?"active":""}" aria-pressed="${plantFertiliserFamily===family}">${label}</button>`).join("");
-        $("#plantSeedResultCount").textContent=`${filteredCrops.length} of ${seedPool.length} seeds`;
+        $("#plantSeedResultCount").textContent=`${filteredCrops.length} seed${filteredCrops.length===1?"":"s"}`;
         $("#plantFertiliserResultCount").textContent=`${filteredFertilisers.length+(showNoFertiliser?1:0)} of ${availableFertilisers.length+1} choices`;
 
         if(activePlantPickerTab==="seeds"){
@@ -1767,12 +1765,12 @@
             const seeds=state.seeds[entry.id]||0;
             const owned=state.adminMode?"Unlimited":`${seeds} owned`;
             return `<button class="plant-option ${selectedCrop===entry.id?"selected":""}" type="button" data-crop-choice="${entry.id}" aria-pressed="${selectedCrop===entry.id}" aria-label="${entry.name} seeds, ${owned}" ${!state.adminMode&&seeds<1?"disabled":""}><span class="plant-option-check" aria-hidden="true">✓</span><i>${cropIconMarkup(entry,true)}</i><b>${entry.name}</b><small>${state.adminMode?"∞ owned":`×${seeds} owned`}</small></button>`;
-          }).join(""):`<div class="plant-picker-empty"><b>No matching seeds</b><small>Try another search or show all unlocked seeds.</small></div>`;
+          }).join(""):`<div class="plant-picker-empty"><b>No seeds available</b><small>Buy seeds from the Shop, then return to this plot.</small></div>`;
           $("#fertChoices").innerHTML="";
         }else{
           const noFertiliser=showNoFertiliser?`<button class="fert-option no-fertiliser ${selectedFertiliser===null?"selected":""}" type="button" data-fert-choice="" aria-pressed="${selectedFertiliser===null}"><span class="fert-none-icon" aria-hidden="true">—</span><span><b>No fertiliser</b><small>Base Iridium chance: 1%</small></span><strong>Free</strong></button>`:"";
           const fertiliserOptions=filteredFertilisers.map(entry=>`<button class="fert-option quality-${entry.tier} ${selectedFertiliser===entry.id?"selected":""}" type="button" data-fert-choice="${entry.id}" aria-pressed="${selectedFertiliser===entry.id}"><span><b class="fert-title">${spriteMarkup(entry)}<span>${entry.name}</span></b><small>${plantFilterLabel(entry.tier)} · ${entry.effectText}</small></span><strong>${state.adminMode?"∞":`×${state.fertilisers[entry.id]||0}`}</strong></button>`).join("");
-          $("#fertChoices").innerHTML=noFertiliser+fertiliserOptions||`<div class="plant-picker-empty"><b>No matching fertilisers</b><small>Try another search or family.</small></div>`;
+          $("#fertChoices").innerHTML=noFertiliser+fertiliserOptions||`<div class="plant-picker-empty"><b>No fertilisers available</b><small>Buy fertiliser from the Shop or choose another family.</small></div>`;
           $("#plantChoices").innerHTML="";
         }
 
@@ -1896,6 +1894,7 @@
               <span class="shop-product-copy"><strong>${fert.name}</strong><small>${QUALITY_LABELS[fert.tier]||"Base"} fertiliser</small><span class="shop-product-stat">${fert.effectText}</span></span>
             </button>
             <span class="shop-product-action">${shopPriceMarkup("steps",fert.cost,"steps")}<button class="shop-row-buy shop-buy-button" type="button" data-fert-buy="${fert.id}" aria-label="Buy ${fert.name} for ${fmt(fert.cost)} steps" ${canSpendSteps(fert.cost)?"":"disabled"}>Buy</button></span>
+            ${qualityOddsMarkup(fert.id,"shop-quality-odds")}
           </article>`).join("");
           $$("[data-fert-view]").forEach(button=>button.onclick=()=>openFertiliser(button.dataset.fertView));
           $$("[data-fert-buy]").forEach(button=>button.onclick=()=>buyFertiliser(button.dataset.fertBuy));
@@ -1949,9 +1948,9 @@
         placementStage="seed";
         placementAllCrops=false;
         placementDraft=null;
-        upgradeSettingsOpen=true;
         closeModals();
-        navigate("upgrades");
+        navigate("settings");
+        renderSettings();
         renderPlacementEditor();
         requestAnimationFrame(()=>$(".placement-card")?.scrollIntoView({behavior:"smooth",block:"start"}));
       }
@@ -1966,7 +1965,7 @@
           {label:"Effect",value:fert.effectText},
           {label:"Cost",value:currencyMarkup("steps",fert.cost)},
           {label:"Owned",value:state.adminMode?"∞":state.fertilisers[fert.id]||0}
-        ]);
+        ])+qualityOddsMarkup(fert.id,"detail-quality-odds");
         $("#fertDetailBuy").innerHTML=`Buy · ${currencyMarkup("steps",fert.cost)}`;
         $("#fertDetailBuy").disabled=!canSpendSteps(fert.cost);
         $("#fertModal").classList.add("show");
@@ -2191,23 +2190,7 @@
         state.fertilisers[id]--;state.stepBalance+=value;
         save();renderAll();toast(`${fertiliser.name} sold for ${compactFmt(value)} steps`);
       }
-      function renderUpgrades(){
-        const progress=levelInfo(),level=progress.level;
-        $("#upgradeLevel").textContent=String(level);
-        $("#upgradeXp").textContent=fmt(progress.current);
-        $("#upgradeXpNext").textContent=fmt(progress.next);
-        $("#upgradeXpBar").style.width=`${clamp(progress.current/Math.max(1,progress.next)*100,0,100)}%`;
-        $("#upgradeSettings").hidden=!upgradeSettingsOpen;
-        $("#toggleUpgradeSettings").setAttribute("aria-expanded",String(upgradeSettingsOpen));
-        $("#upgradeList").innerHTML=FARM_UPGRADES.map(upgrade=>{
-          const purchased=state.farmUpgrades.includes(upgrade.id),locked=upgrade.level>level,requirement=upgrade.requirement;
-          const cost=`${currencyMarkup("gold",upgrade.gold)}${requirement?` + ${cropRequirementText(requirement)}`:""}`;
-          const art=FARM_UPGRADE_ART[upgrade.id];
-          const icon=art?`<img class="pixel-sprite auto-centered-sprite" data-center-src="${art}" src="${art}" alt="" draggable="false">`:upgrade.icon;
-          const label=purchased?"Purchased":locked?`Unlocks at LV ${upgrade.level}`:`Buy · ${cost}`;
-          return `<article class="upgrade-card card ${purchased?"purchased":""} ${locked?"locked":""}"><div class="upgrade-top"><div class="upgrade-icon">${icon}</div><div class="upgrade-copy"><h3>${upgrade.name}</h3><p>${upgrade.description}</p></div><span class="upgrade-level">LV ${upgrade.level}</span></div><button class="btn wide ${purchased?"secondary":""}" data-upgrade="${upgrade.id}" ${purchased||locked||!canSpendGold(upgrade.gold)||!hasCropRequirement(requirement)?"disabled":""}>${label}</button></article>`;
-        }).join("");
-        $$("[data-upgrade]").forEach(button=>button.onclick=()=>buyUpgrade(button.dataset.upgrade));
+      function renderSettings(){
         $("#goalSelect").value=String(state.dailyGoal);
         renderPlacementEditor();
         renderTracking();
@@ -2317,7 +2300,7 @@
           if(!definitions.some(entry=>entry.key===key))definitions.push({key,context,label,src});
         };
         CHARACTER_PROFILES.forEach(profile=>add("Header",`${profile.name} avatar`,profile.image));
-        [["farm","Farm"],["shop","Shop"],["quests","Quests"],["barn","Silo"],["upgrades","Upgrade"]].forEach(([id,label])=>add(`Navigation · ${id}`,`${label} navigation icon`,`assets/farm/ui-v3/nav-${id==="barn"?"silo":id==="upgrades"?"upgrade":id}-64.png`));
+        [["farm","Farm"],["shop","Shop"],["quests","Quests"],["barn","Silo"]].forEach(([id,label])=>add(`Navigation · ${id}`,`${label} navigation icon`,`assets/farm/ui-v3/nav-${id==="barn"?"silo":id}-64.png`));
         add("Farm","Weather icon","assets/farm/ui-v3/weather-partly-sunny-64.png");
         CROPS.forEach(crop=>{
           add("Farm",`${crop.name} · planted`,crop.stages?.planted);
@@ -2336,7 +2319,6 @@
           add("Detail · plant",`${fertiliser.name} ${fertiliser.tier} · planting`,fertiliser.image);
         });
         dailyQuests().forEach(quest=>add("Quests",`${quest.npc} · portrait`,quest.image));
-        FARM_UPGRADES.forEach(upgrade=>add("Upgrades",`${upgrade.name} · upgrade`,FARM_UPGRADE_ART[upgrade.id]));
         $$("img").forEach(image=>{
           if(image.classList.contains("currency-icon")||image.classList.contains("plot-surface")||image.closest(".seed-packet-art,.asset-layout-card,.placement-card,.image-centre-card,.asset-preview-panel"))return;
           const src=image.getAttribute("src");
@@ -2567,14 +2549,6 @@
         $("#placementScale").value=String(Math.round(placementDraft.scale*100));
         $("#placementScaleValue").textContent=`${Math.round(placementDraft.scale*100)}%`;
       }
-      function buyUpgrade(id){
-        const upgrade=FARM_UPGRADES.find(entry=>entry.id===id);
-        if(!upgrade||state.farmUpgrades.includes(id)||levelInfo().level<upgrade.level)return;
-        if(!canSpendGold(upgrade.gold))return toast("Not enough gold");
-        if(!hasCropRequirement(upgrade.requirement))return toast(`Requires ${cropRequirementText(upgrade.requirement)}`);
-        spendGold(upgrade.gold);consumeCropRequirement(upgrade.requirement);state.farmUpgrades.push(id);
-        save();renderAll();toast(`${upgrade.name} purchased`);
-      }
       function renderTracking(){
         const status=state.trackingStatus;
         const title=$("#trackingTitle"),detail=$("#trackingDetail"),button=$("#trackingButton");
@@ -2595,7 +2569,7 @@
         button.disabled=status==="granted";
       }
       function renderAll(){
-        renderHeader();renderFarm();renderShop();renderQuests();renderBarn();renderUpgrades();
+        renderHeader();renderFarm();renderShop();renderQuests();renderBarn();renderSettings();
         prepareAssetLayouts();renderAssetLayoutEditor();
         requestAnimationFrame(()=>{applyImageCentering();prepareAssetLayouts()});
       }
@@ -2616,22 +2590,22 @@
         if(screen==="shop")renderShop();
         if(screen==="quests")renderQuests();
         if(screen==="barn")renderBarn();
-        if(screen==="upgrades")renderUpgrades();
+        if(screen==="settings")renderSettings();
         prepareAssetLayouts();
-        if(screen==="upgrades")renderAssetLayoutEditor();
+        if(screen==="settings")renderAssetLayoutEditor();
         requestAnimationFrame(()=>{applyImageCentering();prepareAssetLayouts()});
       }
-      function openWalletEarningPath(currency){
-        if(currency==="gold"){
-          activeSiloTab="crops";
-          navigate("barn");
-          requestAnimationFrame(()=>$('[data-silo-tab="crops"]')?.focus({preventScroll:true}));
-          toast("Sell harvested crops here to earn gold");
-          return;
-        }
-        navigate("farm");
-        requestAnimationFrame(()=>$("#stepRing")?.focus({preventScroll:true}));
-        toast("Walk to earn more steps");
+      function openCurrencyStore(currency){
+        navigate("shop");
+        const target=$(currency==="gold"?"#goldBundlePreview":"#stepsBundlePreview");
+        requestAnimationFrame(()=>requestAnimationFrame(()=>{
+          if(!target)return;
+          target.focus({preventScroll:true});
+          target.scrollIntoView({behavior:"smooth",block:"center"});
+          target.classList.add("is-target");
+          setTimeout(()=>target.classList.remove("is-target"),1500);
+        }));
+        toast("Purchases are not available yet");
       }
       function closeModals(){
         $$(".modal").forEach(modal=>modal.classList.remove("show"));
@@ -2662,8 +2636,9 @@
 
       $$(".nav-btn").forEach(button=>button.onclick=()=>navigate(button.dataset.screen));
       $("#profileButton").onclick=openProfilePicker;
-      $("#stepsWalletAction").onclick=()=>openWalletEarningPath("steps");
-      $("#goldWalletAction").onclick=()=>openWalletEarningPath("gold");
+      $("#openSettings").onclick=openSettings;
+      $("#stepsWalletAction").onclick=()=>openCurrencyStore("steps");
+      $("#goldWalletAction").onclick=()=>openCurrencyStore("gold");
       const plantPickerTabs=$$("[data-plant-picker-tab]");
       plantPickerTabs.forEach((button,index)=>{
         button.onclick=()=>setPlantPickerTab(button.dataset.plantPickerTab);
@@ -2674,8 +2649,6 @@
           setPlantPickerTab(plantPickerTabs[targetIndex].dataset.plantPickerTab,true);
         };
       });
-      $("#plantSeedSearch").oninput=event=>{plantSeedQuery=event.target.value;renderPlantModal()};
-      $("#plantFertiliserSearch").oninput=event=>{plantFertiliserQuery=event.target.value;renderPlantModal()};
       $("#plantSeedFilters").onclick=event=>{
         const button=event.target.closest("[data-seed-scope]");
         if(!button)return;
@@ -2746,12 +2719,6 @@
       $$("#fertTierTabs .tab").forEach(tab=>tab.onclick=()=>{selectedFertiliserTier=tab.dataset.fertTier;renderShop()});
       $$("[data-quest-period]").forEach(button=>button.onclick=()=>{activeQuestPeriod=button.dataset.questPeriod;renderQuests();prepareAssetLayouts()});
       $$("[data-silo-tab]").forEach(button=>button.onclick=()=>{activeSiloTab=button.dataset.siloTab;renderSiloTabs()});
-      $("#toggleUpgradeSettings").onclick=()=>{
-        upgradeSettingsOpen=!upgradeSettingsOpen;
-        $("#upgradeSettings").hidden=!upgradeSettingsOpen;
-        $("#toggleUpgradeSettings").setAttribute("aria-expanded",String(upgradeSettingsOpen));
-        if(upgradeSettingsOpen){renderAssetLayoutEditor();requestAnimationFrame(()=>$("#upgradeSettings").scrollIntoView({behavior:"smooth",block:"start"}))}
-      };
       $("#seedShopSize").oninput=event=>{state.seedShopSize=clamp(Number(event.target.value)||40,24,48);save();renderShop()};
       $("#seedSizeDown").onclick=()=>{state.seedShopSize=clamp((Number(state.seedShopSize)||40)-2,24,48);save();renderShop()};
       $("#seedSizeUp").onclick=()=>{state.seedShopSize=clamp((Number(state.seedShopSize)||40)+2,24,48);save();renderShop()};
@@ -2799,7 +2766,7 @@
       if("serviceWorker" in navigator)navigator.serviceWorker.register("./sw.js").catch(()=>{});
       new MutationObserver(()=>requestAnimationFrame(()=>{applyImageCentering();prepareAssetLayouts()})).observe(document.body,{childList:true,subtree:true});
       renderAll();
-      if(assetPreviewRequested)navigate("upgrades");
+      if(assetPreviewRequested)navigate("settings");
       postNative({type:"pedometerReady"});
     })();
   </script>
