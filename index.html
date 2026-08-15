@@ -591,7 +591,7 @@
       #farm .step-copy .mini-progress i,#farm .bed-progress i{transition:none}
     }
   </style>
-  <link rel="stylesheet" href="assets/farm/ui-v3/theme-v3.css?v=51">
+  <link rel="stylesheet" href="assets/farm/ui-v3/theme-v3.css?v=52">
 </head>
 <body>
   <div class="app farm-view">
@@ -635,9 +635,12 @@
               <div class="step-ring" id="stepRing" role="progressbar" aria-label="Daily step goal" aria-valuemin="0" aria-valuemax="8000" aria-valuenow="0" tabindex="-1">
                 <div class="step-ring-copy">
                   <img class="step-ring-icon pixel-sprite" src="assets/farm/ui-v3/step-currency-v2-96.png" alt="">
-                  <div class="step-total"><b id="todaySteps">0</b><small id="dailyGoalLabel">/ 8,000</small></div>
-                  <span>STEPS TODAY</span>
+                  <div class="step-copy-stack">
+                    <div class="step-total"><b id="todaySteps">0</b><small id="dailyGoalLabel">/ 8,000</small></div>
+                    <span>STEPS TODAY</span>
+                  </div>
                 </div>
+                <span class="step-goal-track" aria-hidden="true"><i id="stepProgressBar"></i><em></em></span>
               </div>
             </div>
           </div>
@@ -1587,6 +1590,8 @@
         $("#todaySteps").setAttribute("aria-label",`${fmt(state.todaySteps)} steps today`);
         const stepRing=$("#stepRing");
         stepRing.style.setProperty("--progress",`${percent*3.6}deg`);
+        stepRing.style.setProperty("--progress-percent",`${percent}%`);
+        $("#stepProgressBar").style.width=`${percent}%`;
         stepRing.setAttribute("aria-valuemax",String(goal));
         stepRing.setAttribute("aria-valuenow",String(Math.min(state.todaySteps,goal)));
         stepRing.setAttribute("aria-valuetext",`${fmt(state.todaySteps)} of ${fmt(goal)} steps today`);
@@ -1602,7 +1607,7 @@
         $("#plantAll").disabled=!state.beds.slice(0,state.unlockedBeds).some(bed=>!bed);
         $("#replantAll").disabled=!state.beds.slice(0,state.unlockedBeds).some((bed,index)=>!bed&&state.bedPlans[index]);
       }
-      const PLANTER_ART="assets/farm/ui-v3/stone-soil-plot-v1.webp";
+      const PLANTER_ART="assets/farm/ui-v3/wood-vine-soil-plot-v1.webp";
       function planterArt(){
         return `<img class="plot-surface pixel-sprite" src="${PLANTER_ART}" alt="" draggable="false" aria-hidden="true">`;
       }
