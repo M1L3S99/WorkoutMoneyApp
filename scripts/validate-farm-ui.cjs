@@ -137,7 +137,7 @@ const hook = '      $$(".nav-btn").forEach(button=>button.onclick';
 if (!script[1].includes(hook)) throw new Error("Could not locate runtime test hook");
 const instrumented = script[1].replace(
   hook,
-  `      globalThis.__farmTest = { CROPS, ITEMS, FERTILISERS, BED_COSTS, BED_REQUIREMENTS, MAX_BEDS, FARM_UPGRADES, FARM_UPGRADE_ART, CHARACTER_PROFILES, qualityOdds, bedState, freshState, dailyStock, dailyQuests, weatherFromCurrent, upgradeRecipe, compactFmt, ITEM_UPGRADE_MAX };
+  `      globalThis.__farmTest = { CROPS, ITEMS, FERTILISERS, BED_COSTS, BED_REQUIREMENTS, MAX_BEDS, RETIRED_FARM_UPGRADE_EFFECTS, CHARACTER_PROFILES, qualityOdds, qualityOddsMarkup, bedState, freshState, dailyStock, dailyQuests, weatherFromCurrent, upgradeRecipe, compactFmt, ITEM_UPGRADE_MAX };
       return;
 ${hook}`
 );
@@ -152,18 +152,13 @@ for (const [value, expected] of [[0,"0"],[999,"999"],[1000,"1K"],[1050,"1.1K"],[
   if (actual.length > 5) throw new Error(`Compact amount exceeds the five-character HUD budget for ${value}: ${actual}`);
 }
 const TOPDOWN_ASSETS = {
-  soil:"assets/farm/soil-plot-topdown-v2-256x192.png",
+  soil:"assets/farm/ui-v3/stone-soil-plot-v1.webp",
   radishPlanted:"assets/farm/crops/radish-planted-meadow-v3-64.png",
-  radishGrown:"assets/farm/crops/radish-grown-meadow-v3-64.png",
-  compostBin:"assets/farm/upgrades-v3/compost-bin-topdown-v2-192.png",
-  deepBeds:"assets/farm/upgrades-v3/deep-beds-topdown-v2-192.png"
+  radishGrown:"assets/farm/crops/radish-grown-meadow-v3-64.png"
 };
 const pngContracts = [
-  [TOPDOWN_ASSETS.soil,256,192,4000,24000,"0499995ec01756b0228a6563643cd6b000d0466a1dfd23f0eb7785e73b1ac863"],
   [TOPDOWN_ASSETS.radishPlanted,64,64,500,4000,"e715770e8bbd01436320f4a5f25b8f8e12a116048a84c7014843b3c49136f08e"],
-  [TOPDOWN_ASSETS.radishGrown,64,64,1000,10000,"7fa98861b298797288b58212d44220bac8a27c15835b4e34c2e7589e5a2d9014"],
-  [TOPDOWN_ASSETS.compostBin,192,192,3000,20000,"389ad414f5f8a03396fe6910c1d43c1b90af1afb042e0b745b9ca876f44a77aa"],
-  [TOPDOWN_ASSETS.deepBeds,192,192,3000,20000,"a148fb267bba298ec8e9d99e261dc3cb5b5db2d4ee718d85b55420ab95d3b343"]
+  [TOPDOWN_ASSETS.radishGrown,64,64,1000,10000,"7fa98861b298797288b58212d44220bac8a27c15835b4e34c2e7589e5a2d9014"]
 ];
 for (const [asset,width,height,minBytes,maxBytes,sha256] of pngContracts) {
   const metadata=pngMetadata(asset);
@@ -171,6 +166,13 @@ for (const [asset,width,height,minBytes,maxBytes,sha256] of pngContracts) {
       metadata.bytes < minBytes || metadata.bytes > maxBytes || metadata.sha256 !== sha256) {
     throw new Error(`Top-down PNG contract failed for ${asset}: ${JSON.stringify(metadata)}`);
   }
+}
+const stoneSoilMetadata = webpMetadata(TOPDOWN_ASSETS.soil);
+const stoneSoilHash = crypto.createHash("sha256").update(fs.readFileSync(TOPDOWN_ASSETS.soil)).digest("hex");
+if (stoneSoilMetadata.width !== 512 || stoneSoilMetadata.height !== 384 ||
+    stoneSoilMetadata.bytes < 30000 || stoneSoilMetadata.bytes > 90000 ||
+    stoneSoilHash !== "7ef5147cb7854bfacd3c8f62454951cf7a11fa8ebe945c1faa2caa7d75484b4f") {
+  throw new Error(`Stone-edged planter WebP contract failed: ${JSON.stringify(stoneSoilMetadata)}`);
 }
 if (!farmArtBuilder.includes("HAND_AUTHORED_CROP_STAGES") ||
     !farmArtBuilder.includes("radish-planted-meadow-v3-64.png") ||
@@ -288,8 +290,8 @@ if (meadowBackground.width !== 768 || meadowBackground.height !== 1152 ||
     meadowBackground.bytes < 100000 || meadowBackground.bytes > 280000 ||
     offlineAssets.filter((asset) => asset === `./${meadowBackgroundAsset}`).length !== 1 ||
     (!theme.includes('../ui/farm-meadow-background-v1.webp') && !html.includes(meadowBackgroundAsset)) ||
-    !serviceWorker.includes("ironbound-farm-v49") || serviceWorker.includes("ironbound-farm-v48")) {
-  throw new Error(`The 768×1152 compressed Farm meadow and v49 offline cache must be fully integrated: ${JSON.stringify(meadowBackground)}`);
+    !serviceWorker.includes("ironbound-farm-v51") || serviceWorker.includes("ironbound-farm-v50")) {
+  throw new Error(`The 768×1152 compressed Farm meadow and v51 offline cache must be fully integrated: ${JSON.stringify(meadowBackground)}`);
 }
 if (theme.includes("crop-area-scene-v2-432x864.webp") || serviceWorker.includes("crop-area-scene-v2-432x864.webp")) {
   throw new Error("Superseded perspective Farm scenery must not return");
@@ -369,6 +371,7 @@ if (renderBedSource.includes("plotLayout") || renderBedSource.includes("--plot-x
 }
 const soilPlotAsset = TOPDOWN_ASSETS.soil;
 const obsoleteOfflineArt = [
+  "./assets/farm/soil-plot-topdown-v2-256x192.png",
   "./assets/farm/soil-plot-ground-v1-256x192.webp",
   "./assets/farm/planter-bed-complete-v7-256x232.webp",
   "./assets/farm/crops/radish-planted-64.png",
@@ -380,8 +383,15 @@ const obsoleteOfflineArt = [
 ];
 if (!html.includes(soilPlotAsset) ||
     Object.values(TOPDOWN_ASSETS).some((asset) => offlineAssets.filter((cached) => cached === `./${asset}`).length !== 1) ||
-    obsoleteOfflineArt.some((asset) => offlineAssets.includes(asset))) {
-  throw new Error("The v49 cache must contain each approved Farm asset exactly once and exclude superseded radish and perspective art");
+    obsoleteOfflineArt.some((asset) => offlineAssets.includes(asset)) ||
+    offlineAssets.some((asset) => /(?:nav-upgrade|\/upgrades-v3\/)/.test(asset))) {
+  throw new Error("The v51 cache must contain each approved Farm asset exactly once and exclude retired Upgrade and superseded Farm art");
+}
+if (!theme.includes('url("./stone-soil-plot-v1.webp")') ||
+    !/#cropArea \.crop-area-controls \.farm-actions\s*\{[^}]*grid-template-columns:repeat\(2,/s.test(theme) ||
+    !/#cropArea \.bed-plaque\s*\{[^}]*background:/s.test(theme) ||
+    !/\.app\.farm-view \.wallet\s*\{[^}]*grid-template-columns:repeat\(2,/s.test(theme)) {
+  throw new Error("The Farm-only Meadow Courtyard styling must keep the split wallet, unified action ribbon, stone plots, and cream plaques");
 }
 const uiV3Assets = [
   "assets/farm/ui-v3/theme-v3.css",
@@ -390,13 +400,11 @@ const uiV3Assets = [
   "assets/farm/ui-v3/nav-shop-64.png",
   "assets/farm/ui-v3/nav-quests-64.png",
   "assets/farm/ui-v3/nav-silo-64.png",
-  "assets/farm/ui-v3/nav-upgrade-64.png",
   "assets/farm/ui-v3/weather-partly-sunny-64.png",
   "assets/farm/ui-v3/step-currency-v2-96.png",
   "assets/farm/ui-v3/gold-currency-v2-96.png",
   "assets/farm/ui-v3/seed-packet-frame-v1.png",
-  ...["garden-paths","rain-barrel","seed-ledger","compost-bin","deep-beds","glass-cloche","market-cart","pollinator-garden","moon-irrigation","ancient-greenhouse"]
-    .map((id) => id === "compost-bin" ? TOPDOWN_ASSETS.compostBin : id === "deep-beds" ? TOPDOWN_ASSETS.deepBeds : `assets/farm/upgrades-v3/${id}-192.png`)
+  "assets/farm/ui-v3/wallet-wheat-divider-v1.png"
 ];
 for (const asset of uiV3Assets) {
   if (!fs.existsSync(asset)) throw new Error(`Missing Meadowstep v3 asset: ${asset}`);
@@ -405,6 +413,14 @@ for (const asset of uiV3Assets) {
   if (!html.includes(asset) && !serviceWorker.includes(`./${asset}`)) {
     throw new Error(`Meadowstep v3 asset is not integrated: ${asset}`);
   }
+}
+const walletDividerAsset = "assets/farm/ui-v3/wallet-wheat-divider-v1.png";
+const walletDividerMetadata = pngMetadata(walletDividerAsset);
+if (walletDividerMetadata.width < 48 || walletDividerMetadata.height < 96 ||
+    walletDividerMetadata.height <= walletDividerMetadata.width || !walletDividerMetadata.hasAlpha ||
+    walletDividerMetadata.bytes < 1000 || walletDividerMetadata.bytes > 120000 ||
+    offlineAssets.filter((asset) => asset === `./${walletDividerAsset}`).length !== 1) {
+  throw new Error(`The custom wheat divider must be a cached transparent portrait PNG: ${JSON.stringify(walletDividerMetadata)}`);
 }
 const seedPacketAsset = "assets/farm/ui-v3/seed-packet-frame-v1.png";
 const seedPacketMetadata = pngMetadata(seedPacketAsset);
@@ -415,8 +431,8 @@ if (seedPacketMetadata.width !== 384 || seedPacketMetadata.height !== 384 || !se
     offlineAssets.filter((asset) => asset === `./${seedPacketAsset}`).length !== 1 ||
     offlineAssets.some((asset) => /-seeds-96\.png$/.test(asset)) ||
     !html.includes(`const SEED_PACKET_FRAME="${seedPacketAsset}"`) ||
-    !html.includes('href="assets/farm/ui-v3/theme-v3.css?v=49"') ||
-    offlineAssets.filter((asset) => asset === "./assets/farm/ui-v3/theme-v3.css?v=49").length !== 1 ||
+    !html.includes('href="assets/farm/ui-v3/theme-v3.css?v=51"') ||
+    offlineAssets.filter((asset) => asset === "./assets/farm/ui-v3/theme-v3.css?v=51").length !== 1 ||
     !seedPacketMarkupSource.includes("seed-packet-frame") ||
     !seedPacketMarkupSource.includes('seed-packet-crop auto-centered-sprite') ||
     !seedPacketMarkupSource.includes('data-center-src="${crop.image}"') ||
@@ -452,7 +468,7 @@ for (const asset of profileImages) {
     throw new Error(`Character profile asset must be a transparent portrait: ${asset}`);
   }
 }
-for (const hook of ["assetTransforms", "layoutAssetSelect", "prepareAssetLayouts", "upgradeSettings"]) {
+for (const hook of ["assetTransforms", "layoutAssetSelect", "prepareAssetLayouts", "settingsContent"]) {
   if (!html.includes(hook)) throw new Error(`Missing Meadowstep v3 layout hook: ${hook}`);
 }
 for (const farmHook of ["FARM_CURRENCY_ICONS", "farm-view", "compactFmt", "step-ring-icon", "weather-status", "bed-plaque", "bed-ready-banner"]) {
@@ -489,22 +505,23 @@ if (html.includes('class="brand"') || !html.includes('class="account-summary" ar
 const walletPillMarkup = [...html.matchAll(/<button class="wallet-pill wallet-action"[^>]*>([\s\S]*?)<\/button>/g)].map((match) => match[1]);
 const walletRules = cssRuleBodies(theme, ".wallet-pill");
 const walletPlusRules = cssRuleBodies(theme, ".wallet-plus");
-const dividerAccentRules = cssRuleBodies(theme, ".wallet-divider:after");
+const walletDividerRules = cssRuleBodies(theme, ".wallet-divider");
 const renderHeaderSource = functionSource("renderHeader");
-const openWalletEarningPathSource = functionSource("openWalletEarningPath");
+const openCurrencyStoreSource = functionSource("openCurrencyStore");
 const renderSiloTabsSource = functionSource("renderSiloTabs");
 const navigateSource = functionSource("navigate");
 const stepsWalletIndex = html.indexOf('id="stepsWalletAction"');
 const dividerIndex = html.indexOf('<span class="wallet-divider" aria-hidden="true"></span>');
 const goldWalletIndex = html.indexOf('id="goldWalletAction"');
 if (walletPillMarkup.length !== 2 || walletPillMarkup.some((body) => !body.includes("wallet-accessible") || !body.includes('aria-hidden="true"') || body.indexOf("<b") < 0 || body.indexOf("<b") > body.indexOf("currency-icon-farm") || (body.match(/class="wallet-plus"/g) || []).length !== 1 || !/<span class="wallet-value" aria-hidden="true">[\s\S]*?<span class="wallet-plus">\+<\/span>[\s\S]*?<\/span>/.test(body)) ||
-    !html.includes('<button class="wallet-pill wallet-action" id="stepsWalletAction" type="button" aria-label="Go to the Farm to earn steps" aria-describedby="stepsBalanceExact">') ||
-    !html.includes('<button class="wallet-pill wallet-action" id="goldWalletAction" type="button" aria-label="Go to the Silo to sell crops for gold" aria-describedby="goldBalanceExact">') ||
+    !html.includes('<button class="wallet-pill wallet-action" id="stepsWalletAction" type="button" aria-label="View the Steps bundle preview in the Shop" aria-describedby="stepsBalanceExact">') ||
+    !html.includes('<button class="wallet-pill wallet-action" id="goldWalletAction" type="button" aria-label="View the Gold bundle preview in the Shop" aria-describedby="goldBalanceExact">') ||
     stepsWalletIndex < 0 || dividerIndex <= stepsWalletIndex || goldWalletIndex <= dividerIndex ||
     !html.includes('<span class="wallet-divider" aria-hidden="true"></span>') ||
     !walletRules.some((body) => /flex\s*:\s*1\s+1\s+0/.test(body) && /width\s*:\s*auto/.test(body) && /border\s*:\s*0/.test(body) && /background\s*:\s*transparent/.test(body) && /box-shadow\s*:\s*none/.test(body) && /appearance\s*:\s*none/.test(body)) ||
     !/\.wallet\s*\{[^}]*--wallet-divider-size\s*:\s*clamp\(12px,3\.75vw,18px\)[^}]*grid-template-columns\s*:\s*minmax\(0,1fr\)\s+var\(--wallet-divider-size\)\s+minmax\(0,1fr\)[^}]*border\s*:\s*2px\s+solid\s+#c9983c[^}]*linear-gradient\(180deg,#427b38/s.test(theme) ||
-    !theme.includes(".wallet-divider:before") || dividerAccentRules.length !== 1 || !dividerAccentRules[0].includes("radial-gradient(ellipse") || /transform\s*:\s*rotate\(45deg\)/.test(dividerAccentRules[0]) ||
+    !walletDividerRules.some((body) => body.includes('url("./wallet-wheat-divider-v1.png")') && /center\/contain\s+no-repeat/.test(body)) ||
+    theme.includes(".wallet-divider:before") || theme.includes(".wallet-divider:after") ||
     !walletPlusRules.some((body) => /width\s*:\s*var\(--wallet-add-size\)/.test(body) && /border\s*:\s*1px\s+solid\s+#f2d277/.test(body) && /linear-gradient\(180deg,#83bd56/.test(body)) ||
     !theme.includes(".wallet-action:focus-visible{") ||
     !theme.includes(".wallet-pill .currency-icon-farm{") ||
@@ -520,13 +537,27 @@ if (walletPillMarkup.length !== 2 || walletPillMarkup.some((body) => !body.inclu
     renderHeaderSource.includes('activeScreen==="farm"') ||
     !renderHeaderSource.includes('$("#stepsBalanceExact").textContent=state.adminMode?"Unlimited steps":`${fmt(state.stepBalance)} steps`') ||
     !renderHeaderSource.includes('$("#goldBalanceExact").textContent=state.adminMode?"Unlimited gold":`${fmt(state.gold)} gold`') ||
-    !openWalletEarningPathSource.includes('activeSiloTab="crops"') || !openWalletEarningPathSource.includes('navigate("barn")') || !openWalletEarningPathSource.includes('navigate("farm")') ||
+    !openCurrencyStoreSource.includes('navigate("shop")') || !openCurrencyStoreSource.includes('#stepsBundlePreview') || !openCurrencyStoreSource.includes('#goldBundlePreview') || !openCurrencyStoreSource.includes("scrollIntoView") ||
+    openCurrencyStoreSource.includes("state.stepBalance+=") || openCurrencyStoreSource.includes("state.gold+=") || openCurrencyStoreSource.includes("confirmCardPayment") || openCurrencyStoreSource.includes("purchaseGems") ||
     !html.includes('class="nav-btn active" data-screen="farm" aria-current="page"') || !navigateSource.includes('button.setAttribute("aria-current","page")') || !navigateSource.includes('button.removeAttribute("aria-current")') ||
     !renderSiloTabsSource.includes('button.setAttribute("aria-pressed",String(active))') ||
     !html.includes('id="stepRing" role="progressbar" aria-label="Daily step goal" aria-valuemin="0" aria-valuemax="8000" aria-valuenow="0" tabindex="-1"') ||
-    !script[1].includes('$("#stepsWalletAction").onclick=()=>openWalletEarningPath("steps")') ||
-    !script[1].includes('$("#goldWalletAction").onclick=()=>openWalletEarningPath("gold")')) {
-  throw new Error("Top-bar balances must use one flexible meadow ribbon with useful plus actions, a wheat divider, number-first K/M counters, and exact accessible labels");
+    !script[1].includes('$("#stepsWalletAction").onclick=()=>openCurrencyStore("steps")') ||
+    !script[1].includes('$("#goldWalletAction").onclick=()=>openCurrencyStore("gold")')) {
+  throw new Error("Top-bar balances must use one flexible meadow ribbon with non-charging Shop preview actions, a wheat divider, number-first K/M counters, and exact accessible labels");
+}
+const currencyStoreIndex=html.indexOf('id="currencyStore"');
+const shopGridIndex=html.indexOf('id="shopGrid"');
+const currencyPreviewCards=[...html.matchAll(/<article class="currency-preview-card[^>]*>([\s\S]*?)<\/article>/g)].map((match)=>match[0]);
+if (currencyStoreIndex<=shopGridIndex ||
+    !["currencyStore","currencyStoreTitle","currencyStoreStatus","stepsBundlePreview","goldBundlePreview","stepsBundlePreviewButton","goldBundlePreviewButton"].every((id)=>ids.includes(id)) ||
+    currencyPreviewCards.length!==2 || currencyPreviewCards.some((card)=>!/<button[^>]*\bdisabled\b[^>]*>Coming soon<\/button>/.test(card)) ||
+    !html.includes('id="currencyStoreStatus" role="status" aria-live="polite"') ||
+    !html.includes("Spendable Steps only — they do not count as walking, your daily goal, or crop growth.") ||
+    !theme.includes(".currency-preview-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))") ||
+    !theme.includes(".currency-preview-card:focus-visible{") || !theme.includes(".currency-preview-card.is-target{") ||
+    !/@media\(max-width:340px\)\{\.currency-preview-grid\{grid-template-columns:1fr\}\}/.test(theme)) {
+  throw new Error("The Shop must end with two accessible, clearly disabled currency bundle previews");
 }
 if (!html.includes("border:0;border-radius:0;color:var(--soil);background:transparent;box-shadow:none")) {
   throw new Error("Unlocked soil plots must remain integrated without surrounding plot cards");
@@ -642,7 +673,7 @@ if (ids.includes("plantBedNumber") || /Plant bed\s/i.test(html) || script[1].inc
 const scalablePlantingIds = [
   "plantTargetSummary", "plantSelectionCrop", "plantSelectionFertiliser",
   "plantSeedsTab", "plantFertiliserTab", "plantSeedCount", "plantFertiliserCount",
-  "plantSeedsPanel", "plantFertiliserPanel", "plantSeedSearch", "plantFertiliserSearch",
+  "plantSeedsPanel", "plantFertiliserPanel",
   "plantSeedFilters", "plantFertiliserFilters", "plantSeedResultCount",
   "plantFertiliserResultCount", "plantingFooterSummary"
 ];
@@ -661,19 +692,20 @@ if (!html.includes('class="plant-picker-tabs" role="tablist"') ||
   throw new Error("The planting picker must expose accessible tabs and matching tab panels");
 }
 const scalablePlantingHooks = [
-  "function plantableCrops", "function plantSearchMatches", "function plantTargetCount",
+  "function plantableCrops", "function plantTargetCount",
   "function plantableCount", "function setPlantPickerTab", 'data-seed-scope="${scope}"',
-  'data-fert-family="${family}"', '$("#plantSeedSearch").oninput',
-  '$("#plantFertiliserSearch").oninput', 'event.key==="Escape"', 'event.key!=="Tab"',
+  'data-fert-family="${family}"', 'event.key==="Escape"', 'event.key!=="Tab"',
   'document.body.classList.add("modal-open")', "possibleCount=plantableCount"
 ];
-if (scalablePlantingHooks.some((hook) => !script[1].includes(hook)) ||
+const removedPlantSearchHooks = ["plantSeedSearch", "plantFertiliserSearch", "plantSeedQuery", "plantFertiliserQuery", "plantSearchMatches", ".plant-search"];
+if (removedPlantSearchHooks.some((hook) => html.includes(hook) || theme.includes(hook)) ||
+    scalablePlantingHooks.some((hook) => !script[1].includes(hook)) ||
     !/#plantModal \.planting-modal-card\s*\{[^}]*display:grid;[^}]*grid-template-rows:auto auto auto minmax\(0,1fr\) auto;[^}]*overflow:hidden;/s.test(theme) ||
     !/#plantModal \.plant-picker-results\s*\{[^}]*overflow-y:auto;[^}]*overscroll-behavior:contain;/s.test(theme) ||
     !theme.includes("grid-template-columns:repeat(auto-fill,minmax(92px,1fr))") ||
     !theme.includes(".planting-footer{") ||
     !theme.includes("body.modal-open{overflow:hidden")) {
-  throw new Error("The planting picker must remain searchable, filterable, internally scrollable, and ready for larger catalogues");
+  throw new Error("The planting picker must remain filterable, internally scrollable, and ready for larger catalogues without search controls");
 }
 const plantIntoSource = functionSource("plantInto");
 if (!plantIntoSource.includes("Number.isInteger(index)") ||
@@ -781,17 +813,15 @@ if (farm.FERTILISERS.length < baselineFertilisers.length ||
     !farm.FERTILISERS.some((item) => item.id === "quality-iridium" && item.guaranteed === "iridium")) {
   throw new Error("Speed Grow and Quality Fertiliser must each offer Bronze through Iridium tiers");
 }
-if (farm.FARM_UPGRADES.length < 8 || farm.FARM_UPGRADES.some((item) => !item.level || !item.gold)) {
-  throw new Error("Farmhouse upgrades must be one-time, level-gated purchases");
-}
-const compostBin = farm.FARM_UPGRADES.find((upgrade) => upgrade.id === "compost-bin");
-if (!compostBin || compostBin.level !== 5 || compostBin.gold !== 350 ||
-    compostBin.effect?.quality !== 5 || Object.keys(compostBin.effect || {}).length !== 1 ||
-    farm.FARM_UPGRADE_ART?.["compost-bin"] !== TOPDOWN_ASSETS.compostBin) {
-  throw new Error("The Compost Bin must remain the level-5, 350-gold, +5% quality upgrade with approved top-down artwork");
-}
-if (farm.FARM_UPGRADE_ART?.["deep-beds"] !== TOPDOWN_ASSETS.deepBeds) {
-  throw new Error("Deep Beds must use approved top-down artwork");
+const retiredUpgradeIds = ["garden-paths","rain-barrel","seed-ledger","compost-bin","deep-beds","glass-cloche","market-cart","pollinator-garden","moon-irrigation","ancient-greenhouse"];
+if (retiredUpgradeIds.some((id) => !farm.RETIRED_FARM_UPGRADE_EFFECTS[id]) ||
+    farm.RETIRED_FARM_UPGRADE_EFFECTS["compost-bin"]?.quality !== 5 ||
+    !functionSource("equippedEffects").includes("RETIRED_FARM_UPGRADE_EFFECTS") ||
+    !functionSource("loadState").includes("saved.farmUpgrades") ||
+    html.includes('id="upgrades"') || html.includes('data-screen="upgrades"') ||
+    script[1].includes("function renderUpgrades") || script[1].includes("function buyUpgrade") ||
+    script[1].includes("state.farmUpgrades.push") || html.includes("FARM_UPGRADE_ART")) {
+  throw new Error("The visible farm Upgrade feature must stay retired while old purchased effects remain save-compatible");
 }
 if (farm.dailyQuests().length !== 3 || !farm.dailyQuests().some((quest) => quest.reward.type === "gear")) {
   throw new Error("Three deterministic daily NPC quests including a gear trade are required");
@@ -823,7 +853,7 @@ for (const crop of farm.CROPS) {
 }
 if (farm.CROPS.some((crop) => "expiryHours" in crop) ||
     farm.ITEMS.some((item) => "expiry" in item.effect) ||
-    farm.FARM_UPGRADES.some((upgrade) => "expiry" in upgrade.effect) ||
+    Object.values(farm.RETIRED_FARM_UPGRADE_EFFECTS).some((effect) => "expiry" in effect) ||
     farm.bedState({ cropId: "radish", growth: 0, expiresAt: 0 }) !== "growing") {
   throw new Error("Crops, gear, upgrades, and old saves must be completely independent of time");
 }
@@ -841,6 +871,30 @@ if (farm.ITEM_UPGRADE_MAX !== 3 || !farm.upgradeRecipe(farm.ITEMS[0], 3)?.cropId
 const baseOdds = farm.qualityOdds(null);
 if (baseOdds.base < 79.9 || Math.abs(baseOdds.iridium - 1) > 0.001) {
   throw new Error(`Base crop quality should be common while preserving 1% Iridium: ${JSON.stringify(baseOdds)}`);
+}
+const qualityKeys = ["base","bronze","silver","gold","iridium"];
+for (const fertiliser of farm.FERTILISERS) {
+  const odds=farm.qualityOdds(fertiliser.id);
+  const values=qualityKeys.map((key)=>odds[key]);
+  if (values.some((value)=>!Number.isFinite(value)||value<0||value>100) || Math.abs(values.reduce((sum,value)=>sum+value,0)-100)>0.001) {
+    throw new Error(`Invalid post-fertiliser quality odds for ${fertiliser.id}: ${JSON.stringify(odds)}`);
+  }
+  if (fertiliser.family==="speed" && qualityKeys.some((key)=>Math.abs(odds[key]-baseOdds[key])>0.001)) {
+    throw new Error(`Speed Grow must not alter crop-quality odds: ${fertiliser.id}`);
+  }
+}
+const guaranteedOdds=farm.qualityOdds("quality-iridium");
+if (guaranteedOdds.iridium!==100 || qualityKeys.slice(0,-1).some((key)=>guaranteedOdds[key]!==0)) {
+  throw new Error(`Iridium Quality Fertiliser must display its guaranteed result: ${JSON.stringify(guaranteedOdds)}`);
+}
+const renderShopSourceForOdds=functionSource("renderShop");
+const openFertiliserSource=functionSource("openFertiliser");
+const oddsMarkupSource=functionSource("qualityOddsMarkup");
+if (!renderShopSourceForOdds.includes('qualityOddsMarkup(fert.id,"shop-quality-odds")') ||
+    !openFertiliserSource.includes('qualityOddsMarkup(fert.id,"detail-quality-odds")') ||
+    !oddsMarkupSource.includes("QUALITY_ORDER.map") || !oddsMarkupSource.includes("Post-use harvest quality chances") ||
+    !theme.includes("grid-template-columns:repeat(5,minmax(0,1fr))")) {
+  throw new Error("Every fertiliser Shop row and detail must share the five-quality post-use odds display");
 }
 if (!html.includes('item?spriteMarkup(item,"loadout-sprite"):icon') || !html.includes(".loadout-slot .loadout-sprite")) {
   throw new Error("Equipped gear must keep using its generated item artwork");

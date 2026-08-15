@@ -1,5 +1,5 @@
 /* Ironbound service worker — farming app shell for offline + home-screen install */
-const CACHE = 'ironbound-farm-v49';
+const CACHE = 'ironbound-farm-v51';
 const CROP_IDS = [
   'radish','lettuce','spinach','carrot','onion','beetroot','blueberry','peas','potato','strawberry','pepper',
   'tomato','corn','eggplant','cabbage','broccoli','pumpkin','grapes','melon','dragonfruit','starfruit','ancient-root'
@@ -27,23 +27,18 @@ const GENERATED_ART = [
   ...['tilda','bram','nia'].map((id) => `./assets/farm/npcs/${id}-96.png`)
 ];
 const UI_V3_ART = [
-  './assets/farm/ui-v3/theme-v3.css?v=49',
+  './assets/farm/ui-v3/theme-v3.css?v=51',
   './assets/farm/ui-v3/avatar-96.png',
   './assets/farm/ui-v3/nav-farm-64.png',
   './assets/farm/ui-v3/nav-shop-64.png',
   './assets/farm/ui-v3/nav-quests-64.png',
   './assets/farm/ui-v3/nav-silo-64.png',
-  './assets/farm/ui-v3/nav-upgrade-64.png',
   './assets/farm/ui-v3/weather-partly-sunny-64.png',
   './assets/farm/ui-v3/step-currency-v2-96.png',
   './assets/farm/ui-v3/gold-currency-v2-96.png',
   './assets/farm/ui-v3/seed-packet-frame-v1.png',
-  ...['garden-paths','rain-barrel','seed-ledger','compost-bin','deep-beds','glass-cloche','market-cart','pollinator-garden','moon-irrigation','ancient-greenhouse']
-    .map((id) => id === 'compost-bin'
-      ? './assets/farm/upgrades-v3/compost-bin-topdown-v2-192.png'
-      : id === 'deep-beds'
-        ? './assets/farm/upgrades-v3/deep-beds-topdown-v2-192.png'
-        : `./assets/farm/upgrades-v3/${id}-192.png`)
+  './assets/farm/ui-v3/wallet-wheat-divider-v1.png',
+  './assets/farm/ui-v3/stone-soil-plot-v1.webp'
 ];
 const ASSETS = [
   './',
@@ -51,7 +46,6 @@ const ASSETS = [
   './app-backend.js',
   './manifest.webmanifest',
   './icon.svg',
-  './assets/farm/soil-plot-topdown-v2-256x192.png',
   './assets/farm/ui/farm-background-v2.webp',
   './assets/farm/ui/farm-background-master-v6.webp',
   './assets/farm/ui/farm-ground-sand-v6.webp',
