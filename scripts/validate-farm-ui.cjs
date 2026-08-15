@@ -152,7 +152,7 @@ for (const [value, expected] of [[0,"0"],[999,"999"],[1000,"1K"],[1050,"1.1K"],[
   if (actual.length > 5) throw new Error(`Compact amount exceeds the five-character HUD budget for ${value}: ${actual}`);
 }
 const TOPDOWN_ASSETS = {
-  soil:"assets/farm/ui-v3/stone-soil-plot-v1.webp",
+  soil:"assets/farm/ui-v3/wood-vine-soil-plot-v1.webp",
   radishPlanted:"assets/farm/crops/radish-planted-meadow-v3-64.png",
   radishGrown:"assets/farm/crops/radish-grown-meadow-v3-64.png"
 };
@@ -167,12 +167,12 @@ for (const [asset,width,height,minBytes,maxBytes,sha256] of pngContracts) {
     throw new Error(`Top-down PNG contract failed for ${asset}: ${JSON.stringify(metadata)}`);
   }
 }
-const stoneSoilMetadata = webpMetadata(TOPDOWN_ASSETS.soil);
-const stoneSoilHash = crypto.createHash("sha256").update(fs.readFileSync(TOPDOWN_ASSETS.soil)).digest("hex");
-if (stoneSoilMetadata.width !== 512 || stoneSoilMetadata.height !== 384 ||
-    stoneSoilMetadata.bytes < 30000 || stoneSoilMetadata.bytes > 90000 ||
-    stoneSoilHash !== "7ef5147cb7854bfacd3c8f62454951cf7a11fa8ebe945c1faa2caa7d75484b4f") {
-  throw new Error(`Stone-edged planter WebP contract failed: ${JSON.stringify(stoneSoilMetadata)}`);
+const woodSoilMetadata = webpMetadata(TOPDOWN_ASSETS.soil);
+const woodSoilHash = crypto.createHash("sha256").update(fs.readFileSync(TOPDOWN_ASSETS.soil)).digest("hex");
+if (woodSoilMetadata.width !== 512 || woodSoilMetadata.height !== 384 ||
+    woodSoilMetadata.bytes < 40000 || woodSoilMetadata.bytes > 100000 ||
+    woodSoilHash !== "00b7f0576761473ac68b3ff9888b54770a66569e73dc0d98864c2a64893227a4") {
+  throw new Error(`Wood-and-vine planter WebP contract failed: ${JSON.stringify(woodSoilMetadata)}`);
 }
 if (!farmArtBuilder.includes("HAND_AUTHORED_CROP_STAGES") ||
     !farmArtBuilder.includes("radish-planted-meadow-v3-64.png") ||
@@ -232,6 +232,7 @@ for (const id of ["seedModal", "seedDetailName", "seedDetailInfo", "seedDetailBu
 }
 for (const id of [
   "stepRing",
+  "stepProgressBar",
   "todaySteps",
   "dailyGoalLabel",
   "accountName",
@@ -283,15 +284,17 @@ for (const asset of ["assets/farm/ui/gold-coin-64.png", "assets/farm/ui/step-tok
   const size = fs.statSync(asset).size;
   if (size < 100 || size > 20000) throw new Error(`Generated pixel asset has an unexpected size: ${asset} (${size} bytes)`);
 }
-const meadowBackgroundAsset = "assets/farm/ui/farm-meadow-background-v1.webp";
+const meadowBackgroundAsset = "assets/farm/ui/farm-gui-meadow-v1.webp";
 if (!fs.existsSync(meadowBackgroundAsset)) throw new Error(`Missing generated Farm meadow: ${meadowBackgroundAsset}`);
 const meadowBackground = webpMetadata(meadowBackgroundAsset);
+const meadowBackgroundHash = crypto.createHash("sha256").update(fs.readFileSync(meadowBackgroundAsset)).digest("hex");
 if (meadowBackground.width !== 768 || meadowBackground.height !== 1152 ||
-    meadowBackground.bytes < 100000 || meadowBackground.bytes > 280000 ||
+    meadowBackground.bytes < 220000 || meadowBackground.bytes > 360000 ||
+    meadowBackgroundHash !== "a934fe2cae238d8229bce969d1d73153d859a7a1a6a5cc0dbad4d241de4540b4" ||
     offlineAssets.filter((asset) => asset === `./${meadowBackgroundAsset}`).length !== 1 ||
-    (!theme.includes('../ui/farm-meadow-background-v1.webp') && !html.includes(meadowBackgroundAsset)) ||
-    !serviceWorker.includes("ironbound-farm-v51") || serviceWorker.includes("ironbound-farm-v50")) {
-  throw new Error(`The 768×1152 compressed Farm meadow and v51 offline cache must be fully integrated: ${JSON.stringify(meadowBackground)}`);
+    (!theme.includes('../ui/farm-gui-meadow-v1.webp') && !html.includes(meadowBackgroundAsset)) ||
+    !serviceWorker.includes("ironbound-farm-v52") || serviceWorker.includes("ironbound-farm-v51")) {
+  throw new Error(`The 768×1152 compressed Farm GUI meadow and v52 offline cache must be fully integrated: ${JSON.stringify(meadowBackground)}`);
 }
 if (theme.includes("crop-area-scene-v2-432x864.webp") || serviceWorker.includes("crop-area-scene-v2-432x864.webp")) {
   throw new Error("Superseded perspective Farm scenery must not return");
@@ -308,7 +311,7 @@ if (farmOverviewStart < 0 || farmPlotsStart <= farmOverviewStart ||
     script[1].includes("setFarmSubview") ||
     !/#farm\s*\{[^}]*height:\s*auto;[^}]*overflow:\s*visible;/s.test(theme) ||
     !/#cropArea \.beds-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,/s.test(theme) ||
-    !theme.includes('url("../ui/farm-meadow-background-v1.webp")') ||
+    !theme.includes('url("../ui/farm-gui-meadow-v1.webp")') ||
     ["crop-area-entry","farm-overview-landmark","farm-subview","crop-area-open"].some((hook) => html.includes(hook) || theme.includes(hook)) ||
     ["Back to Farm","cropAreaTitle"].some((hook) => html.includes(hook))) {
   throw new Error("The Farm hero, weather and all plots must share one continuous main screen without a Crop Area gateway");
@@ -336,7 +339,10 @@ const openPlotUnlockSource = functionSource("openPlotUnlock");
 const renderPlotUnlockSource = functionSource("renderPlotUnlockModal");
 const confirmPlotUnlockSource = functionSource("confirmPlotUnlock");
 const plotUnlockTag = html.match(/<[^>]+\bid="plotUnlockModal"[^>]*>/)?.[0] || "";
-if (!/\brole="dialog"/.test(plotUnlockTag) ||
+if (!html.includes('<span class="step-goal-track" aria-hidden="true"><i id="stepProgressBar"></i><em></em></span>') ||
+    !renderFarmSource.includes('$("#stepProgressBar").style.width=`${percent}%`') ||
+    !renderFarmSource.includes('stepRing.style.setProperty("--progress-percent",`${percent}%`)') ||
+    !/\brole="dialog"/.test(plotUnlockTag) ||
     !/\baria-modal="true"/.test(plotUnlockTag) ||
     !/\baria-labelledby="plotUnlockTitle"/.test(plotUnlockTag) ||
     !/\baria-describedby="plotUnlockStatus"/.test(plotUnlockTag) ||
@@ -378,6 +384,8 @@ const obsoleteOfflineArt = [
   "./assets/farm/crops/radish-grown-64.png",
   "./assets/farm/crops/radish-planted-topdown-v2-64.png",
   "./assets/farm/crops/radish-grown-topdown-v2-64.png",
+  "./assets/farm/ui-v3/stone-soil-plot-v1.webp",
+  "./assets/farm/ui/farm-meadow-background-v1.webp",
   "./assets/farm/upgrades-v3/compost-bin-192.png",
   "./assets/farm/upgrades-v3/deep-beds-192.png"
 ];
@@ -385,13 +393,15 @@ if (!html.includes(soilPlotAsset) ||
     Object.values(TOPDOWN_ASSETS).some((asset) => offlineAssets.filter((cached) => cached === `./${asset}`).length !== 1) ||
     obsoleteOfflineArt.some((asset) => offlineAssets.includes(asset)) ||
     offlineAssets.some((asset) => /(?:nav-upgrade|\/upgrades-v3\/)/.test(asset))) {
-  throw new Error("The v51 cache must contain each approved Farm asset exactly once and exclude retired Upgrade and superseded Farm art");
+  throw new Error("The v52 cache must contain each approved Farm asset exactly once and exclude retired Upgrade and superseded Farm art");
 }
-if (!theme.includes('url("./stone-soil-plot-v1.webp")') ||
+if (!theme.includes('url("./wood-vine-soil-plot-v1.webp")') ||
     !/#cropArea \.crop-area-controls \.farm-actions\s*\{[^}]*grid-template-columns:repeat\(2,/s.test(theme) ||
+    !/#cropArea \.crop-area-controls \.farm-actions\s*\{[^}]*background:transparent/s.test(theme) ||
+    !/#cropArea \.crop-area-controls \.btn:last-child\s*\{[^}]*background:linear-gradient\(180deg,#a97926/s.test(theme) ||
     !/#cropArea \.bed-plaque\s*\{[^}]*background:/s.test(theme) ||
     !/\.app\.farm-view \.wallet\s*\{[^}]*grid-template-columns:repeat\(2,/s.test(theme)) {
-  throw new Error("The Farm-only Meadow Courtyard styling must keep the split wallet, unified action ribbon, stone plots, and cream plaques");
+  throw new Error("The Farm-only reference styling must keep the split wallet, separate green/brown bulk actions, wooden plots, and cream plaques");
 }
 const uiV3Assets = [
   "assets/farm/ui-v3/theme-v3.css",
@@ -431,8 +441,8 @@ if (seedPacketMetadata.width !== 384 || seedPacketMetadata.height !== 384 || !se
     offlineAssets.filter((asset) => asset === `./${seedPacketAsset}`).length !== 1 ||
     offlineAssets.some((asset) => /-seeds-96\.png$/.test(asset)) ||
     !html.includes(`const SEED_PACKET_FRAME="${seedPacketAsset}"`) ||
-    !html.includes('href="assets/farm/ui-v3/theme-v3.css?v=51"') ||
-    offlineAssets.filter((asset) => asset === "./assets/farm/ui-v3/theme-v3.css?v=51").length !== 1 ||
+    !html.includes('href="assets/farm/ui-v3/theme-v3.css?v=52"') ||
+    offlineAssets.filter((asset) => asset === "./assets/farm/ui-v3/theme-v3.css?v=52").length !== 1 ||
     !seedPacketMarkupSource.includes("seed-packet-frame") ||
     !seedPacketMarkupSource.includes('seed-packet-crop auto-centered-sprite') ||
     !seedPacketMarkupSource.includes('data-center-src="${crop.image}"') ||
@@ -477,7 +487,7 @@ for (const farmHook of ["FARM_CURRENCY_ICONS", "farm-view", "compactFmt", "step-
   }
 }
 if (!theme.includes("#farm:before") ||
-    !theme.includes("url(\"../ui/farm-meadow-background-v1.webp\")") ||
+    !theme.includes("url(\"../ui/farm-gui-meadow-v1.webp\")") ||
     !theme.includes("#farm .garden-panel") ||
     !theme.includes("background:transparent") ||
     !theme.includes("#farm .bed-plaque")) {
@@ -659,9 +669,10 @@ if (!theme.includes("--plot-aspect:1.04") ||
     !/#cropArea \.bed>\.bed-scene\s*\{[^}]*width:100%;[^}]*height:100%;[^}]*transform:none!important/s.test(theme)) {
   throw new Error("Every empty, growing, ready, and locked planter must share one responsive geometry");
 }
-if (!theme.includes("--hero-weather-gap:28px") ||
-    !/#farmOverview \.weather-card\s*\{[^}]*margin:var\(--hero-weather-gap\) auto 0/s.test(theme)) {
-  throw new Error("The local weather card must keep an explicit visual gap below the step ring");
+if (!/#farmOverview \.step-ring\s*\{[^}]*grid-template-columns:minmax\(0,1fr\) minmax\(130px,1\.45fr\);[^}]*justify-items:stretch;[^}]*aspect-ratio:auto/s.test(theme) ||
+    !/#farmOverview \.step-goal-track\s*\{[^}]*height:20px/s.test(theme) ||
+    !/#farmOverview \.weather-card\s*\{[^}]*margin:12px auto 0/s.test(theme)) {
+  throw new Error("The daily goal must use the functional horizontal bar and keep local weather clearly separated below it");
 }
 if (!/\.app img,\s*\.modal img\s*\{[^}]*image-rendering:auto!important/s.test(theme)) {
   throw new Error("Foreground icons, crops, and character portraits must use smooth browser scaling");
@@ -716,7 +727,7 @@ if (!plantIntoSource.includes("Number.isInteger(index)") ||
 }
 if (!html.includes('class="farm-hero"') || !html.includes('class="garden-panel"') || !html.includes("#farm .farm-hero") || !html.includes('class="bed ${status}"') ||
     html.includes("WALK-POWERED FARM") || html.includes("MOVE TO GROW") || html.includes("Walk. Grow. Harvest.")) {
-  throw new Error("The Farm must use the clean step-ring-only hero and condensed plot board");
+  throw new Error("The Farm must use the clean horizontal daily-goal hero and condensed functional plot board");
 }
 if (!html.includes("#farm .bed-scene,.placement-bed-scene{") ||
     !html.includes("#farm .crop-visual,.placement-bed-scene .crop-visual{") ||

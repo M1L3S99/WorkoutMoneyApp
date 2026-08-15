@@ -1,5 +1,5 @@
 /* Ironbound service worker — farming app shell for offline + home-screen install */
-const CACHE = 'ironbound-farm-v51';
+const CACHE = 'ironbound-farm-v52';
 const CROP_IDS = [
   'radish','lettuce','spinach','carrot','onion','beetroot','blueberry','peas','potato','strawberry','pepper',
   'tomato','corn','eggplant','cabbage','broccoli','pumpkin','grapes','melon','dragonfruit','starfruit','ancient-root'
@@ -27,7 +27,7 @@ const GENERATED_ART = [
   ...['tilda','bram','nia'].map((id) => `./assets/farm/npcs/${id}-96.png`)
 ];
 const UI_V3_ART = [
-  './assets/farm/ui-v3/theme-v3.css?v=51',
+  './assets/farm/ui-v3/theme-v3.css?v=52',
   './assets/farm/ui-v3/avatar-96.png',
   './assets/farm/ui-v3/nav-farm-64.png',
   './assets/farm/ui-v3/nav-shop-64.png',
@@ -38,7 +38,7 @@ const UI_V3_ART = [
   './assets/farm/ui-v3/gold-currency-v2-96.png',
   './assets/farm/ui-v3/seed-packet-frame-v1.png',
   './assets/farm/ui-v3/wallet-wheat-divider-v1.png',
-  './assets/farm/ui-v3/stone-soil-plot-v1.webp'
+  './assets/farm/ui-v3/wood-vine-soil-plot-v1.webp'
 ];
 const ASSETS = [
   './',
@@ -51,7 +51,7 @@ const ASSETS = [
   './assets/farm/ui/farm-ground-sand-v6.webp',
   './assets/farm/ui/farm-overview-scene-v1.webp',
   './assets/farm/ui/crop-area-ground-v1.webp',
-  './assets/farm/ui/farm-meadow-background-v1.webp',
+  './assets/farm/ui/farm-gui-meadow-v1.webp',
   './assets/farm/ui/gold-coin-64.png',
   './assets/farm/ui/step-token-64.png',
   ...UI_V3_ART,
