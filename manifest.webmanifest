@@ -1,13 +1,13 @@
 {
-  "name": "Ironbound — Step Farm",
-  "short_name": "Ironbound",
-  "description": "Grow crops with your daily steps, improve your farm and sell each harvest.",
+  "name": "RepDrop — Exercise & Rewards",
+  "short_name": "RepDrop",
+  "description": "Complete daily exercise routines, earn capsules and build collectible card sets.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#ffffff",
-  "theme_color": "#304c35",
+  "background_color": "#f2eee5",
+  "theme_color": "#18231d",
   "icons": [
     { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
   ]
