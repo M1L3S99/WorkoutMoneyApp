@@ -28,7 +28,8 @@ check((js.match(/set: "gemstones"/g) || []).length === 10, "Gemstone Vault must 
 check((js.match(/set: "bloom"/g) || []).length === 10, "Bloom Atelier must contain 10 cards");
 check((js.match(/set: "cosmic"/g) || []).length === 10, "Cosmic Crew must contain 10 cards");
 check(js.includes('name: "Gemstone Vault"') && js.includes('name: "Bloom Atelier"') && js.includes('name: "Cosmic Crew"'), "the three collection definitions are incomplete");
-check(html.includes('id="collectionLibrary"') && html.includes('id="collectionLibraryGrid"'), "multi-collection library page is missing");
+check(html.includes('id="collectionAlbumHero"') && html.includes('id="collectionLibraryGrid"') && html.includes('id="albumTotalProgress"'), "collector album page is missing");
+check(html.includes('id="openCollectionCapsule"') && css.includes(".collection-series-strip") && css.includes(".album-binder"), "collector album interactions or styling are incomplete");
 check(js.includes("data-open-collection") && js.includes("cardsFor(state.activeSet)"), "collection selection does not control capsule drops");
 check(js.includes("state.coins += 50") && js.includes("state.capsules += 1"), "daily completion reward logic is incomplete");
 check(js.includes("if (duplicate) state.coins += 25"), "duplicate refund must be 25 coins");
@@ -43,8 +44,8 @@ check(js.includes("setTimeout(revealCapsule, 260)"), "purchased capsules do not 
 check(css.includes("@keyframes capsule-split-top") && css.includes("@keyframes capsule-split-bottom"), "two-piece capsule animation is missing");
 check(css.includes(".requirements-card.complete"), "completed Today styling is missing");
 check(css.includes(".requirement-circle"), "completion circle styling is missing");
-check(sw.includes('const CACHE = "repdrop-v4"'), "offline cache version is incorrect");
-check(html.includes('repdrop.css?v=4') && html.includes('repdrop.js?v=4'), "RepDrop asset cache-busters are stale");
+check(sw.includes('const CACHE = "repdrop-v5"'), "offline cache version is incorrect");
+check(html.includes('repdrop.css?v=5') && html.includes('repdrop.js?v=5'), "RepDrop asset cache-busters are stale");
 check(manifest.name.startsWith("RepDrop"), "manifest is still branded as the farm app");
 
 for (const asset of [
