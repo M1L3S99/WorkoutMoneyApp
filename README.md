@@ -11,7 +11,7 @@ RepDrop is a mobile-first exercise tracker with collectible rewards. It combines
 
 ## Collections and shop
 
-- Browse three independent 10-card series in a layered stitched folder with raised card pockets: the pixel-art Gemstone Vault, painted Bloom Atelier and playful Cosmic Crew.
+- Browse three independent 10-card series inside a custom-painted stitched folder plate with matching generated card backs: the pixel-art Gemstone Vault, painted Bloom Atelier and playful Cosmic Crew.
 - Folder tabs switch the active series with a brief paper page-turn animation.
 - Selecting a collection makes it the source for the next mystery-capsule drop.
 - A duplicate card returns 25 coins.
