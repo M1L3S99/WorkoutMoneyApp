@@ -17,34 +17,38 @@ check(html.includes("full pose detection is not implemented yet"), "pose detecti
 check(html.includes("Earn 50 coins + 1 mystery capsule"), "daily reward copy is incorrect");
 check((html.match(/data-screen=/g) || []).length === 3, "bottom navigation must have exactly three screens");
 check(!/data-screen="(?:farm|quests|silo|upgrade)"/.test(html), "retired farm navigation is still present");
-check((html.match(/data-buy-capsules=/g) || []).length === 3, "shop should only expose the hero, one-pack and three-pack capsule purchases");
+check((html.match(/data-buy-capsules=/g) || []).length === 1, "shop must expose exactly one capsule offer");
+check(!html.includes('data-buy-capsules="3"') && !html.includes('data-cost="190"'), "retired multi-capsule offer is still present");
 check(html.includes("$3.99"), "exercise pack price is missing");
 check(html.includes("Payment processing is not connected"), "prototype payment disclosure is missing");
 check(js.includes('const STARTER_EXERCISES = ["pushup", "squat", "situp"]'), "starter exercises are incorrect");
 check(js.includes('const EXTRA_EXERCISES = ["burpee", "climber", "jumpingJack"]'), "exercise pack exercises are incorrect");
+check(js.includes('steps: { name: "Steps"') && js.includes('{ steps: 7500,'), "steps are not available as a scheduled daily requirement");
 check((js.match(/set: "gemstones"/g) || []).length === 10, "Gemstone Vault must contain 10 cards");
 check(!/Cosmic Crew|Snack Squad|Bloom Atelier/.test(html + js), "retired collections are still present");
-check(!html.includes("collectionTabs") && !js.includes("collectionTabs"), "the single collection must not show a collection selector");
+check(html.includes('id="collectionLibrary"') && html.includes('id="openGemCollection"'), "collection library page is missing");
 check(js.includes("state.coins += 50") && js.includes("state.capsules += 1"), "daily completion reward logic is incomplete");
 check(js.includes("if (duplicate) state.coins += 25"), "duplicate refund must be 25 coins");
 check(js.includes("data-cost=\"75\"") || html.includes('data-cost="75"'), "single capsule must cost 75 coins");
-check(html.includes('data-cost="190"'), "three capsules must cost 190 coins");
 check(js.includes("localStorage.setItem(STORAGE_KEY"), "local progress persistence is missing");
 check(js.includes("window.IronboundSteps = { receive: receiveSteps }"), "native step bridge is missing");
 check(!js.includes("state.steps -=") && !js.includes("state.todaySteps -="), "steps must not be spent as currency");
+check(!html.includes('id="stepChip"') && !html.includes('id="stepCount"'), "steps still look like a header currency");
+check(js.includes("setTimeout(revealCapsule, 260)"), "purchased capsules do not open automatically");
+check(css.includes("@keyframes capsule-split-top") && css.includes("@keyframes capsule-split-bottom"), "two-piece capsule animation is missing");
 check(css.includes(".requirements-card.complete"), "completed Today styling is missing");
 check(css.includes(".requirement-circle"), "completion circle styling is missing");
-check(sw.includes('const CACHE = "repdrop-v2"'), "offline cache version is incorrect");
-check(html.includes('repdrop.css?v=2') && html.includes('repdrop.js?v=2'), "RepDrop asset cache-busters are stale");
+check(sw.includes('const CACHE = "repdrop-v3"'), "offline cache version is incorrect");
+check(html.includes('repdrop.css?v=3') && html.includes('repdrop.js?v=3'), "RepDrop asset cache-busters are stale");
 check(manifest.name.startsWith("RepDrop"), "manifest is still branded as the farm app");
 
 for (const asset of [
   "assets/farm/ui-v3/step-currency-v2-96.png",
   "assets/repdrop/repdrop-capsule-open-v1.webp",
-  "assets/repdrop/ruby-gem-card-v1.webp",
-  "assets/repdrop/diamond-gem-card-v1.webp",
-  "assets/repdrop/opal-gem-card-v1.webp",
-  "assets/repdrop/peridot-gem-card-v1.webp"
+  "assets/repdrop/ruby-gem-card-pixel-v2.webp",
+  "assets/repdrop/diamond-gem-card-pixel-v2.webp",
+  "assets/repdrop/opal-gem-card-pixel-v2.webp",
+  "assets/repdrop/peridot-gem-card-pixel-v2.webp"
 ]) check(fs.existsSync(path.join(root, asset)), `missing required asset: ${asset}`);
 
 if (failures.length) {
