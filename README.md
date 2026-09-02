@@ -9,11 +9,14 @@ RepDrop is a mobile-first exercise tracker with collectible rewards. It combines
 - Finish every scheduled requirement to turn the Today section green and claim 50 coins plus one mystery capsule once per day.
 - Unlock burpees, mountain climbers, jumping jacks and future exercise types with the local exercise-pack prototype.
 
-## Collection and shop
+## Collections and shop
 
-- Choose Gemstone Vault from the collection library, then discover 10 crisp pixel-art gemstone cards.
+- Browse three independent 10-card series: the pixel-art Gemstone Vault, painted Bloom Atelier and playful Cosmic Crew.
+- Selecting a collection makes it the source for the next mystery-capsule drop.
 - A duplicate card returns 25 coins.
-- One Gemstone Vault capsule costs 75 coins and opens immediately with a two-piece splitting animation.
+- One mystery capsule costs 75 coins and opens immediately with a two-piece splitting animation.
+- New profiles start with 10,000 coins; existing profiles receive the same one-time launch grant.
+- A custom pixel dumbbell coin makes the reward balance distinct from steps.
 - The $3.99 pack control documents that payment processing is not connected and only unlocks locally.
 
 Exercise counts, schedules, coins, capsules and collected cards are stored in local browser storage. The Android wrapper retains the native background pedometer and sends the current daily total into the web app.
