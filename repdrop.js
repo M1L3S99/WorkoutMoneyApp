@@ -27,7 +27,11 @@
     { steps: 7500, pushup: 15, squat: 25, situp: 20 }
   ];
 
-  const COLLECTION = { id: "gemstones", name: "Gemstone Vault", short: "Gems", symbol: "◆", tone: "#7066e8" };
+  const COLLECTIONS = [
+    { id: "gemstones", name: "Gemstone Vault", short: "Gems", symbol: "◆", tone: "#7066e8", cover: "assets/repdrop/sapphire-gem-card-pixel-v2.webp", description: "10 pixel gems" },
+    { id: "bloom", name: "Bloom Atelier", short: "Bloom", symbol: "✿", tone: "#e86e84", cover: "assets/repdrop/poppy-muse-botanical-ink.webp", description: "10 painted botanicals" },
+    { id: "cosmic", name: "Cosmic Crew", short: "Cosmic", symbol: "🚀", tone: "#318bdc", emoji: "🪐", description: "10 space friends" }
+  ];
 
   const CARDS = [
     { id: "ruby", set: "gemstones", name: "Crimson Ruby", rarity: "EPIC", art: "assets/repdrop/ruby-gem-card-pixel-v2.webp" },
@@ -39,7 +43,27 @@
     { id: "aquamarine", set: "gemstones", name: "Aquamarine Tide", rarity: "RARE", art: "assets/repdrop/aquamarine-gem-card-pixel-v2.webp" },
     { id: "opal", set: "gemstones", name: "Dream Opal", rarity: "EPIC", art: "assets/repdrop/opal-gem-card-pixel-v2.webp" },
     { id: "garnet", set: "gemstones", name: "Heart Garnet", rarity: "RARE", art: "assets/repdrop/garnet-gem-card-pixel-v2.webp" },
-    { id: "peridot", set: "gemstones", name: "Meadow Peridot", rarity: "COMMON", art: "assets/repdrop/peridot-gem-card-pixel-v2.webp" }
+    { id: "peridot", set: "gemstones", name: "Meadow Peridot", rarity: "COMMON", art: "assets/repdrop/peridot-gem-card-pixel-v2.webp" },
+    { id: "poppy", set: "bloom", name: "Poppy Muse", rarity: "EPIC", art: "assets/repdrop/poppy-muse-botanical-ink.webp" },
+    { id: "golden", set: "bloom", name: "Golden Hour", rarity: "RARE", art: "assets/repdrop/golden-hour-card-art.webp" },
+    { id: "bluebell", set: "bloom", name: "Bluebell Waltz", rarity: "COMMON", art: "assets/repdrop/bluebell-waltz-card-art.webp" },
+    { id: "dahlia", set: "bloom", name: "Dahlia Drama", rarity: "EPIC", art: "assets/repdrop/dahlia-drama-card-art.webp" },
+    { id: "wild", set: "bloom", name: "Wild Daisy", rarity: "COMMON", art: "assets/repdrop/wild-daisy-card-art.webp" },
+    { id: "iris", set: "bloom", name: "Iris Ink", rarity: "RARE", art: "assets/repdrop/iris-ink-card-art.webp" },
+    { id: "peony", set: "bloom", name: "Peony Blush", rarity: "EPIC", art: "assets/repdrop/peony-blush-card-art.webp" },
+    { id: "lavender", set: "bloom", name: "Lavender Hush", rarity: "COMMON", art: "assets/repdrop/lavender-hush-card-art.webp" },
+    { id: "tulip", set: "bloom", name: "Tulip Tempo", rarity: "RARE", art: "assets/repdrop/tulip-tempo-card-art.webp" },
+    { id: "moon-orchid", set: "bloom", name: "Moon Orchid", rarity: "EPIC", art: "assets/repdrop/moon-orchid-card-art.webp" },
+    { id: "luna", set: "cosmic", name: "Luna", rarity: "RARE", emoji: "🌙" },
+    { id: "solar", set: "cosmic", name: "Solar", rarity: "EPIC", emoji: "☀️" },
+    { id: "comet", set: "cosmic", name: "Comet", rarity: "RARE", emoji: "☄️" },
+    { id: "nova", set: "cosmic", name: "Nova", rarity: "EPIC", emoji: "⭐" },
+    { id: "rex", set: "cosmic", name: "Rex", rarity: "RARE", emoji: "🚀" },
+    { id: "ringo", set: "cosmic", name: "Ringo", rarity: "COMMON", emoji: "🪐" },
+    { id: "orbit", set: "cosmic", name: "Orbit", rarity: "EPIC", emoji: "👽" },
+    { id: "scout", set: "cosmic", name: "Scout", rarity: "RARE", emoji: "🛸" },
+    { id: "terra", set: "cosmic", name: "Terra", rarity: "COMMON", emoji: "🌍" },
+    { id: "rocky", set: "cosmic", name: "Rocky", rarity: "COMMON", emoji: "🪨" }
   ];
 
   const $ = (selector, root = document) => root.querySelector(selector);
@@ -57,7 +81,8 @@
   function freshState() {
     return {
       version: 1,
-      coins: 100,
+      coins: 10000,
+      coinGrantVersion: 1,
       capsules: 1,
       packOwned: false,
       collection: [],
@@ -68,6 +93,7 @@
       todaySteps: 0,
       stepDate: dayKey(),
       trackingStatus: "saved",
+      activeSet: "gemstones",
       activeExercise: "pushup"
     };
   }
@@ -84,6 +110,10 @@
       if (saved && typeof saved === "object") {
         const merged = { ...initial, ...saved };
         merged.coins = clampNumber(merged.coins);
+        if (!saved.coinGrantVersion) {
+          merged.coins += 10000;
+          merged.coinGrantVersion = 1;
+        }
         merged.capsules = clampNumber(merged.capsules);
         merged.packOwned = Boolean(merged.packOwned);
         merged.collection = Array.isArray(merged.collection) ? [...new Set(merged.collection.filter((id) => CARDS.some((card) => card.id === id)))] : [];
@@ -91,6 +121,7 @@
         merged.dailyCounts = merged.dailyCounts && typeof merged.dailyCounts === "object" ? merged.dailyCounts : {};
         merged.completedDays = merged.completedDays && typeof merged.completedDays === "object" ? merged.completedDays : {};
         merged.rewardedDays = merged.rewardedDays && typeof merged.rewardedDays === "object" ? merged.rewardedDays : {};
+        if (!COLLECTIONS.some((collection) => collection.id === merged.activeSet)) merged.activeSet = "gemstones";
         if (!EXERCISES[merged.activeExercise]) merged.activeExercise = "pushup";
         return merged;
       }
@@ -129,6 +160,14 @@
 
   function scheduledExercises() {
     return ["steps", ...ownedExercises()];
+  }
+
+  function activeCollection() {
+    return COLLECTIONS.find((collection) => collection.id === state.activeSet) || COLLECTIONS[0];
+  }
+
+  function cardsFor(setId) {
+    return CARDS.filter((card) => card.set === setId);
   }
 
   function progressCount(id) {
@@ -174,10 +213,13 @@
   }
 
   function renderHeader() {
+    const collection = activeCollection();
     $("#coinCount").textContent = formatNumber(state.coins);
     $("#shopCoinCount").textContent = formatNumber(state.coins);
     $("#capsuleCount").textContent = formatNumber(state.capsules);
     $("#capsuleChip").classList.toggle("has-capsule", state.capsules > 0);
+    $("#capsuleBannerTitle").textContent = `${collection.name} capsule ready`;
+    $("#capsuleBannerCopy").textContent = `Open it to reveal a ${collection.short.toLowerCase()} card`;
   }
 
   function renderToday() {
@@ -253,28 +295,47 @@
 
   function cardMarkup(card, owned, reveal = false) {
     const className = reveal ? "reveal-card" : "collectible";
+    const collection = COLLECTIONS.find((item) => item.id === card.set) || COLLECTIONS[0];
+    const number = String(cardsFor(card.set).findIndex((item) => item.id === card.id) + 1).padStart(3, "0");
     if (!owned && !reveal) {
-      return `<article class="${className} locked" aria-label="Undiscovered collectible"><div class="card-back"><small>SERIES 01</small><i>?</i><b>REPDROP</b><small>KEEP MOVING</small></div></article>`;
+      return `<article class="${className} locked" aria-label="Undiscovered ${collection.name} card"><div class="card-back"><small>${collection.short.toUpperCase()} · CARD</small><i>?</i><b>REPDROP</b><small>KEEP MOVING</small></div></article>`;
     }
     const art = card.art
       ? `<img src="${card.art}" alt="${card.name}">`
       : `<span class="emoji-art" aria-hidden="true">${card.emoji}</span>`;
     return `<article class="${className} owned rarity-${card.rarity.toLowerCase()}">
-      <div class="collectible-top"><span>SERIES 01</span><span>REPDROP</span></div>
+      <div class="collectible-top"><span>${collection.short.toUpperCase()}</span><span class="card-number">#${number}</span></div>
       <div class="collectible-art">${art}</div>
       <div class="collectible-info"><b>${card.name}</b><span class="rarity ${card.rarity.toLowerCase()}">${card.rarity}</span></div>
-      <div class="collectible-foot"><span>${COLLECTION.short}</span><span>MOVE · EARN · REVEAL</span></div>
+      <div class="collectible-foot"><span>REPDROP</span><span>MOVE · EARN · REVEAL</span></div>
     </article>`;
   }
 
+  function renderCollectionLibrary() {
+    $("#collectionLibraryGrid").innerHTML = COLLECTIONS.map((collection) => {
+      const cards = cardsFor(collection.id);
+      const owned = cards.filter((card) => state.collection.includes(card.id)).length;
+      const cover = collection.cover
+        ? `<img src="${collection.cover}" alt="">`
+        : `<span class="collection-entry-cover-emoji" aria-hidden="true">${collection.emoji}</span>`;
+      return `<button class="collection-entry" type="button" data-open-collection="${collection.id}" style="--collection-tone:${collection.tone}" aria-label="Open ${collection.name}">
+        <span class="collection-entry-art">${cover}</span>
+        <span><small>${collection.symbol} ${collection.short.toUpperCase()} SERIES</small><b>${collection.name}</b><em>${collection.description}</em></span>
+        <strong>${owned}/${cards.length}</strong>
+      </button>`;
+    }).join("");
+  }
+
   function renderCollections() {
-    const cards = CARDS;
+    const collection = activeCollection();
+    const cards = cardsFor(state.activeSet);
     const owned = cards.filter((card) => state.collection.includes(card.id)).length;
-    $("#libraryCollectionProgress").textContent = `${owned}/${cards.length}`;
-    $("#collectionTitle").textContent = COLLECTION.name;
-    $("#collectionMeta").textContent = `SERIES 01 · ${cards.length} GEMS`;
+    renderCollectionLibrary();
+    $("#collectionTitle").textContent = collection.name;
+    $("#collectionMeta").textContent = `${collection.short.toUpperCase()} SERIES · ${cards.length} CARDS`;
     $("#collectionProgress").textContent = `${owned}/${cards.length}`;
     $("#collectionProgressBar").style.width = `${(owned / cards.length) * 100}%`;
+    $("#collectionProgressBar").style.background = collection.tone;
     $("#collectionGrid").innerHTML = cards.map((card) => cardMarkup(card, state.collection.includes(card.id))).join("");
   }
 
@@ -283,15 +344,18 @@
     $("#collectionDetail").hidden = true;
   }
 
-  function showGemCollection() {
+  function showCollection(setId) {
+    if (COLLECTIONS.some((collection) => collection.id === setId)) state.activeSet = setId;
     renderCollections();
     $("#collectionLibrary").hidden = true;
     $("#collectionDetail").hidden = false;
+    saveState();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function renderShop() {
     $("#shopCoinCount").textContent = formatNumber(state.coins);
+    $("#shopCapsuleCopy").textContent = `Opens a card from ${activeCollection().name}.`;
     const pack = $("#exercisePack");
     pack.classList.toggle("owned", state.packOwned);
     $("#packPrice").textContent = state.packOwned ? "OWNED" : "$3.99";
@@ -397,7 +461,14 @@
   }
 
   function renderCapsuleChooser() {
-    $("#capsuleTitle").textContent = "Your gemstone drop";
+    const collection = activeCollection();
+    const cards = cardsFor(collection.id);
+    $("#capsuleCollectionLabel").textContent = `${collection.name.toUpperCase()} COLLECTION`;
+    $("#capsuleTitle").textContent = `Your ${collection.name} drop`;
+    $("#capsuleDescription").textContent = `Reveal one of ${cards.length} collectible cards.`;
+    $("#capsuleBannerTitle").textContent = `${collection.name} capsule ready`;
+    $("#capsuleBannerCopy").textContent = `Open it to reveal a ${collection.short.toLowerCase()} card`;
+    $("#capsuleStage").style.setProperty("--collection-tone", collection.tone);
     $("#capsuleChoose").hidden = false;
     $("#revealView").hidden = true;
     $("#capsuleStage").classList.remove("opening");
@@ -417,7 +488,9 @@
 
   function revealCapsule() {
     if (state.capsules < 1) return;
-    const card = CARDS[Math.floor(Math.random() * CARDS.length)];
+    const collection = activeCollection();
+    const cards = cardsFor(collection.id);
+    const card = cards[Math.floor(Math.random() * cards.length)];
     const duplicate = state.collection.includes(card.id);
     state.capsules -= 1;
     if (duplicate) state.coins += 25;
@@ -430,7 +503,7 @@
       $("#capsuleChoose").hidden = true;
       const view = $("#revealView");
       view.hidden = false;
-      view.innerHTML = `<span class="eyebrow lime">${duplicate ? "DUPLICATE DROP" : "NEW CARD"}</span>${cardMarkup(card, true, true)}<h2>${card.name}</h2><p>${duplicate ? "You already own this card, so it returned 25 coins." : `Added to ${COLLECTION.name}.`}</p><button class="open-capsule-button" type="button" data-finish-reveal>${state.capsules > 0 ? "Open another" : "Done"}</button>`;
+      view.innerHTML = `<span class="eyebrow lime">${duplicate ? "DUPLICATE DROP" : "NEW CARD"}</span>${cardMarkup(card, true, true)}<h2>${card.name}</h2><p>${duplicate ? "You already own this card, so it returned 25 coins." : `Added to ${collection.name}.`}</p><button class="open-capsule-button" type="button" data-finish-reveal>${state.capsules > 0 ? "Open another" : "Done"}</button>`;
       $("#capsuleStage").classList.remove("opening");
       $("#openingCapsule").classList.remove("opening");
       renderHeader();
@@ -522,7 +595,10 @@
     scheduleDraft[selectedScheduleDay][id] = clampNumber(event.target.value, 0, id === "steps" ? 100000 : 999);
   });
   $("#scheduleForm").addEventListener("submit", () => saveSchedule());
-  $("#openGemCollection").addEventListener("click", showGemCollection);
+  $("#collectionLibraryGrid").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-open-collection]");
+    if (button) showCollection(button.dataset.openCollection);
+  });
   $("#backToCollections").addEventListener("click", showCollectionLibrary);
   $("#openCapsule").addEventListener("click", openCapsuleDialog);
   $("#capsuleChip").addEventListener("click", openCapsuleDialog);
@@ -545,8 +621,8 @@
   window.__repdropTest = {
     getState: () => JSON.parse(JSON.stringify(state)),
     exercises: Object.keys(EXERCISES),
-    collections: [COLLECTION.id],
-    cardCounts: { [COLLECTION.id]: CARDS.length },
+    collections: COLLECTIONS.map((collection) => collection.id),
+    cardCounts: Object.fromEntries(COLLECTIONS.map((collection) => [collection.id, cardsFor(collection.id).length])),
     receiveSteps
   };
 
