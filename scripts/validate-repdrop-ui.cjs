@@ -29,6 +29,7 @@ check((js.match(/set: "bloom"/g) || []).length === 10, "Bloom Atelier must conta
 check((js.match(/set: "cosmic"/g) || []).length === 10, "Cosmic Crew must contain 10 cards");
 check(js.includes('name: "Gemstone Vault"') && js.includes('name: "Bloom Atelier"') && js.includes('name: "Cosmic Crew"'), "the three collection definitions are incomplete");
 check(html.includes('id="collectionPage"') && html.includes('id="collectionLibraryGrid"') && html.includes('id="openBinderCapsule"'), "functional card binder page is missing");
+check(!html.includes("MY CARD BINDER") && !html.includes("binder-brand"), "removed collection branding is still present");
 check(js.includes("data-open-collection") && js.includes("cardsFor(state.activeSet)"), "collection selection does not control capsule drops");
 check(js.includes('page.classList.add("turning-out")') && js.includes('page.classList.add("turning-in")'), "folder page-turn behavior is missing");
 check(js.includes("state.coins += 50") && js.includes("state.capsules += 1"), "daily completion reward logic is incomplete");
@@ -46,8 +47,8 @@ check(css.includes(".requirements-card.complete"), "completed Today styling is m
 check(css.includes(".requirement-circle"), "completion circle styling is missing");
 check(css.includes("@keyframes binder-page-out") && css.includes("@keyframes binder-page-in"), "folder page-turn animation is missing");
 check(css.includes(".binder-folder-tab") && css.includes(".binder-capsule-button"), "card binder styling is incomplete");
-check(sw.includes('const CACHE = "repdrop-v6"'), "offline cache version is incorrect");
-check(html.includes('repdrop.css?v=6') && html.includes('repdrop.js?v=6'), "RepDrop asset cache-busters are stale");
+check(sw.includes('const CACHE = "repdrop-v7"'), "offline cache version is incorrect");
+check(html.includes('repdrop.css?v=7') && html.includes('repdrop.js?v=7'), "RepDrop asset cache-busters are stale");
 check(manifest.name.startsWith("RepDrop"), "manifest is still branded as the farm app");
 
 for (const asset of [
