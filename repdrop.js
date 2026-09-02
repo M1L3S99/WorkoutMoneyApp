@@ -387,7 +387,9 @@
       if (active) button.setAttribute("aria-current", "page");
       else button.removeAttribute("aria-current");
     });
-    document.body.classList.toggle("collections-active", screenId === "collections");
+    const collectionActive = screenId === "collections";
+    document.body.classList.toggle("collections-active", collectionActive);
+    document.documentElement.classList.toggle("collections-active", collectionActive);
     if (screenId === "collections") {
       renderCollections();
     }
@@ -604,7 +606,6 @@
     const button = event.target.closest("[data-open-collection]");
     if (button) showCollection(button.dataset.openCollection);
   });
-  $("#openBinderCapsule").addEventListener("click", openCapsuleDialog);
   $("#openCapsule").addEventListener("click", openCapsuleDialog);
   $("#capsuleChip").addEventListener("click", openCapsuleDialog);
   $("#revealCapsule").addEventListener("click", revealCapsule);
