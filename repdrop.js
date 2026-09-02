@@ -8,6 +8,7 @@
   const STARTER_EXERCISES = ["pushup", "squat", "situp"];
   const EXTRA_EXERCISES = ["burpee", "climber", "jumpingJack"];
   const EXERCISES = {
+    steps: { name: "Steps", singular: "step", icon: "steps" },
     pushup: { name: "Pushups", singular: "pushup", icon: "↔" },
     squat: { name: "Squats", singular: "squat", icon: "↧" },
     situp: { name: "Sit-ups", singular: "sit-up", icon: "⌁" },
@@ -17,28 +18,28 @@
   };
 
   const DEFAULT_TARGETS = [
-    { pushup: 30, squat: 40, situp: 25 },
-    { pushup: 20, squat: 35, situp: 30 },
-    { pushup: 30, squat: 40, situp: 25 },
-    { pushup: 25, squat: 30, situp: 30 },
-    { pushup: 30, squat: 40, situp: 25 },
-    { pushup: 20, squat: 50, situp: 20 },
-    { pushup: 15, squat: 25, situp: 20 }
+    { steps: 7500, pushup: 30, squat: 40, situp: 25 },
+    { steps: 7500, pushup: 20, squat: 35, situp: 30 },
+    { steps: 7500, pushup: 30, squat: 40, situp: 25 },
+    { steps: 7500, pushup: 25, squat: 30, situp: 30 },
+    { steps: 7500, pushup: 30, squat: 40, situp: 25 },
+    { steps: 7500, pushup: 20, squat: 50, situp: 20 },
+    { steps: 7500, pushup: 15, squat: 25, situp: 20 }
   ];
 
   const COLLECTION = { id: "gemstones", name: "Gemstone Vault", short: "Gems", symbol: "◆", tone: "#7066e8" };
 
   const CARDS = [
-    { id: "ruby", set: "gemstones", name: "Crimson Ruby", rarity: "EPIC", art: "assets/repdrop/ruby-gem-card-v1.webp" },
-    { id: "sapphire", set: "gemstones", name: "Ocean Sapphire", rarity: "RARE", art: "assets/repdrop/sapphire-gem-card-v1.webp" },
-    { id: "emerald", set: "gemstones", name: "Verdant Emerald", rarity: "EPIC", art: "assets/repdrop/emerald-gem-card-v1.webp" },
-    { id: "amethyst", set: "gemstones", name: "Violet Amethyst", rarity: "RARE", art: "assets/repdrop/amethyst-gem-card-v1.webp" },
-    { id: "citrine", set: "gemstones", name: "Solar Citrine", rarity: "COMMON", art: "assets/repdrop/citrine-gem-card-v1.webp" },
-    { id: "diamond", set: "gemstones", name: "Starlight Diamond", rarity: "LEGENDARY", art: "assets/repdrop/diamond-gem-card-v1.webp" },
-    { id: "aquamarine", set: "gemstones", name: "Aquamarine Tide", rarity: "RARE", art: "assets/repdrop/aquamarine-gem-card-v1.webp" },
-    { id: "opal", set: "gemstones", name: "Dream Opal", rarity: "EPIC", art: "assets/repdrop/opal-gem-card-v1.webp" },
-    { id: "garnet", set: "gemstones", name: "Heart Garnet", rarity: "RARE", art: "assets/repdrop/garnet-gem-card-v1.webp" },
-    { id: "peridot", set: "gemstones", name: "Meadow Peridot", rarity: "COMMON", art: "assets/repdrop/peridot-gem-card-v1.webp" }
+    { id: "ruby", set: "gemstones", name: "Crimson Ruby", rarity: "EPIC", art: "assets/repdrop/ruby-gem-card-pixel-v2.webp" },
+    { id: "sapphire", set: "gemstones", name: "Ocean Sapphire", rarity: "RARE", art: "assets/repdrop/sapphire-gem-card-pixel-v2.webp" },
+    { id: "emerald", set: "gemstones", name: "Verdant Emerald", rarity: "EPIC", art: "assets/repdrop/emerald-gem-card-pixel-v2.webp" },
+    { id: "amethyst", set: "gemstones", name: "Violet Amethyst", rarity: "RARE", art: "assets/repdrop/amethyst-gem-card-pixel-v2.webp" },
+    { id: "citrine", set: "gemstones", name: "Solar Citrine", rarity: "COMMON", art: "assets/repdrop/citrine-gem-card-pixel-v2.webp" },
+    { id: "diamond", set: "gemstones", name: "Starlight Diamond", rarity: "LEGENDARY", art: "assets/repdrop/diamond-gem-card-pixel-v2.webp" },
+    { id: "aquamarine", set: "gemstones", name: "Aquamarine Tide", rarity: "RARE", art: "assets/repdrop/aquamarine-gem-card-pixel-v2.webp" },
+    { id: "opal", set: "gemstones", name: "Dream Opal", rarity: "EPIC", art: "assets/repdrop/opal-gem-card-pixel-v2.webp" },
+    { id: "garnet", set: "gemstones", name: "Heart Garnet", rarity: "RARE", art: "assets/repdrop/garnet-gem-card-pixel-v2.webp" },
+    { id: "peridot", set: "gemstones", name: "Meadow Peridot", rarity: "COMMON", art: "assets/repdrop/peridot-gem-card-pixel-v2.webp" }
   ];
 
   const $ = (selector, root = document) => root.querySelector(selector);
@@ -72,8 +73,8 @@
   }
 
   function normalizedPlan(plan, packOwned) {
-    const keys = packOwned ? [...STARTER_EXERCISES, ...EXTRA_EXERCISES] : STARTER_EXERCISES;
-    return Object.fromEntries(keys.map((id) => [id, clampNumber(plan?.[id], 0, 999)]));
+    const keys = packOwned ? ["steps", ...STARTER_EXERCISES, ...EXTRA_EXERCISES] : ["steps", ...STARTER_EXERCISES];
+    return Object.fromEntries(keys.map((id) => [id, clampNumber(plan?.[id], 0, id === "steps" ? 100000 : 999)]));
   }
 
   function loadState() {
@@ -126,6 +127,20 @@
     return state.packOwned ? [...STARTER_EXERCISES, ...EXTRA_EXERCISES] : [...STARTER_EXERCISES];
   }
 
+  function scheduledExercises() {
+    return ["steps", ...ownedExercises()];
+  }
+
+  function progressCount(id) {
+    return id === "steps" ? clampNumber(state.todaySteps) : clampNumber(currentCounts()[id]);
+  }
+
+  function exerciseIcon(id) {
+    return id === "steps"
+      ? '<img class="step-exercise-icon" src="assets/farm/ui-v3/step-currency-v2-96.png" alt="">'
+      : EXERCISES[id].icon;
+  }
+
   function currentCounts() {
     const key = dayKey();
     if (!state.dailyCounts[key] || typeof state.dailyCounts[key] !== "object") state.dailyCounts[key] = {};
@@ -134,15 +149,14 @@
 
   function todayRequirements() {
     const plan = state.plans[new Date().getDay()] || DEFAULT_TARGETS[new Date().getDay()];
-    return ownedExercises()
-      .map((id) => ({ id, target: clampNumber(plan[id], 0, 999) }))
+    return scheduledExercises()
+      .map((id) => ({ id, target: clampNumber(plan[id], 0, id === "steps" ? 100000 : 999) }))
       .filter((item) => item.target > 0);
   }
 
   function completedToday() {
-    const counts = currentCounts();
     const requirements = todayRequirements();
-    return requirements.length > 0 && requirements.every(({ id, target }) => clampNumber(counts[id]) >= target);
+    return requirements.length > 0 && requirements.every(({ id, target }) => progressCount(id) >= target);
   }
 
   function syncCompletion() {
@@ -160,7 +174,6 @@
   }
 
   function renderHeader() {
-    $("#stepCount").textContent = formatNumber(state.todaySteps);
     $("#coinCount").textContent = formatNumber(state.coins);
     $("#shopCoinCount").textContent = formatNumber(state.coins);
     $("#capsuleCount").textContent = formatNumber(state.capsules);
@@ -172,11 +185,11 @@
     const counts = currentCounts();
     const requirements = todayRequirements();
     const complete = completedToday();
-    const completeCount = requirements.filter(({ id, target }) => clampNumber(counts[id]) >= target).length;
+    const completeCount = requirements.filter(({ id, target }) => progressCount(id) >= target).length;
     let hero = requirements.find(({ id }) => id === state.activeExercise) || requirements[0];
     if (!hero) hero = { id: "pushup", target: 0 };
     state.activeExercise = hero.id;
-    const heroCount = clampNumber(counts[hero.id]);
+    const heroCount = progressCount(hero.id);
     const percent = hero.target ? Math.min(100, Math.round((heroCount / hero.target) * 100)) : 100;
 
     $("#todayEyebrow").textContent = `${DAYS[new Date().getDay()].toUpperCase()} · TODAY`;
@@ -192,14 +205,14 @@
 
     const card = $("#requirementsCard");
     card.classList.toggle("complete", complete);
-    $("#requirementsSummary").textContent = complete ? "Every requirement finished—nice work." : `${Math.max(0, requirements.length - completeCount)} exercise${requirements.length - completeCount === 1 ? "" : "s"} remaining`;
+    $("#requirementsSummary").textContent = complete ? "Every requirement finished—nice work." : `${Math.max(0, requirements.length - completeCount)} requirement${requirements.length - completeCount === 1 ? "" : "s"} remaining`;
     $("#requirementsStatus").textContent = `${completeCount}/${requirements.length}`;
     $("#requirementGrid").innerHTML = requirements.length
       ? requirements.map(({ id, target }) => {
-          const count = clampNumber(counts[id]);
+          const count = progressCount(id);
           const itemPercent = target ? Math.min(100, Math.round((count / target) * 100)) : 100;
           return `<button class="requirement${count >= target ? " complete" : ""}" type="button" data-exercise="${id}" aria-label="Track ${EXERCISES[id].name}">
-            <span class="requirement-circle${count >= target ? " done" : ""}" style="--progress:${itemPercent * 3.6}deg"><i>${count >= target ? "✓" : EXERCISES[id].icon}</i></span>
+            <span class="requirement-circle${count >= target ? " done" : ""}" style="--progress:${itemPercent * 3.6}deg"><i>${count >= target ? "✓" : exerciseIcon(id)}</i></span>
             <b>${EXERCISES[id].name}</b><small>${formatNumber(count)} / ${formatNumber(target)}</small>
           </button>`;
         }).join("")
@@ -257,11 +270,24 @@
   function renderCollections() {
     const cards = CARDS;
     const owned = cards.filter((card) => state.collection.includes(card.id)).length;
+    $("#libraryCollectionProgress").textContent = `${owned}/${cards.length}`;
     $("#collectionTitle").textContent = COLLECTION.name;
     $("#collectionMeta").textContent = `SERIES 01 · ${cards.length} GEMS`;
     $("#collectionProgress").textContent = `${owned}/${cards.length}`;
     $("#collectionProgressBar").style.width = `${(owned / cards.length) * 100}%`;
     $("#collectionGrid").innerHTML = cards.map((card) => cardMarkup(card, state.collection.includes(card.id))).join("");
+  }
+
+  function showCollectionLibrary() {
+    $("#collectionLibrary").hidden = false;
+    $("#collectionDetail").hidden = true;
+  }
+
+  function showGemCollection() {
+    renderCollections();
+    $("#collectionLibrary").hidden = true;
+    $("#collectionDetail").hidden = false;
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function renderShop() {
@@ -292,7 +318,10 @@
       if (active) button.setAttribute("aria-current", "page");
       else button.removeAttribute("aria-current");
     });
-    if (screenId === "collections") renderCollections();
+    if (screenId === "collections") {
+      renderCollections();
+      showCollectionLibrary();
+    }
     if (screenId === "shop") renderShop();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -346,7 +375,11 @@
     const today = new Date().getDay();
     $("#scheduleDays").innerHTML = DAYS.map((day, index) => `<button type="button" role="tab" data-schedule-day="${index}" aria-selected="${index === selectedScheduleDay}" class="schedule-day${index === selectedScheduleDay ? " active" : ""}"><b>${day.slice(0, 3)}</b><small>${index === today ? "TODAY" : ""}</small></button>`).join("");
     $("#editingDay").textContent = `${DAYS[selectedScheduleDay]}’s exercises`;
-    $("#scheduleList").innerHTML = ownedExercises().map((id) => `<label class="plan-exercise"><i class="plan-emoji">${EXERCISES[id].icon}</i><span class="plan-copy"><b>${EXERCISES[id].name}</b><small>${clampNumber(scheduleDraft[selectedScheduleDay][id]) ? "Daily target" : "Not scheduled"}</small></span><input type="number" inputmode="numeric" min="0" max="999" value="${clampNumber(scheduleDraft[selectedScheduleDay][id], 0, 999)}" data-schedule-exercise="${id}" aria-label="${EXERCISES[id].name} target for ${DAYS[selectedScheduleDay]}"><small>reps</small></label>`).join("");
+    $("#scheduleList").innerHTML = scheduledExercises().map((id) => {
+      const max = id === "steps" ? 100000 : 999;
+      const target = clampNumber(scheduleDraft[selectedScheduleDay][id], 0, max);
+      return `<label class="plan-exercise"><i class="plan-emoji">${exerciseIcon(id)}</i><span class="plan-copy"><b>${EXERCISES[id].name}</b><small>${target ? "Daily target" : "Not scheduled"}</small></span><input type="number" inputmode="numeric" min="0" max="${max}" value="${target}" data-schedule-exercise="${id}" aria-label="${EXERCISES[id].name} target for ${DAYS[selectedScheduleDay]}"><small>${id === "steps" ? "steps" : "reps"}</small></label>`;
+    }).join("");
   }
 
   function openSchedule() {
@@ -414,7 +447,9 @@
     state.coins -= cost;
     state.capsules += amount;
     renderAll();
-    showToast(`${amount} mystery capsule${amount === 1 ? "" : "s"} added.`);
+    openCapsuleDialog();
+    showToast("Capsule purchased—opening now!");
+    setTimeout(revealCapsule, 260);
   }
 
   function unlockExercisePack() {
@@ -459,7 +494,12 @@
   $("#openTracker").addEventListener("click", () => openTracker());
   $("#requirementGrid").addEventListener("click", (event) => {
     const button = event.target.closest("[data-exercise]");
-    if (button) openTracker(button.dataset.exercise);
+    if (!button) return;
+    if (button.dataset.exercise === "steps") {
+      if (!postNative({ type: "requestPedometer" })) showToast("Step tracking connects automatically in the installed mobile app.");
+      return;
+    }
+    openTracker(button.dataset.exercise);
   });
   $("#trackerExercise").addEventListener("change", (event) => {
     state.activeExercise = event.target.value;
@@ -478,9 +518,12 @@
   });
   $("#scheduleList").addEventListener("input", (event) => {
     if (!event.target.matches("[data-schedule-exercise]")) return;
-    scheduleDraft[selectedScheduleDay][event.target.dataset.scheduleExercise] = clampNumber(event.target.value, 0, 999);
+    const id = event.target.dataset.scheduleExercise;
+    scheduleDraft[selectedScheduleDay][id] = clampNumber(event.target.value, 0, id === "steps" ? 100000 : 999);
   });
   $("#scheduleForm").addEventListener("submit", () => saveSchedule());
+  $("#openGemCollection").addEventListener("click", showGemCollection);
+  $("#backToCollections").addEventListener("click", showCollectionLibrary);
   $("#openCapsule").addEventListener("click", openCapsuleDialog);
   $("#capsuleChip").addEventListener("click", openCapsuleDialog);
   $("#revealCapsule").addEventListener("click", revealCapsule);
@@ -491,9 +534,6 @@
   });
   $$('[data-buy-capsules]').forEach((button) => button.addEventListener("click", () => buyCapsules(Number(button.dataset.buyCapsules), Number(button.dataset.cost))));
   $("#exercisePack").addEventListener("click", unlockExercisePack);
-  $("#stepChip").addEventListener("click", () => {
-    if (!postNative({ type: "requestPedometer" })) showToast("Step tracking connects automatically in the installed mobile app.");
-  });
   $$('[data-close]').forEach((button) => button.addEventListener("click", () => $("#" + button.dataset.close)?.close()));
   $$("dialog").forEach((dialog) => dialog.addEventListener("click", (event) => {
     if (event.target === dialog) dialog.close();

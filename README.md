@@ -4,16 +4,16 @@ RepDrop is a mobile-first exercise tracker with collectible rewards. It combines
 
 ## Daily loop
 
-- Track pushups, squats and sit-ups against a different schedule for every weekday.
+- Track walking steps, pushups, squats and sit-ups against a different schedule for every weekday.
 - Use the full-screen AI tracker prototype and its simulated detected-rep control. Browser pose detection is intentionally not implemented yet.
 - Finish every scheduled requirement to turn the Today section green and claim 50 coins plus one mystery capsule once per day.
 - Unlock burpees, mountain climbers, jumping jacks and future exercise types with the local exercise-pack prototype.
 
 ## Collection and shop
 
-- Open Gemstone Vault capsules to discover 10 hand-painted, card-shaped gemstone collectibles.
+- Choose Gemstone Vault from the collection library, then discover 10 crisp pixel-art gemstone cards.
 - A duplicate card returns 25 coins.
-- Capsules cost 75 coins for one or 190 coins for three.
+- One Gemstone Vault capsule costs 75 coins and opens immediately with a two-piece splitting animation.
 - The $3.99 pack control documents that payment processing is not connected and only unlocks locally.
 
 Exercise counts, schedules, coins, capsules and collected cards are stored in local browser storage. The Android wrapper retains the native background pedometer and sends the current daily total into the web app.

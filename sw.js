@@ -1,24 +1,24 @@
 /* RepDrop app shell — offline-first exercise tracking and collectibles. */
-const CACHE = "repdrop-v2";
+const CACHE = "repdrop-v3";
 const ASSETS = [
   "./",
   "./index.html",
-  "./repdrop.css?v=2",
-  "./repdrop.js?v=2",
+  "./repdrop.css?v=3",
+  "./repdrop.js?v=3",
   "./manifest.webmanifest",
   "./icon.svg",
   "./assets/farm/ui-v3/step-currency-v2-96.png",
   "./assets/repdrop/repdrop-capsule-open-v1.webp",
-  "./assets/repdrop/ruby-gem-card-v1.webp",
-  "./assets/repdrop/sapphire-gem-card-v1.webp",
-  "./assets/repdrop/emerald-gem-card-v1.webp",
-  "./assets/repdrop/amethyst-gem-card-v1.webp",
-  "./assets/repdrop/citrine-gem-card-v1.webp",
-  "./assets/repdrop/diamond-gem-card-v1.webp",
-  "./assets/repdrop/aquamarine-gem-card-v1.webp",
-  "./assets/repdrop/opal-gem-card-v1.webp",
-  "./assets/repdrop/garnet-gem-card-v1.webp",
-  "./assets/repdrop/peridot-gem-card-v1.webp"
+  "./assets/repdrop/ruby-gem-card-pixel-v2.webp",
+  "./assets/repdrop/sapphire-gem-card-pixel-v2.webp",
+  "./assets/repdrop/emerald-gem-card-pixel-v2.webp",
+  "./assets/repdrop/amethyst-gem-card-pixel-v2.webp",
+  "./assets/repdrop/citrine-gem-card-pixel-v2.webp",
+  "./assets/repdrop/diamond-gem-card-pixel-v2.webp",
+  "./assets/repdrop/aquamarine-gem-card-pixel-v2.webp",
+  "./assets/repdrop/opal-gem-card-pixel-v2.webp",
+  "./assets/repdrop/garnet-gem-card-pixel-v2.webp",
+  "./assets/repdrop/peridot-gem-card-pixel-v2.webp"
 ];
 
 self.addEventListener("install", (event) => {
