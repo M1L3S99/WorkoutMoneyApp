@@ -8,7 +8,7 @@
   <title>RepDrop — Exercise &amp; Rewards</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="repdrop.css?v=4">
+  <link rel="stylesheet" href="repdrop.css?v=5">
 </head>
 <body>
   <svg class="svg-sprite" aria-hidden="true">
@@ -64,17 +64,17 @@
       </section>
 
       <section class="screen" id="collections" aria-labelledby="collectionsTitle" hidden>
-        <span class="eyebrow">YOUR TREASURES</span><h1 id="collectionsTitle">Collection</h1>
-        <div class="collection-library" id="collectionLibrary">
-          <div class="library-heading"><h2>Choose a collection</h2><p>Each series has its own cards and progress.</p></div>
-          <div class="collection-library-grid" id="collectionLibraryGrid"></div>
-        </div>
-        <div class="collection-detail" id="collectionDetail" hidden>
-          <button class="back-button" id="backToCollections" type="button">← All collections</button>
-          <div class="collection-heading"><div><h2 id="collectionTitle">Gemstone Vault</h2><p id="collectionMeta">SERIES 01 · 10 GEMS</p></div><strong id="collectionProgress">0/10</strong></div>
+        <section class="collection-album-hero" id="collectionAlbumHero">
+          <div class="album-hero-copy"><span class="eyebrow">COLLECTOR ALBUM</span><h1 id="collectionsTitle">Your card vault</h1><p><strong id="albumTotalProgress">0/30</strong> cards discovered across every series.</p></div>
+          <div class="album-cover-stack" aria-hidden="true"><span></span><span></span><figure id="albumCoverArt"><span>◆</span></figure></div>
+        </section>
+        <div class="album-toolbar"><div><b>Choose a series</b><small>Your selection controls the next capsule.</small></div><button id="openCollectionCapsule" type="button">OPEN CAPSULE</button></div>
+        <div class="collection-series-strip" id="collectionLibraryGrid" role="tablist" aria-label="Choose a collection"></div>
+        <section class="collection-detail album-binder" id="collectionDetail">
+          <div class="collection-heading"><div><span class="series-kicker" id="collectionSymbol">◆</span><h2 id="collectionTitle">Gemstone Vault</h2><p id="collectionMeta">GEMS SERIES · 10 CARDS</p></div><strong id="collectionProgress">0/10</strong></div>
           <div class="collection-progress"><i id="collectionProgressBar"></i></div>
-          <div class="collection-grid" id="collectionGrid" role="tabpanel"></div>
-        </div>
+          <div class="collection-grid" id="collectionGrid" role="tabpanel" aria-live="polite"></div>
+        </section>
       </section>
 
       <section class="screen" id="shop" aria-labelledby="shopTitle" hidden>
@@ -109,6 +109,6 @@
   </dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="repdrop.js?v=4"></script>
+  <script src="repdrop.js?v=5"></script>
 </body>
 </html>
