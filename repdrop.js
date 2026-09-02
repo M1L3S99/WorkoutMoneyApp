@@ -28,7 +28,7 @@
   ];
 
   const COLLECTIONS = [
-    { id: "gemstones", name: "Gemstone Vault", short: "Gems", symbol: "◆", tone: "#7066e8", cover: "assets/repdrop/sapphire-gem-card-pixel-v2.webp", description: "10 pixel gems" },
+    { id: "gemstones", name: "Gemstone Vault", short: "Gems", symbol: "◆", tone: "#79b52a", cover: "assets/repdrop/sapphire-gem-card-pixel-v2.webp", description: "10 pixel gems" },
     { id: "bloom", name: "Bloom Atelier", short: "Bloom", symbol: "✿", tone: "#e86e84", cover: "assets/repdrop/poppy-muse-botanical-ink.webp", description: "10 painted botanicals" },
     { id: "cosmic", name: "Cosmic Crew", short: "Cosmic", symbol: "🚀", tone: "#318bdc", emoji: "🪐", description: "10 space friends" }
   ];
@@ -145,6 +145,7 @@
   let selectedScheduleDay = new Date().getDay();
   let scheduleDraft = null;
   let toastTimer = null;
+  let pageTurnTimer = null;
 
   function saveState() {
     try {
@@ -315,13 +316,9 @@
     $("#collectionLibraryGrid").innerHTML = COLLECTIONS.map((collection) => {
       const cards = cardsFor(collection.id);
       const owned = cards.filter((card) => state.collection.includes(card.id)).length;
-      const cover = collection.cover
-        ? `<img src="${collection.cover}" alt="">`
-        : `<span class="collection-entry-cover-emoji" aria-hidden="true">${collection.emoji}</span>`;
-      return `<button class="collection-entry" type="button" data-open-collection="${collection.id}" style="--collection-tone:${collection.tone}" aria-label="Open ${collection.name}">
-        <span class="collection-entry-art">${cover}</span>
-        <span><small>${collection.symbol} ${collection.short.toUpperCase()} SERIES</small><b>${collection.name}</b><em>${collection.description}</em></span>
-        <strong>${owned}/${cards.length}</strong>
+      const active = collection.id === state.activeSet;
+      return `<button class="binder-folder-tab${active ? " active" : ""}" type="button" role="tab" aria-selected="${active}" data-open-collection="${collection.id}" style="--collection-tone:${collection.tone}" aria-label="Open ${collection.name} folder">
+        <span>${collection.symbol}</span><b>${collection.name}</b><small>${owned}/${cards.length}</small>
       </button>`;
     }).join("");
   }
@@ -331,26 +328,34 @@
     const cards = cardsFor(state.activeSet);
     const owned = cards.filter((card) => state.collection.includes(card.id)).length;
     renderCollectionLibrary();
+    $("#collectionSymbol").textContent = collection.symbol;
     $("#collectionTitle").textContent = collection.name;
     $("#collectionMeta").textContent = `${collection.short.toUpperCase()} SERIES · ${cards.length} CARDS`;
-    $("#collectionProgress").textContent = `${owned}/${cards.length}`;
+    $("#collectionProgress").textContent = `${owned} / ${cards.length} FOUND`;
     $("#collectionProgressBar").style.width = `${(owned / cards.length) * 100}%`;
     $("#collectionProgressBar").style.background = collection.tone;
+    $("#collectionPage").style.setProperty("--collection-tone", collection.tone);
     $("#collectionGrid").innerHTML = cards.map((card) => cardMarkup(card, state.collection.includes(card.id))).join("");
   }
 
-  function showCollectionLibrary() {
-    $("#collectionLibrary").hidden = false;
-    $("#collectionDetail").hidden = true;
-  }
-
   function showCollection(setId) {
-    if (COLLECTIONS.some((collection) => collection.id === setId)) state.activeSet = setId;
-    renderCollections();
-    $("#collectionLibrary").hidden = true;
-    $("#collectionDetail").hidden = false;
-    saveState();
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (!COLLECTIONS.some((collection) => collection.id === setId) || setId === state.activeSet) return;
+    const page = $("#collectionPage");
+    if (page.dataset.turning === "true") return;
+    page.dataset.turning = "true";
+    page.classList.add("turning-out");
+    clearTimeout(pageTurnTimer);
+    pageTurnTimer = setTimeout(() => {
+      state.activeSet = setId;
+      renderCollections();
+      page.classList.remove("turning-out");
+      page.classList.add("turning-in");
+      saveState();
+      pageTurnTimer = setTimeout(() => {
+        page.classList.remove("turning-in");
+        delete page.dataset.turning;
+      }, 240);
+    }, 170);
   }
 
   function renderShop() {
@@ -382,9 +387,9 @@
       if (active) button.setAttribute("aria-current", "page");
       else button.removeAttribute("aria-current");
     });
+    document.body.classList.toggle("collections-active", screenId === "collections");
     if (screenId === "collections") {
       renderCollections();
-      showCollectionLibrary();
     }
     if (screenId === "shop") renderShop();
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -599,7 +604,7 @@
     const button = event.target.closest("[data-open-collection]");
     if (button) showCollection(button.dataset.openCollection);
   });
-  $("#backToCollections").addEventListener("click", showCollectionLibrary);
+  $("#openBinderCapsule").addEventListener("click", openCapsuleDialog);
   $("#openCapsule").addEventListener("click", openCapsuleDialog);
   $("#capsuleChip").addEventListener("click", openCapsuleDialog);
   $("#revealCapsule").addEventListener("click", revealCapsule);
