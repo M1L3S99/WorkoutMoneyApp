@@ -1,15 +1,17 @@
 /* RepDrop app shell — offline-first exercise tracking and collectibles. */
-const CACHE = "repdrop-v7";
+const CACHE = "repdrop-v8";
 const ASSETS = [
   "./",
   "./index.html",
-  "./repdrop.css?v=7",
-  "./repdrop.js?v=7",
+  "./repdrop.css?v=8",
+  "./repdrop.js?v=8",
   "./manifest.webmanifest",
   "./icon.svg",
   "./assets/farm/ui-v3/step-currency-v2-96.png",
   "./assets/repdrop/repdrop-capsule-open-v1.webp",
   "./assets/repdrop/coin-dumbbell-pixel-v1.png",
+  "./assets/repdrop/binder-folder-generated-v1.png",
+  "./assets/repdrop/locked-card-back-generated-v1.png",
   "./assets/repdrop/ruby-gem-card-pixel-v2.webp",
   "./assets/repdrop/sapphire-gem-card-pixel-v2.webp",
   "./assets/repdrop/emerald-gem-card-pixel-v2.webp",
