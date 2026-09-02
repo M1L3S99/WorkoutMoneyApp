@@ -22,9 +22,9 @@ check(html.includes("$3.99"), "exercise pack price is missing");
 check(html.includes("Payment processing is not connected"), "prototype payment disclosure is missing");
 check(js.includes('const STARTER_EXERCISES = ["pushup", "squat", "situp"]'), "starter exercises are incorrect");
 check(js.includes('const EXTRA_EXERCISES = ["burpee", "climber", "jumpingJack"]'), "exercise pack exercises are incorrect");
-check((js.match(/set: "garden"/g) || []).length === 10, "Bloom Atelier must contain 10 cards");
-check((js.match(/set: "cosmic"/g) || []).length === 10, "Cosmic Crew must contain 10 cards");
-check((js.match(/set: "snacks"/g) || []).length === 10, "Snack Squad must contain 10 cards");
+check((js.match(/set: "gemstones"/g) || []).length === 10, "Gemstone Vault must contain 10 cards");
+check(!/Cosmic Crew|Snack Squad|Bloom Atelier/.test(html + js), "retired collections are still present");
+check(!html.includes("collectionTabs") && !js.includes("collectionTabs"), "the single collection must not show a collection selector");
 check(js.includes("state.coins += 50") && js.includes("state.capsules += 1"), "daily completion reward logic is incomplete");
 check(js.includes("if (duplicate) state.coins += 25"), "duplicate refund must be 25 coins");
 check(js.includes("data-cost=\"75\"") || html.includes('data-cost="75"'), "single capsule must cost 75 coins");
@@ -34,14 +34,16 @@ check(js.includes("window.IronboundSteps = { receive: receiveSteps }"), "native 
 check(!js.includes("state.steps -=") && !js.includes("state.todaySteps -="), "steps must not be spent as currency");
 check(css.includes(".requirements-card.complete"), "completed Today styling is missing");
 check(css.includes(".requirement-circle"), "completion circle styling is missing");
-check(sw.includes('const CACHE = "repdrop-v1"'), "offline cache version is incorrect");
+check(sw.includes('const CACHE = "repdrop-v2"'), "offline cache version is incorrect");
 check(manifest.name.startsWith("RepDrop"), "manifest is still branded as the farm app");
 
 for (const asset of [
   "assets/farm/ui-v3/step-currency-v2-96.png",
   "assets/repdrop/repdrop-capsule-open-v1.webp",
-  "assets/repdrop/poppy-muse-botanical-ink.webp",
-  "assets/repdrop/moon-orchid-card-art.webp"
+  "assets/repdrop/ruby-gem-card-v1.webp",
+  "assets/repdrop/diamond-gem-card-v1.webp",
+  "assets/repdrop/opal-gem-card-v1.webp",
+  "assets/repdrop/peridot-gem-card-v1.webp"
 ]) check(fs.existsSync(path.join(root, asset)), `missing required asset: ${asset}`);
 
 if (failures.length) {
@@ -50,4 +52,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log("RepDrop validation passed: exercise tracking, rewards, capsule sets, shop, schedules, step bridge and offline shell are present.");
+console.log("RepDrop validation passed: exercise tracking, rewards, the gemstone collection, shop, schedules, step bridge and offline shell are present.");

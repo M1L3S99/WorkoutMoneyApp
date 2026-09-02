@@ -1,5 +1,5 @@
 /* RepDrop app shell — offline-first exercise tracking and collectibles. */
-const CACHE = "repdrop-v1";
+const CACHE = "repdrop-v2";
 const ASSETS = [
   "./",
   "./index.html",
@@ -9,16 +9,16 @@ const ASSETS = [
   "./icon.svg",
   "./assets/farm/ui-v3/step-currency-v2-96.png",
   "./assets/repdrop/repdrop-capsule-open-v1.webp",
-  "./assets/repdrop/poppy-muse-botanical-ink.webp",
-  "./assets/repdrop/golden-hour-card-art.webp",
-  "./assets/repdrop/bluebell-waltz-card-art.webp",
-  "./assets/repdrop/dahlia-drama-card-art.webp",
-  "./assets/repdrop/wild-daisy-card-art.webp",
-  "./assets/repdrop/iris-ink-card-art.webp",
-  "./assets/repdrop/peony-blush-card-art.webp",
-  "./assets/repdrop/lavender-hush-card-art.webp",
-  "./assets/repdrop/tulip-tempo-card-art.webp",
-  "./assets/repdrop/moon-orchid-card-art.webp"
+  "./assets/repdrop/ruby-gem-card-v1.webp",
+  "./assets/repdrop/sapphire-gem-card-v1.webp",
+  "./assets/repdrop/emerald-gem-card-v1.webp",
+  "./assets/repdrop/amethyst-gem-card-v1.webp",
+  "./assets/repdrop/citrine-gem-card-v1.webp",
+  "./assets/repdrop/diamond-gem-card-v1.webp",
+  "./assets/repdrop/aquamarine-gem-card-v1.webp",
+  "./assets/repdrop/opal-gem-card-v1.webp",
+  "./assets/repdrop/garnet-gem-card-v1.webp",
+  "./assets/repdrop/peridot-gem-card-v1.webp"
 ];
 
 self.addEventListener("install", (event) => {

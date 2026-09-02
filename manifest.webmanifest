@@ -1,7 +1,7 @@
 {
   "name": "RepDrop — Exercise & Rewards",
   "short_name": "RepDrop",
-  "description": "Complete daily exercise routines, earn capsules and build collectible card sets.",
+  "description": "Complete daily exercise routines, earn capsules and build a gemstone card collection.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

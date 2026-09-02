@@ -9,10 +9,9 @@ RepDrop is a mobile-first exercise tracker with collectible rewards. It combines
 - Finish every scheduled requirement to turn the Today section green and claim 50 coins plus one mystery capsule once per day.
 - Unlock burpees, mountain climbers, jumping jacks and future exercise types with the local exercise-pack prototype.
 
-## Collections and shop
+## Collection and shop
 
-- Choose Bloom Atelier, Cosmic Crew or Snack Squad before opening each capsule.
-- Each independent collection contains 10 card-shaped collectibles.
+- Open Gemstone Vault capsules to discover 10 hand-painted, card-shaped gemstone collectibles.
 - A duplicate card returns 25 coins.
 - Capsules cost 75 coins for one or 190 coins for three.
 - The $3.99 pack control documents that payment processing is not connected and only unlocks locally.
