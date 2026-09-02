@@ -60,23 +60,22 @@
         </section>
 
         <button class="capsule-banner" id="openCapsule" type="button" hidden>
-          <span class="capsule-thumb"><img src="assets/repdrop/repdrop-capsule-open-v1.webp" alt=""></span><span><b>Mystery capsule ready</b><small>Choose a collection, then reveal your card</small></span><strong>OPEN</strong>
+          <span class="capsule-thumb"><img src="assets/repdrop/repdrop-capsule-open-v1.webp" alt=""></span><span><b>Gem capsule ready</b><small>Open it to reveal a polished gemstone</small></span><strong>OPEN</strong>
         </button>
 
         <section class="week-card" aria-labelledby="weekTitle"><div class="section-heading"><div><h2 id="weekTitle">This week</h2><p id="weekSummary">Daily routines completed</p></div><strong id="weekPercent">0%</strong></div><div class="week-row" id="weekRow"></div></section>
       </section>
 
       <section class="screen" id="collections" aria-labelledby="collectionsTitle" hidden>
-        <span class="eyebrow">YOUR TREASURES</span><h1 id="collectionsTitle">Collections</h1>
-        <div class="collection-tabs" id="collectionTabs" role="tablist" aria-label="Card collection"></div>
-        <div class="collection-heading"><div><h2 id="collectionTitle">Bloom Atelier</h2><p id="collectionMeta">SERIES 01 · 10 CARDS</p></div><strong id="collectionProgress">0/10</strong></div>
+        <span class="eyebrow">YOUR TREASURES</span><h1 id="collectionsTitle">Collection</h1>
+        <div class="collection-heading"><div><h2 id="collectionTitle">Gemstone Vault</h2><p id="collectionMeta">SERIES 01 · 10 GEMS</p></div><strong id="collectionProgress">0/10</strong></div>
         <div class="collection-progress"><i id="collectionProgressBar"></i></div>
         <div class="collection-grid" id="collectionGrid" role="tabpanel"></div>
       </section>
 
       <section class="screen" id="shop" aria-labelledby="shopTitle" hidden>
         <div class="page-title-row"><div><span class="eyebrow">SPEND YOUR WINS</span><h1 id="shopTitle">Drop shop</h1></div><span class="coin-chip large"><i>★</i><b id="shopCoinCount">100</b></span></div>
-        <section class="shop-hero"><img src="assets/repdrop/repdrop-capsule-open-v1.webp" alt="Mystery capsule"><div><span>CHOOSE ANY SET</span><h2>Mystery capsule</h2><p>Pick the collection you want before opening.</p><button type="button" data-buy-capsules="1" data-cost="75"><i>★</i> 75</button></div></section>
+        <section class="shop-hero"><img src="assets/repdrop/repdrop-capsule-open-v1.webp" alt="Gemstone mystery capsule"><div><span>GEMSTONE VAULT</span><h2>Mystery capsule</h2><p>Reveal one of 10 polished gemstone cards.</p><button type="button" data-buy-capsules="1" data-cost="75"><i>★</i> 75</button></div></section>
         <h2 class="section-label">CAPSULES</h2>
         <div class="bundle-grid">
           <article class="bundle"><img src="assets/repdrop/repdrop-capsule-open-v1.webp" alt=""><h3>Quick drop</h3><p>1 capsule</p><button type="button" data-buy-capsules="1" data-cost="75"><i>★</i> 75</button></article>
@@ -91,7 +90,7 @@
 
     <nav class="bottom-nav" aria-label="Main navigation">
       <button class="active" type="button" data-screen="today" aria-current="page"><svg><use href="#i-home"/></svg><span>Today</span></button>
-      <button type="button" data-screen="collections"><svg><use href="#i-cards"/></svg><span>Collections</span></button>
+      <button type="button" data-screen="collections"><svg><use href="#i-cards"/></svg><span>Collection</span></button>
       <button type="button" data-screen="shop"><svg><use href="#i-shop"/></svg><span>Shop</span></button>
     </nav>
   </div>
@@ -107,7 +106,7 @@
   </dialog>
 
   <dialog class="capsule-modal" id="capsuleModal" aria-labelledby="capsuleTitle">
-    <div class="capsule-stage" id="capsuleStage"><button class="dark-icon-button capsule-close" type="button" data-close="capsuleModal" aria-label="Close capsule"><svg><use href="#i-close"/></svg></button><div id="capsuleChoose"><span class="eyebrow lime">CHOOSE YOUR COLLECTION</span><div class="drop-set-row" id="dropSetRow"></div><div class="opening-capsule" id="openingCapsule"><img src="assets/repdrop/repdrop-capsule-open-v1.webp" alt="Mystery capsule"></div><h2 id="capsuleTitle">Bloom Atelier drop</h2><p>This drop will only contain a card from this collection.</p><button class="open-capsule-button" id="revealCapsule" type="button">Open this capsule</button></div><div class="reveal-view" id="revealView" hidden></div></div>
+    <div class="capsule-stage" id="capsuleStage"><button class="dark-icon-button capsule-close" type="button" data-close="capsuleModal" aria-label="Close capsule"><svg><use href="#i-close"/></svg></button><div id="capsuleChoose"><span class="eyebrow lime">GEMSTONE VAULT COLLECTION</span><div class="opening-capsule" id="openingCapsule"><img src="assets/repdrop/repdrop-capsule-open-v1.webp" alt="Gemstone mystery capsule"></div><h2 id="capsuleTitle">Your gemstone drop</h2><p>Reveal one of 10 polished collectible gems.</p><button class="open-capsule-button" id="revealCapsule" type="button">Open this capsule</button></div><div class="reveal-view" id="revealView" hidden></div></div>
   </dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
