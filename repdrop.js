@@ -317,11 +317,11 @@
       const owned = cards.filter((card) => state.collection.includes(card.id)).length;
       const cover = collection.cover
         ? `<img src="${collection.cover}" alt="">`
-        : `<span class="series-tab-emoji" aria-hidden="true">${collection.emoji}</span>`;
-      const active = collection.id === state.activeSet;
-      return `<button class="series-tab${active ? " active" : ""}" type="button" role="tab" aria-selected="${active}" data-open-collection="${collection.id}" style="--collection-tone:${collection.tone}" aria-label="Select ${collection.name}">
-        <span class="series-tab-art">${cover}</span>
-        <span><b>${collection.name}</b><small>${owned}/${cards.length} FOUND</small></span>
+        : `<span class="collection-entry-cover-emoji" aria-hidden="true">${collection.emoji}</span>`;
+      return `<button class="collection-entry" type="button" data-open-collection="${collection.id}" style="--collection-tone:${collection.tone}" aria-label="Open ${collection.name}">
+        <span class="collection-entry-art">${cover}</span>
+        <span><small>${collection.symbol} ${collection.short.toUpperCase()} SERIES</small><b>${collection.name}</b><em>${collection.description}</em></span>
+        <strong>${owned}/${cards.length}</strong>
       </button>`;
     }).join("");
   }
@@ -330,28 +330,27 @@
     const collection = activeCollection();
     const cards = cardsFor(state.activeSet);
     const owned = cards.filter((card) => state.collection.includes(card.id)).length;
-    const totalOwned = CARDS.filter((card) => state.collection.includes(card.id)).length;
     renderCollectionLibrary();
-    $("#albumTotalProgress").textContent = `${totalOwned}/${CARDS.length}`;
-    $("#collectionSymbol").textContent = collection.symbol;
     $("#collectionTitle").textContent = collection.name;
     $("#collectionMeta").textContent = `${collection.short.toUpperCase()} SERIES · ${cards.length} CARDS`;
     $("#collectionProgress").textContent = `${owned}/${cards.length}`;
     $("#collectionProgressBar").style.width = `${(owned / cards.length) * 100}%`;
     $("#collectionProgressBar").style.background = collection.tone;
-    $("#collectionDetail").style.setProperty("--collection-tone", collection.tone);
-    const cover = collection.cover
-      ? `<img src="${collection.cover}" alt="">`
-      : `<span>${collection.emoji}</span>`;
-    $("#albumCoverArt").innerHTML = cover;
-    $("#albumCoverArt").style.setProperty("--collection-tone", collection.tone);
     $("#collectionGrid").innerHTML = cards.map((card) => cardMarkup(card, state.collection.includes(card.id))).join("");
+  }
+
+  function showCollectionLibrary() {
+    $("#collectionLibrary").hidden = false;
+    $("#collectionDetail").hidden = true;
   }
 
   function showCollection(setId) {
     if (COLLECTIONS.some((collection) => collection.id === setId)) state.activeSet = setId;
     renderCollections();
+    $("#collectionLibrary").hidden = true;
+    $("#collectionDetail").hidden = false;
     saveState();
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function renderShop() {
@@ -385,6 +384,7 @@
     });
     if (screenId === "collections") {
       renderCollections();
+      showCollectionLibrary();
     }
     if (screenId === "shop") renderShop();
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -599,7 +599,7 @@
     const button = event.target.closest("[data-open-collection]");
     if (button) showCollection(button.dataset.openCollection);
   });
-  $("#openCollectionCapsule").addEventListener("click", openCapsuleDialog);
+  $("#backToCollections").addEventListener("click", showCollectionLibrary);
   $("#openCapsule").addEventListener("click", openCapsuleDialog);
   $("#capsuleChip").addEventListener("click", openCapsuleDialog);
   $("#revealCapsule").addEventListener("click", revealCapsule);
