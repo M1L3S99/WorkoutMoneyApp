@@ -28,12 +28,12 @@ const BACKGROUND_SETUP_KEY = 'ironbound-background-tracking-setup-v2';
 const immediateStepDetector =
   Platform.OS === 'android' ? NativeModules.IronboundStepDetector : null;
 const colours = {
-  bg: '#020b19',
-  panel: '#071a34',
-  line: '#208de0',
-  text: '#f5f9ff',
-  muted: '#9db8d6',
-  accent: '#45b5ff',
+  bg: '#f2eee5',
+  panel: '#ffffff',
+  line: '#18231d',
+  text: '#18231d',
+  muted: '#647067',
+  accent: '#78bd3a',
 };
 
 const localDateKey = (date = new Date()) => {
@@ -263,12 +263,12 @@ export default function App() {
           canAskAgain: result.canAskAgain,
           message: result.canAskAgain
             ? 'Physical activity permission was not granted.'
-            : 'Open Android settings and allow Physical activity for Ironbound.',
+            : 'Open Android settings and allow Physical activity for RepDrop.',
         });
         if (!result.canAskAgain) {
           Alert.alert(
             'Physical activity permission',
-            'Allow Physical activity for Ironbound in Android settings.',
+            'Allow Physical activity for RepDrop in Android settings.',
             [
               { text: 'Not now', style: 'cancel' },
               { text: 'Open settings', onPress: () => Linking.openSettings() },
@@ -312,7 +312,7 @@ export default function App() {
       if (Platform.OS === 'android') {
         Alert.alert(
           'Background tracking enabled',
-          'Physical Activity, notifications, and background operation are enabled. Ironbound will keep counting with the app closed.',
+          'Physical Activity, notifications, and background operation are enabled. RepDrop will keep counting with the app closed.',
           [{ text: 'Done' }]
         );
       }
@@ -412,14 +412,13 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.app}>
-      <StatusBar barStyle="light-content" backgroundColor={colours.bg} />
+      <StatusBar barStyle="dark-content" backgroundColor={colours.bg} />
       <WebView
         ref={webRef}
         source={{ uri: GAME_URL }}
         style={styles.web}
         javaScriptEnabled
         domStorageEnabled
-        geolocationEnabled
         allowsInlineMediaPlayback
         mediaPlaybackRequiresUserAction={false}
         setSupportMultipleWindows={false}
@@ -434,7 +433,7 @@ export default function App() {
         }}
         renderError={() => (
           <View style={styles.center}>
-            <Text style={styles.title}>Could not load Ironbound</Text>
+            <Text style={styles.title}>Could not load RepDrop</Text>
             <Text style={styles.copy}>Connect to the internet and reopen the app.</Text>
           </View>
         )}
@@ -443,7 +442,7 @@ export default function App() {
       {!webReady && (
         <View style={styles.loading}>
           <ActivityIndicator size="large" color={colours.accent} />
-          <Text style={styles.loadingText}>Loading Ironbound…</Text>
+          <Text style={styles.loadingText}>Loading RepDrop…</Text>
         </View>
       )}
 
@@ -453,7 +452,7 @@ export default function App() {
             <View style={styles.icon}><Text style={styles.iconText}>◆</Text></View>
             <Text style={styles.title}>Enable background tracking</Text>
             <Text style={styles.copy}>
-              Android will ask for Physical Activity, notifications, and background operation. Approve all three so Ironbound can keep counting after you close it.
+              Android will ask for Physical Activity, notifications, and background operation. Approve all three so RepDrop can keep counting after you close it.
             </Text>
             <Pressable
               style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}
@@ -478,7 +477,7 @@ export default function App() {
             <Pressable style={styles.laterButton} onPress={() => setPermissionCard(false)}>
               <Text style={styles.laterText}>Not now</Text>
             </Pressable>
-            <Text style={styles.privacy}>Step totals stay on your phone and in your Ironbound save.</Text>
+            <Text style={styles.privacy}>Step totals stay on your phone and in your RepDrop progress.</Text>
           </View>
         </View>
       )}

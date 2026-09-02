@@ -144,7 +144,7 @@ class StepTrackingService : Service(), SensorEventListener {
       )
     }
     return NotificationCompat.Builder(this, CHANNEL_ID)
-      .setContentTitle("Ironbound is counting steps")
+      .setContentTitle("RepDrop is counting steps")
       .setContentText("$today steps today")
       .setSmallIcon(android.R.drawable.ic_menu_directions)
       .setOngoing(true)
@@ -163,7 +163,7 @@ class StepTrackingService : Service(), SensorEventListener {
         "Background step counting",
         NotificationManager.IMPORTANCE_LOW
       ).apply {
-        description = "Keeps Ironbound's pedometer active when the app is closed."
+        description = "Keeps RepDrop's pedometer active when the app is closed."
       }
     )
   }

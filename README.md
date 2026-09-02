@@ -1,44 +1,40 @@
-# Ironbound
+# RepDrop
 
-Ironbound is a mobile-first step farming game. Walking produces spendable steps and grows every planted crop; harvested crops can be sold for gold and experience.
+RepDrop is a mobile-first exercise tracker with collectible rewards. It combines customizable daily routines with the existing native step counter; steps are displayed as activity data and are never used as currency.
 
-## Farming loop
+## Daily loop
 
-- Start with one planting plot and unlock up to twenty with gold.
-- View the step ring, local weather and all farm plots together on one continuous meadow screen.
-- Plant level-gated crops with different step requirements, experience rewards and sale values.
-- Every walked step advances all active beds. The Android app keeps a native lifetime ledger so steps collected in the background remain available across day changes.
-- Harvest crops in standard, Bronze, Silver, Gold or Iridium quality. Iridium has a 1% base chance.
-- Sell harvested crops for gold; crop values scale from their walking requirements and progression level.
-- Spend gold on permanent irrigation, soil-quality and market-value improvements.
-- Spend steps on Boots, Gloves, Tools and single-use Fertiliser. Equipment improves crop growth, quality or sale value.
+- Track pushups, squats and sit-ups against a different schedule for every weekday.
+- Use the full-screen AI tracker prototype and its simulated detected-rep control. Browser pose detection is intentionally not implemented yet.
+- Finish every scheduled requirement to turn the Today section green and claim 50 coins plus one mystery capsule once per day.
+- Unlock burpees, mountain climbers, jumping jacks and future exercise types with the local exercise-pack prototype.
 
-## Currency and progression
+## Collections and shop
 
-- **Steps** come only from walking and are used in the Country Store.
-- **Gold** comes from selling crops and is used for new beds and farm upgrades.
-- Harvesting awards experience. Higher-level crops require more steps but award more experience and gold.
+- Choose Bloom Atelier, Cosmic Crew or Snack Squad before opening each capsule.
+- Each independent collection contains 10 card-shaped collectibles.
+- A duplicate card returns 25 coins.
+- Capsules cost 75 coins for one or 190 coins for three.
+- The $3.99 pack control documents that payment processing is not connected and only unlocks locally.
 
-## Background Android tracking
-
-The Android wrapper uses the hardware step detector and cumulative step counter through a foreground health service. It stores both today’s steps and a lifetime total, displays an ongoing notification, restarts after reboot, and requests Physical Activity, notification and battery-optimization permissions through Android.
+Exercise counts, schedules, coins, capsules and collected cards are stored in local browser storage. The Android wrapper retains the native background pedometer and sends the current daily total into the web app.
 
 ## Run locally
 
-Serve the repository with a static web server:
+Serve the repository with any static server, for example:
 
 ```powershell
 python -m http.server 4173
 ```
 
-Open `http://127.0.0.1:4173`. The native Android wrapper is required for hardware and background step tracking.
+Open `http://127.0.0.1:4173`. The installed Android wrapper is required for hardware and background step tracking.
 
-Run the static farming checks with:
+Run the static product checks with:
 
 ```powershell
-node scripts/validate-farm-ui.cjs
+node scripts/validate-repdrop-ui.cjs
 ```
 
 ## Deployment
 
-The repository is configured for GitHub Pages. `manifest.webmanifest` provides the portrait install metadata, while `sw.js` uses a network-first app-shell cache so deployed updates remain fresh and the last successful version works offline.
+The repository deploys through GitHub Pages. The service worker caches the RepDrop shell and collectible artwork for offline use while checking the network first for deployed updates.

@@ -1,17 +1,16 @@
-# Ironbound Android app
+# RepDrop Android app
 
-This is the native phone shell for the current Ironbound step RPG. It loads the
-live game and bridges Android's hardware pedometer into the web game.
+This native phone shell loads the live RepDrop web app and bridges Android’s hardware pedometer into its read-only daily step display.
 
 ## What the native app adds
 
-- Android **Physical activity** permission
+- Android Physical activity permission
 - hardware pedometer readings through `expo-sensors`
 - native daily-step persistence
-- raw Android hardware-counter reconciliation, including steps taken while the
-  app was backgrounded on the same device boot
-- verified step batches sent into active enemy combat
+- raw Android hardware-counter reconciliation, including steps taken while the app was backgrounded on the same device boot
 - an in-app permission and settings recovery screen
+
+Steps are activity data in RepDrop, not a spendable currency. Exercise repetitions still use the simulated tracker control until pose detection is implemented.
 
 ## Local development
 
@@ -31,11 +30,6 @@ cd android
 .\gradlew.bat assembleRelease
 ```
 
-The APK is written to:
+The APK is written to `android/app/build/outputs/apk/release/app-release.apk`.
 
-`android/app/build/outputs/apk/release/app-release.apk`
-
-Android pauses live callbacks while the app is fully in the background. When
-the app resumes, Ironbound compares the device's raw step counter with its last
-saved reading and recovers the missed steps. A device reboot starts a new raw
-counter baseline.
+Android pauses live callbacks while the app is fully in the background. When the app resumes, RepDrop compares the device’s raw step counter with its last saved reading and recovers missed steps. A device reboot starts a new raw-counter baseline.

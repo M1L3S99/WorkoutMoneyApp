@@ -113,7 +113,7 @@ class StepDetectorModule(
     }
     val activity = reactContext.getCurrentActivity()
     if (activity == null) {
-      promise.reject("NO_ACTIVITY", "Open Ironbound before enabling background tracking.")
+      promise.reject("NO_ACTIVITY", "Open RepDrop before enabling background tracking.")
       return
     }
     batteryRequestPromise?.reject("REPLACED", "A newer battery permission request was started.")

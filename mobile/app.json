@@ -1,22 +1,20 @@
 {
   "expo": {
-    "name": "Ironbound",
+    "name": "RepDrop",
     "slug": "ironbound-step-rpg",
-    "version": "2.4.0",
+    "version": "3.0.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "dark",
-    "backgroundColor": "#020b19",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#f2eee5",
     "scheme": "ironbound",
     "plugins": [
       "./plugins/with-step-detector"
     ],
     "android": {
       "package": "com.m1l3s99.ironbound",
-      "versionCode": 10,
+      "versionCode": 11,
       "permissions": [
         "android.permission.ACTIVITY_RECOGNITION",
-        "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.FOREGROUND_SERVICE",
         "android.permission.FOREGROUND_SERVICE_HEALTH",
         "android.permission.INTERNET",
@@ -35,8 +33,7 @@
       "bundleIdentifier": "com.m1l3s99.ironbound",
       "supportsTablet": false,
       "infoPlist": {
-        "NSMotionUsageDescription": "Ironbound uses your step count for live daily progress.",
-        "NSLocationWhenInUseUsageDescription": "Ironbound uses your location to apply the local weather crop bonus."
+        "NSMotionUsageDescription": "RepDrop uses your step count for live daily progress."
       }
     }
   }
