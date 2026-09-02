@@ -30,7 +30,7 @@
   const COLLECTIONS = [
     { id: "gemstones", name: "Gemstone Vault", short: "Gems", symbol: "◆", tone: "#79b52a", cover: "assets/repdrop/sapphire-gem-card-pixel-v2.webp", description: "10 pixel gems" },
     { id: "bloom", name: "Bloom Atelier", short: "Bloom", symbol: "✿", tone: "#e86e84", cover: "assets/repdrop/poppy-muse-botanical-ink.webp", description: "10 painted botanicals" },
-    { id: "cosmic", name: "Cosmic Crew", short: "Cosmic", symbol: "🚀", tone: "#318bdc", emoji: "🪐", description: "10 space friends" }
+    { id: "cosmic", name: "Cosmic Crew", short: "Cosmic", symbol: "🚀", tone: "#8c55d9", emoji: "🪐", description: "10 space friends" }
   ];
 
   const CARDS = [

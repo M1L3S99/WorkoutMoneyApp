@@ -46,8 +46,8 @@ check(css.includes(".requirements-card.complete"), "completed Today styling is m
 check(css.includes(".requirement-circle"), "completion circle styling is missing");
 check(css.includes("@keyframes binder-page-out") && css.includes("@keyframes binder-page-in"), "folder page-turn animation is missing");
 check(css.includes(".binder-folder-tab") && css.includes(".binder-capsule-button"), "card binder styling is incomplete");
-check(sw.includes('const CACHE = "repdrop-v5"'), "offline cache version is incorrect");
-check(html.includes('repdrop.css?v=5') && html.includes('repdrop.js?v=5'), "RepDrop asset cache-busters are stale");
+check(sw.includes('const CACHE = "repdrop-v6"'), "offline cache version is incorrect");
+check(html.includes('repdrop.css?v=6') && html.includes('repdrop.js?v=6'), "RepDrop asset cache-busters are stale");
 check(manifest.name.startsWith("RepDrop"), "manifest is still branded as the farm app");
 
 for (const asset of [
