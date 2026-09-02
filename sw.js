@@ -1,10 +1,10 @@
 /* RepDrop app shell — offline-first exercise tracking and collectibles. */
-const CACHE = "repdrop-v8";
+const CACHE = "repdrop-v9";
 const ASSETS = [
   "./",
   "./index.html",
-  "./repdrop.css?v=8",
-  "./repdrop.js?v=8",
+  "./repdrop.css?v=9",
+  "./repdrop.js?v=9",
   "./manifest.webmanifest",
   "./icon.svg",
   "./assets/farm/ui-v3/step-currency-v2-96.png",
