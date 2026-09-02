@@ -28,7 +28,8 @@ check((js.match(/set: "gemstones"/g) || []).length === 10, "Gemstone Vault must 
 check((js.match(/set: "bloom"/g) || []).length === 10, "Bloom Atelier must contain 10 cards");
 check((js.match(/set: "cosmic"/g) || []).length === 10, "Cosmic Crew must contain 10 cards");
 check(js.includes('name: "Gemstone Vault"') && js.includes('name: "Bloom Atelier"') && js.includes('name: "Cosmic Crew"'), "the three collection definitions are incomplete");
-check(html.includes('id="collectionPage"') && html.includes('id="collectionLibraryGrid"') && html.includes('id="openBinderCapsule"'), "functional card binder page is missing");
+check(html.includes('id="collectionPage"') && html.includes('id="collectionLibraryGrid"'), "functional card binder page is missing");
+check(!html.includes("openBinderCapsule") && !html.includes("binder-capsule-button") && !js.includes("openBinderCapsule"), "collection capsule button was not removed");
 check(!html.includes("MY CARD BINDER") && !html.includes("binder-brand"), "removed collection branding is still present");
 check(html.includes("binder-folder-generated-v2.png") && css.includes("locked-card-back-generated-v1.png"), "generated binder artwork is not integrated");
 check(js.includes('<img src="assets/repdrop/locked-card-back-generated-v1.png"'), "generated locked card is not rendered as a visible image layer");
@@ -48,9 +49,10 @@ check(css.includes("@keyframes capsule-split-top") && css.includes("@keyframes c
 check(css.includes(".requirements-card.complete"), "completed Today styling is missing");
 check(css.includes(".requirement-circle"), "completion circle styling is missing");
 check(css.includes("@keyframes binder-page-out") && css.includes("@keyframes binder-page-in"), "folder page-turn animation is missing");
-check(css.includes(".binder-folder-tab") && css.includes(".binder-capsule-button"), "card binder styling is incomplete");
-check(sw.includes('const CACHE = "repdrop-v10"'), "offline cache version is incorrect");
-check(html.includes('repdrop.css?v=10') && html.includes('repdrop.js?v=10'), "RepDrop asset cache-busters are stale");
+check(css.includes(".binder-folder-tab") && css.includes(".binder-page:before,.binder-page:after{content:none}"), "card binder styling is incomplete");
+check(css.includes("body.collections-active{background:var(--binder-canvas)}"), "collection canvas is not a single full-screen colour");
+check(sw.includes('const CACHE = "repdrop-v11"'), "offline cache version is incorrect");
+check(html.includes('repdrop.css?v=11') && html.includes('repdrop.js?v=11'), "RepDrop asset cache-busters are stale");
 check(manifest.name.startsWith("RepDrop"), "manifest is still branded as the farm app");
 
 for (const asset of [
