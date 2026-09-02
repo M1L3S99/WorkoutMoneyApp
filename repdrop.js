@@ -299,7 +299,7 @@
     const collection = COLLECTIONS.find((item) => item.id === card.set) || COLLECTIONS[0];
     const number = String(cardsFor(card.set).findIndex((item) => item.id === card.id) + 1).padStart(3, "0");
     if (!owned && !reveal) {
-      return `<article class="${className} locked" aria-label="Undiscovered ${collection.name} card"><div class="card-back"><small>${collection.short.toUpperCase()} · CARD</small><i>?</i><b>REPDROP</b><small>KEEP MOVING</small></div></article>`;
+      return `<article class="${className} locked" aria-label="Undiscovered ${collection.name} card"><div class="card-back"><img src="assets/repdrop/locked-card-back-generated-v1.png" alt=""><span class="visually-hidden">Undiscovered card</span></div></article>`;
     }
     const art = card.art
       ? `<img src="${card.art}" alt="${card.name}">`
