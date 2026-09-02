@@ -3,8 +3,8 @@ const CACHE = "repdrop-v2";
 const ASSETS = [
   "./",
   "./index.html",
-  "./repdrop.css?v=1",
-  "./repdrop.js?v=1",
+  "./repdrop.css?v=2",
+  "./repdrop.js?v=2",
   "./manifest.webmanifest",
   "./icon.svg",
   "./assets/farm/ui-v3/step-currency-v2-96.png",

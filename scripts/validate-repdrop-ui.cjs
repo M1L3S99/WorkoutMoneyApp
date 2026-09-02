@@ -35,6 +35,7 @@ check(!js.includes("state.steps -=") && !js.includes("state.todaySteps -="), "st
 check(css.includes(".requirements-card.complete"), "completed Today styling is missing");
 check(css.includes(".requirement-circle"), "completion circle styling is missing");
 check(sw.includes('const CACHE = "repdrop-v2"'), "offline cache version is incorrect");
+check(html.includes('repdrop.css?v=2') && html.includes('repdrop.js?v=2'), "RepDrop asset cache-busters are stale");
 check(manifest.name.startsWith("RepDrop"), "manifest is still branded as the farm app");
 
 for (const asset of [
