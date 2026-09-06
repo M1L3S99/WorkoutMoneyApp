@@ -10,6 +10,7 @@
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="repdrop.css?v=11">
   <link rel="stylesheet" href="visual-theme.css?v=12">
+  <link rel="stylesheet" href="collection-designs.css?v=13">
 </head>
 <body>
   <svg class="svg-sprite" aria-hidden="true">
@@ -64,19 +65,29 @@
         <section class="week-card" aria-labelledby="weekTitle"><div class="section-heading"><div><h2 id="weekTitle">This week</h2><p id="weekSummary">Daily routines completed</p></div><strong id="weekPercent">0%</strong></div><div class="week-row" id="weekRow"></div></section>
       </section>
 
-      <section class="screen" id="collections" aria-labelledby="collectionsTitle" hidden>
-        <h1 class="visually-hidden" id="collectionsTitle">Collection</h1>
-        <div class="binder-shell">
-          <div class="binder-book">
-            <img class="binder-folder-art" src="assets/repdrop/binder-folder-generated-v2.png" alt="">
-            <section class="binder-page" id="collectionPage">
-              <div class="binder-page-heading"><span id="collectionSymbol">◆</span><div><h2 id="collectionTitle">Gemstone Vault</h2><p id="collectionMeta">GEMS SERIES · 10 CARDS</p></div></div>
-              <div class="binder-progress"><strong id="collectionProgress">0 / 10 FOUND</strong><span><i id="collectionProgressBar"></i></span></div>
-              <div class="collection-grid" id="collectionGrid" role="tabpanel" aria-live="polite"></div>
-            </section>
-            <nav class="binder-folder-tabs" id="collectionLibraryGrid" role="tablist" aria-label="Choose a collection folder"></nav>
-          </div>
+      <section class="screen" id="collections" data-design="album" aria-labelledby="collectionsTitle" hidden>
+        <header class="collection-intro">
+          <div><span class="collection-kicker">YOUR EVERYDAY FINDS</span><h1 id="collectionsTitle">Collection</h1><p>A little proof of showing up.</p></div>
+          <span class="collection-total"><svg aria-hidden="true"><use href="#i-cards"/></svg><b id="collectionTotal">0 / 30</b><small>collected</small></span>
+        </header>
+        <div class="collection-design-picker" role="group" aria-label="Collection design">
+          <button type="button" data-collection-design="album" aria-pressed="true">Album</button>
+          <button type="button" data-collection-design="gallery" aria-pressed="false">Gallery</button>
+          <button type="button" data-collection-design="journal" aria-pressed="false">Journal</button>
         </div>
+        <p class="collection-design-note" id="collectionDesignNote">Paper pages, tucked-away treasures.</p>
+        <nav class="collection-folders" id="collectionLibraryGrid" role="tablist" aria-label="Choose a collection folder"></nav>
+        <div class="collection-workspace">
+          <div class="album-rings" aria-hidden="true"><i></i><i></i><i></i></div>
+          <section class="collection-page" id="collectionPage">
+            <div class="collection-page-heading"><div><p id="collectionMeta">COLLECTION 01 · 10 CARDS</p><h2 id="collectionTitle">Gemstone Vault</h2></div><span id="collectionSymbol" aria-hidden="true">◆</span></div>
+            <div class="collection-progress"><strong id="collectionProgress">0 / 10 collected</strong><span><i id="collectionProgressBar"></i></span></div>
+            <div class="collection-tools"><span>YOUR CARDS</span><label><span class="visually-hidden">Filter cards</span><select id="collectionFilter"><option value="all">All cards</option><option value="owned">Collected</option></select></label></div>
+            <div class="collection-card-grid" id="collectionGrid" role="tabpanel" tabindex="0" aria-live="polite"></div>
+            <p class="collection-page-foot">Small efforts. Lasting keepsakes.</p>
+          </section>
+        </div>
+        <p class="collection-help">Tap a card for a closer look.</p>
       </section>
 
       <section class="screen" id="shop" aria-labelledby="shopTitle" hidden>
@@ -110,7 +121,15 @@
     <div class="capsule-stage" id="capsuleStage"><button class="dark-icon-button capsule-close" type="button" data-close="capsuleModal" aria-label="Close capsule"><svg><use href="#i-close"/></svg></button><div id="capsuleChoose"><span class="eyebrow lime" id="capsuleCollectionLabel">GEMSTONE VAULT COLLECTION</span><div class="opening-capsule" id="openingCapsule"><span class="capsule-half capsule-top"><img src="assets/repdrop/repdrop-capsule-open-v1.webp" alt="Mystery capsule"></span><span class="capsule-half capsule-bottom"><img src="assets/repdrop/repdrop-capsule-open-v1.webp" alt=""></span><i class="capsule-flare"></i></div><h2 id="capsuleTitle">Your Gemstone Vault drop</h2><p id="capsuleDescription">Reveal one of 10 collectible cards.</p><button class="open-capsule-button" id="revealCapsule" type="button">Open this capsule</button></div><div class="reveal-view" id="revealView" hidden></div></div>
   </dialog>
 
+  <dialog class="card-detail-modal" id="cardDetailModal" aria-labelledby="cardDetailTitle">
+    <div class="card-detail-sheet">
+      <div class="card-detail-top"><span id="cardDetailSet">Gemstone Vault</span><button class="icon-button" type="button" data-close="cardDetailModal" aria-label="Close card details"><svg><use href="#i-close"/></svg></button></div>
+      <div id="cardDetailArt" class="card-detail-art"></div>
+      <span class="card-detail-status" id="cardDetailStatus"></span><h2 id="cardDetailTitle"></h2><p id="cardDetailCopy"></p>
+      <div class="card-detail-navigation"><button type="button" id="previousCard" aria-label="Previous card">←</button><span id="cardDetailPosition"></span><button type="button" id="nextCard" aria-label="Next card">→</button></div>
+    </div>
+  </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="repdrop.js?v=11"></script>
+  <script src="repdrop.js?v=13"></script>
 </body>
 </html>

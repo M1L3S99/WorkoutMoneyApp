@@ -1,12 +1,14 @@
 /* RepDrop app shell — offline-first exercise tracking and collectibles. */
-const CACHE = "repdrop-v12";
+const CACHE = "repdrop-v13";
 const ASSETS = [
   "./",
   "./index.html",
   "./repdrop.css?v=11",
   "./visual-theme.css?v=12",
+  "./collection-designs.css?v=13",
+  "./assets/repdrop/album-paper-v1.png",
   "./assets/repdrop/capsule-alcove-v1.png",
-  "./repdrop.js?v=11",
+  "./repdrop.js?v=13",
   "./manifest.webmanifest",
   "./icon.svg",
   "./assets/farm/ui-v3/step-currency-v2-96.png",

@@ -6,6 +6,7 @@ const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 const html = read("index.html");
 const js = read("repdrop.js");
 const css = read("repdrop.css");
+const collectionCss = read("collection-designs.css");
 const sw = read("sw.js");
 const manifest = JSON.parse(read("manifest.webmanifest"));
 const failures = [];
@@ -31,7 +32,7 @@ check(js.includes('name: "Gemstone Vault"') && js.includes('name: "Bloom Atelier
 check(html.includes('id="collectionPage"') && html.includes('id="collectionLibraryGrid"'), "functional card binder page is missing");
 check(!html.includes("openBinderCapsule") && !html.includes("binder-capsule-button") && !js.includes("openBinderCapsule"), "collection capsule button was not removed");
 check(!html.includes("MY CARD BINDER") && !html.includes("binder-brand"), "removed collection branding is still present");
-check(html.includes("binder-folder-generated-v2.png") && css.includes("locked-card-back-generated-v1.png"), "generated binder artwork is not integrated");
+check(collectionCss.includes("album-paper-v1.png") && js.includes("locked-card-back-generated-v1.png"), "generated album paper and card backs are not integrated");
 check(js.includes('<img src="assets/repdrop/locked-card-back-generated-v1.png"'), "generated locked card is not rendered as a visible image layer");
 check(js.includes("data-open-collection") && js.includes("cardsFor(state.activeSet)"), "collection selection does not control capsule drops");
 check(js.includes('page.classList.add("turning-out")') && js.includes('page.classList.add("turning-in")'), "folder page-turn behavior is missing");
@@ -51,14 +52,20 @@ check(css.includes(".requirement-circle"), "completion circle styling is missing
 check(css.includes("@keyframes binder-page-out") && css.includes("@keyframes binder-page-in"), "folder page-turn animation is missing");
 check(css.includes(".binder-folder-tab") && css.includes(".binder-page:before,.binder-page:after{content:none}"), "card binder styling is incomplete");
 check(css.includes("body.collections-active{background:var(--binder-canvas)}"), "collection canvas is not a single full-screen colour");
-check(sw.includes('const CACHE = "repdrop-v12"'), "offline cache version is incorrect");
-check(html.includes('repdrop.css?v=11') && html.includes('repdrop.js?v=11'), "RepDrop asset cache-busters are stale");
+check(sw.includes('const CACHE = "repdrop-v13"'), "offline cache version is incorrect");
+check(html.includes('repdrop.css?v=11') && html.includes('repdrop.js?v=13') && html.includes('collection-designs.css?v=13'), "RepDrop asset cache-busters are stale");
+check((html.match(/data-collection-design=/g) || []).length === 3, "three working collection views must be available");
+check(js.includes('const COLLECTION_DESIGN_KEY = "repdrop-collection-design-v1"'), "design preferences should be separate from progress");
+check(js.includes("showCardDetails") && html.includes('id="cardDetailModal"'), "tappable card inspection is missing");
+check(js.includes("visibleCollectionCards") && html.includes('id="collectionFilter"'), "collected-card filtering is missing");
+check(collectionCss.includes("prefers-reduced-motion") && js.includes('aria-controls="collectionGrid"'), "accessible collection controls are missing");
 check(manifest.name.startsWith("RepDrop"), "manifest is still branded as the farm app");
 
 for (const asset of [
   "assets/farm/ui-v3/step-currency-v2-96.png",
   "assets/repdrop/repdrop-capsule-open-v1.webp",
   "assets/repdrop/coin-dumbbell-pixel-v1.png",
+  "assets/repdrop/album-paper-v1.png",
   "assets/repdrop/binder-folder-generated-v2.png",
   "assets/repdrop/locked-card-back-generated-v1.png",
   "assets/repdrop/ruby-gem-card-pixel-v2.webp",
@@ -68,6 +75,10 @@ for (const asset of [
   "assets/repdrop/poppy-muse-botanical-ink.webp",
   "assets/repdrop/moon-orchid-card-art.webp"
 ]) check(fs.existsSync(path.join(root, asset)), `missing required asset: ${asset}`);
+
+for (const match of sw.matchAll(/"\.\/([^"?]+)(?:\?[^\"]*)?"/g)) {
+  check(fs.existsSync(path.join(root, match[1])), `offline asset missing: ${match[1]}`);
+}
 
 if (failures.length) {
   console.error(`RepDrop validation failed (${failures.length}):`);
