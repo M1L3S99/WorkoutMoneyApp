@@ -146,6 +146,37 @@
   let scheduleDraft = null;
   let toastTimer = null;
   let pageTurnTimer = null;
+  // Presentation preferences are separate from exercise/reward progress.
+  const COLLECTION_DESIGN_KEY = "repdrop-collection-design-v1";
+  const COLLECTION_DESIGNS = {
+    album: "Paper pages, tucked-away treasures.",
+    gallery: "A little space for every discovery.",
+    journal: "A growing journal of small achievements."
+  };
+  let collectionFilter = "all";
+  let detailCardId = null;
+
+  function applyCollectionDesign(design, persist = true) {
+    const chosen = Object.hasOwn(COLLECTION_DESIGNS, design) ? design : "album";
+    $("#collections").dataset.design = chosen;
+    document.documentElement.dataset.collectionDesign = chosen;
+    $("#collectionDesignNote").textContent = COLLECTION_DESIGNS[chosen];
+    $$("[data-collection-design]").forEach((button) => {
+      button.setAttribute("aria-pressed", String(button.dataset.collectionDesign === chosen));
+    });
+    if (persist) {
+      try { localStorage.setItem(COLLECTION_DESIGN_KEY, chosen); } catch (_) { /* Still works without storage. */ }
+      const url = new URL(location.href);
+      url.searchParams.set("collectionDesign", chosen);
+      history.replaceState(null, "", url);
+    }
+  }
+
+  function initialCollectionDesign() {
+    const linked = new URLSearchParams(location.search).get("collectionDesign");
+    if (Object.hasOwn(COLLECTION_DESIGNS, linked)) return linked;
+    try { return localStorage.getItem(COLLECTION_DESIGN_KEY) || "album"; } catch (_) { return "album"; }
+  }
 
   function saveState() {
     try {
@@ -317,8 +348,8 @@
       const cards = cardsFor(collection.id);
       const owned = cards.filter((card) => state.collection.includes(card.id)).length;
       const active = collection.id === state.activeSet;
-      return `<button class="binder-folder-tab${active ? " active" : ""}" type="button" role="tab" aria-selected="${active}" data-open-collection="${collection.id}" style="--collection-tone:${collection.tone}" aria-label="Open ${collection.name} folder">
-        <span>${collection.symbol}</span><b>${collection.name}</b><small>${owned}/${cards.length}</small>
+      return `<button id="folder-${collection.id}" class="collection-folder${active ? " active" : ""}" type="button" role="tab" aria-selected="${active}" aria-controls="collectionGrid" tabindex="${active ? 0 : -1}" data-open-collection="${collection.id}" style="--collection-tone:${collection.tone}" aria-label="Open ${collection.name} folder">
+        <span aria-hidden="true">${collection.symbol}</span><b>${collection.short}</b><small>${owned}/${cards.length}</small>
       </button>`;
     }).join("");
   }
@@ -327,15 +358,65 @@
     const collection = activeCollection();
     const cards = cardsFor(state.activeSet);
     const owned = cards.filter((card) => state.collection.includes(card.id)).length;
+    const focusedFolder = document.activeElement?.closest("[data-open-collection]")?.dataset.openCollection;
     renderCollectionLibrary();
+    if (focusedFolder) $(`#folder-${state.activeSet}`).focus({ preventScroll: true });
     $("#collectionSymbol").textContent = collection.symbol;
     $("#collectionTitle").textContent = collection.name;
-    $("#collectionMeta").textContent = `${collection.short.toUpperCase()} SERIES · ${cards.length} CARDS`;
-    $("#collectionProgress").textContent = `${owned} / ${cards.length} FOUND`;
+    $("#collectionTotal").textContent = `${state.collection.length} / ${CARDS.length}`;
+    $("#collectionMeta").textContent = `COLLECTION ${String(COLLECTIONS.indexOf(collection) + 1).padStart(2, "0")} · ${cards.length} CARDS`;
+    $("#collectionProgress").textContent = `${owned} / ${cards.length} collected`;
     $("#collectionProgressBar").style.width = `${(owned / cards.length) * 100}%`;
     $("#collectionProgressBar").style.background = collection.tone;
     $("#collectionPage").style.setProperty("--collection-tone", collection.tone);
-    $("#collectionGrid").innerHTML = cards.map((card) => cardMarkup(card, state.collection.includes(card.id))).join("");
+    const visibleCards = visibleCollectionCards();
+    $("#collectionGrid").setAttribute("aria-labelledby", `folder-${collection.id}`);
+    $("#collectionGrid").innerHTML = visibleCards.length
+      ? visibleCards.map((card) => collectionCardMarkup(card)).join("")
+      : '<p class="collection-empty"><svg aria-hidden="true"><use href="#i-cards"/></svg><b>Your story starts here.</b><span>No cards collected in this folder yet. Complete your routine to earn a capsule, or find one in the shop.</span></p>';
+  }
+
+  function visibleCollectionCards() {
+    return cardsFor(state.activeSet).filter((card) => collectionFilter === "all" || state.collection.includes(card.id));
+  }
+
+  function collectionCardMarkup(card) {
+    const owned = state.collection.includes(card.id);
+    const number = String(cardsFor(card.set).indexOf(card) + 1).padStart(2, "0");
+    const art = card.art ? `<img src="${card.art}" alt="" loading="lazy">` : `<span class="card-emoji" aria-hidden="true">${card.emoji}</span>`;
+    return `<button class="collection-card ${owned ? "is-owned" : "is-locked"} set-${card.set}" type="button" data-view-card="${card.id}" aria-label="${owned ? `View ${card.name}, ${card.rarity.toLowerCase()}` : `View undiscovered card ${number}`}" style="--card-number:'${number}'">
+      <span class="collection-card-face">${owned ? art : '<img class="album-card-back" src="assets/repdrop/locked-card-back-generated-v1.png" alt="" loading="lazy"><span class="minimal-card-back" aria-hidden="true"><svg><use href="#i-lock"/></svg><i>To be discovered</i></span>'}<span class="card-corner-number">${number}</span>${owned ? '<span class="card-owned-mark" aria-hidden="true">✓</span>' : ""}</span>
+      <span class="collection-card-caption"><small>${owned ? card.rarity : `CARD ${number}`}</small><b>${owned ? card.name : "Undiscovered"}</b><span class="journal-card-note">${owned ? "A keepsake from your daily effort." : "A space for a future discovery."}</span><span class="journal-card-action">${owned ? "Take a closer look" : "About this card"} <i aria-hidden="true">↗</i></span></span>
+    </button>`;
+  }
+
+  function showCardDetails(cardId) {
+    const card = visibleCollectionCards().find((item) => item.id === cardId);
+    if (!card) return;
+    detailCardId = card.id;
+    const owned = state.collection.includes(card.id);
+    const collection = activeCollection();
+    const cards = visibleCollectionCards();
+    const index = cards.indexOf(card);
+    $("#cardDetailSet").textContent = collection.name;
+    $("#cardDetailTitle").textContent = owned ? card.name : "Still to be discovered";
+    $("#cardDetailStatus").textContent = owned ? `${card.rarity} · COLLECTED` : "NOT COLLECTED";
+    $("#cardDetailArt").innerHTML = owned
+      ? cardMarkup(card, true, true)
+      : '<img class="detail-card-back" src="assets/repdrop/locked-card-back-generated-v1.png" alt="Undiscovered card back">';
+    $("#cardDetailCopy").textContent = owned
+      ? "Yours to keep. A small reminder of the effort you put in."
+      : `A ${collection.name} capsule may reveal this card. Earn capsules by completing your daily routine, or buy one in the shop.`;
+    $("#cardDetailPosition").textContent = `${index + 1} of ${cards.length}`;
+    $("#previousCard").disabled = index === 0;
+    $("#nextCard").disabled = index === cards.length - 1;
+    showDialog($("#cardDetailModal"));
+  }
+
+  function moveDetailCard(direction) {
+    const cards = visibleCollectionCards();
+    const index = cards.findIndex((card) => card.id === detailCardId);
+    if (cards[index + direction]) showCardDetails(cards[index + direction].id);
   }
 
   function showCollection(setId) {
@@ -348,6 +429,7 @@
     pageTurnTimer = setTimeout(() => {
       state.activeSet = setId;
       renderCollections();
+      renderHeader();
       page.classList.remove("turning-out");
       page.classList.add("turning-in");
       saveState();
@@ -376,6 +458,7 @@
   }
 
   function navigate(screenId) {
+    if (!["today", "collections", "shop"].includes(screenId)) return;
     $$(".screen").forEach((screen) => {
       const active = screen.id === screenId;
       screen.hidden = !active;
@@ -394,6 +477,7 @@
       renderCollections();
     }
     if (screenId === "shop") renderShop();
+    if (location.hash !== `#${screenId}`) history.replaceState(null, "", `#${screenId}`);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -606,6 +690,32 @@
     const button = event.target.closest("[data-open-collection]");
     if (button) showCollection(button.dataset.openCollection);
   });
+  $("#collectionLibraryGrid").addEventListener("keydown", (event) => {
+    const index = COLLECTIONS.findIndex((collection) => collection.id === state.activeSet);
+    let next;
+    if (event.key === "ArrowRight") next = (index + 1) % COLLECTIONS.length;
+    if (event.key === "ArrowLeft") next = (index + COLLECTIONS.length - 1) % COLLECTIONS.length;
+    if (event.key === "Home") next = 0;
+    if (event.key === "End") next = COLLECTIONS.length - 1;
+    if (next === undefined) return;
+    event.preventDefault();
+    showCollection(COLLECTIONS[next].id);
+  });
+  $$("[data-collection-design]").forEach((button) => button.addEventListener("click", () => applyCollectionDesign(button.dataset.collectionDesign)));
+  $("#collectionFilter").addEventListener("change", (event) => {
+    collectionFilter = event.target.value === "owned" ? "owned" : "all";
+    renderCollections();
+  });
+  $("#collectionGrid").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-view-card]");
+    if (button) showCardDetails(button.dataset.viewCard);
+  });
+  $("#previousCard").addEventListener("click", () => moveDetailCard(-1));
+  $("#nextCard").addEventListener("click", () => moveDetailCard(1));
+  $("#cardDetailModal").addEventListener("keydown", (event) => {
+    if (event.key === "ArrowLeft") { event.preventDefault(); moveDetailCard(-1); }
+    if (event.key === "ArrowRight") { event.preventDefault(); moveDetailCard(1); }
+  });
   $("#openCapsule").addEventListener("click", openCapsuleDialog);
   $("#capsuleChip").addEventListener("click", openCapsuleDialog);
   $("#revealCapsule").addEventListener("click", revealCapsule);
@@ -632,7 +742,11 @@
     receiveSteps
   };
 
+  applyCollectionDesign(initialCollectionDesign(), false);
   renderAll();
+  const linkedScreen = location.hash.slice(1);
+  if (["today", "collections", "shop"].includes(linkedScreen)) navigate(linkedScreen);
+  window.addEventListener("hashchange", () => navigate(location.hash.slice(1)));
   postNative({ type: "pedometerReady" });
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 })();
